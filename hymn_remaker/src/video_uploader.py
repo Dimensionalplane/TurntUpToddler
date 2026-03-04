@@ -32,34 +32,84 @@ class VideoProducer:
         )
         self.youtube = None
 
-    def create_video(self, audio_path, image_url, output_path):
+    def _create_srt_file(self, lyrics, srt_path):
+        """Convert list of lyric dicts into a standard SRT file."""
+        if not lyrics:
+            return False
+
+        try:
+            with open(srt_path, 'w') as f:
+                for i, line in enumerate(lyrics):
+                    start = float(line.get('start', i * 5))
+                    end = float(line.get('end', start + 4))
+                    text = line.get('text', '')
+
+                    # Convert seconds to SRT timestamp: HH:MM:SS,mmm
+                    def format_time(seconds):
+                        hours = int(seconds // 3600)
+                        minutes = int((seconds % 3600) // 60)
+                        secs = int(seconds % 60)
+                        millis = int((seconds - int(seconds)) * 1000)
+                        return f"{hours:02d}:{minutes:02d}:{secs:02d},{millis:03d}"
+
+                    start_str = format_time(start)
+                    end_str = format_time(end)
+
+                    f.write(f"{i+1}\n")
+                    f.write(f"{start_str} --> {end_str}\n")
+                    f.write(f"{text}\n\n")
+
+            logger.info(f"SRT file created at {srt_path}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to create SRT: {e}")
+            return False
+
+    def create_video(self, audio_path, image_url, output_path, lyrics=None):
         """
-        Create an MP4 video from an audio file and an image URL using ffmpeg.
+        Create an MP4 video from an audio file, image URL, and optional lyrics using ffmpeg.
 
         Args:
             audio_path (str): Path to the input audio file.
             image_url (str): URL of the album art image.
             output_path (str): Path to the output video file.
+            lyrics (list): Optional list of synced lyrics dicts.
         """
         logger.info(f"Creating video from {audio_path} and {image_url}...")
 
         # 1. Download the image to a temporary file
-        temp_image_path = "temp_art.png"
+        import uuid
+        unique_id = uuid.uuid4().hex
+        temp_image_path = f"temp_art_{unique_id}.png"
+        temp_srt_path = f"{output_path}.srt"
         try:
             response = requests.get(image_url)
             response.raise_for_status()
             with open(temp_image_path, 'wb') as f:
                 f.write(response.content)
 
-            # 2. Use ffmpeg to combine image and audio
-            # Loop image, use audio, shortest duration (audio length), aac audio codec, libx264 video codec
-            # tuning for still image
+            # 2. Prepare SRT if lyrics are provided
+            has_subtitles = False
+            if lyrics:
+                has_subtitles = self._create_srt_file(lyrics, temp_srt_path)
+
+            # 3. Use ffmpeg to combine image and audio (and burn subtitles if available)
             cmd = [
                 "ffmpeg",
                 "-y", # Overwrite output
                 "-loop", "1",
                 "-i", temp_image_path,
                 "-i", audio_path,
+            ]
+
+            if has_subtitles:
+                # Add subtitle filter using the generated SRT file.
+                # Important: ffmpeg subtitles filter needs the path safely formatted for complex filters if path has weird chars,
+                # but temp_srt_path should be safe enough here.
+                safe_srt_path = temp_srt_path.replace('\\', '/').replace(':', '\\:')
+                cmd.extend(["-vf", f"subtitles='{safe_srt_path}'"])
+
+            cmd.extend([
                 "-c:v", "libx264",
                 "-tune", "stillimage",
                 "-c:a", "aac",
@@ -67,7 +117,7 @@ class VideoProducer:
                 "-pix_fmt", "yuv420p",
                 "-shortest",
                 output_path
-            ]
+            ])
 
             logger.info(f"Running ffmpeg: {' '.join(cmd)}")
             subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -82,6 +132,8 @@ class VideoProducer:
         finally:
             if os.path.exists(temp_image_path):
                 os.remove(temp_image_path)
+            if os.path.exists(temp_srt_path):
+                os.remove(temp_srt_path)
 
     def _get_authenticated_service(self):
         """Authenticate and return the YouTube API service."""
