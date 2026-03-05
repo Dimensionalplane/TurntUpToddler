@@ -49,15 +49,31 @@ Create a `.env` file in the `hymn_remaker` directory (see `.env.example`) with t
 
 ## Usage
 
-Place your MIDI files in the `hymn_remaker/input/` directory.
+### Web UI (Recommended)
 
-Run the pipeline:
+The easiest way to use the Hymn Remaker Pipeline is through the built-in Streamlit Web UI. It allows you to upload MIDI files, tweak audio settings, and process multiple files concurrently.
+
+```bash
+python -m streamlit run hymn_remaker/app.py
+```
+
+This will launch a local web server, typically accessible at `http://localhost:8501`.
+
+**Features in the Web UI:**
+- **Concurrent Processing:** Process multiple MIDI files at the same time.
+- **Style Presets:** Choose from Deep House, Lofi, Synthwave, Epic Orchestral, or write your own custom prompt.
+- **Advanced Audio Processing:** Toggle volume normalization and set fade-in/fade-out durations.
+- **Automatic Lyrics:** Generates synced lyric subtitles for the video.
+
+### Command Line Interface
+
+You can also run the pipeline manually using the CLI by placing your MIDI files in the `hymn_remaker/input/` directory.
 
 ```bash
 python3 hymn_remaker/main.py
 ```
 
-### Options
+### CLI Options
 
 -   `--input-dir`: Directory containing input MIDI files (default: `hymn_remaker/input`).
 -   `--output-dir`: Directory for output files (default: `hymn_remaker/output`).
@@ -67,7 +83,7 @@ python3 hymn_remaker/main.py
 -   `--skip-render`: Skip rendering if the base audio file already exists.
 -   `--skip-remake`: Skip generation if the remake audio file already exists.
 
-### Example
+### Example (CLI)
 
 ```bash
 python3 hymn_remaker/main.py --style "Lofi hip hop, chill, relaxing" --upload

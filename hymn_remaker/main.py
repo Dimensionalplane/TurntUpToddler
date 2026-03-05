@@ -91,20 +91,32 @@ def main():
             except Exception as e:
                 logger.error(f"Error processing {midi_path} through executor: {e}")
 
-def process_single_midi(midi_path, output_dir, style, skip_render, skip_remake, upload, renderer, remaker, content_gen, video_producer):
+def process_single_midi(
+    midi_path, output_dir, style, skip_render, skip_remake, upload,
+    renderer, remaker, content_gen, video_producer,
+    normalize_audio=True, fade_in_ms=0, fade_out_ms=0, status_callback=None
+):
     try:
         filename = os.path.basename(midi_path)
         name_no_ext = os.path.splitext(filename)[0]
-        logger.info(f"Processing {filename}...")
+
+        def update_status(msg, progress):
+            logger.info(msg)
+            if status_callback:
+                status_callback(msg, progress)
+
+        update_status(f"Processing {filename}...", 10)
 
         # 1. Render MIDI to Audio (WAV)
+        update_status(f"Step 1/4: Rendering MIDI ({filename})...", 20)
         base_audio_path = os.path.join(output_dir, f"{name_no_ext}_base.wav")
         if not skip_render or not os.path.exists(base_audio_path):
             renderer.render(midi_path, base_audio_path)
         else:
-            logger.info(f"Skipping render for {filename}, {base_audio_path} exists.")
+            update_status(f"Skipping render for {filename}, {base_audio_path} exists.", 30)
 
         # 2. Generate Remake (MusicGen)
+        update_status(f"Step 2/4: Remaking Audio via Replicate ({filename})...", 40)
         remake_audio_path = os.path.join(output_dir, f"{name_no_ext}_remake.wav")
 
         if not skip_remake or not os.path.exists(remake_audio_path):
@@ -112,20 +124,21 @@ def process_single_midi(midi_path, output_dir, style, skip_render, skip_remake, 
             remake_url = remaker.remake(base_audio_path, style)
 
             # Download the remake
-            logger.info(f"Downloading remake from {remake_url}...")
+            update_status(f"Downloading remake from {remake_url}...", 50)
             response = requests.get(remake_url)
             response.raise_for_status()
             with open(remake_audio_path, "wb") as f:
                 f.write(response.content)
 
-            # Apply audio processing (Normalization)
-            logger.info(f"Applying advanced audio processing to {filename}...")
-            process_audio(remake_audio_path, remake_audio_path, normalize=True)
+            # Apply audio processing (Normalization & Fades)
+            update_status(f"Applying advanced audio processing to {filename}...", 60)
+            process_audio(remake_audio_path, remake_audio_path, normalize=normalize_audio, fade_in_ms=fade_in_ms, fade_out_ms=fade_out_ms)
 
         else:
-             logger.info(f"Skipping remake for {filename}, {remake_audio_path} exists.")
+             update_status(f"Skipping remake for {filename}, {remake_audio_path} exists.", 60)
 
         # 3. Generate Content (Metadata, Lyrics & Art)
+        update_status(f"Step 3/4: Generating Lyrics, Art & Metadata ({filename})...", 70)
         # We can do this in parallel, but sequential is safer for now
         metadata = content_gen.generate_metadata(name_no_ext, style=style)
         lyrics = content_gen.generate_lyrics(name_no_ext)
@@ -140,15 +153,17 @@ def process_single_midi(midi_path, output_dir, style, skip_render, skip_remake, 
             json.dump(metadata, f, indent=4)
 
         # 4. Create Video (with subtitles if lyrics exist)
+        update_status(f"Step 4/4: Creating Video with Subtitles ({filename})...", 85)
         video_path = os.path.join(output_dir, f"{name_no_ext}.mp4")
         video_producer.create_video(remake_audio_path, art_url, video_path, lyrics=lyrics)
 
         # 5. Upload to YouTube (Optional)
         if upload:
+            update_status(f"Uploading {filename} to YouTube...", 95)
             video_id = video_producer.upload_to_youtube(video_path, metadata)
-            logger.info(f"Video uploaded: https://youtu.be/{video_id}")
-
-        logger.info(f"Finished processing {filename}")
+            update_status(f"Video uploaded: https://youtu.be/{video_id}", 100)
+        else:
+            update_status(f"Finished processing {filename}", 100)
 
     except Exception as e:
         logger.error(f"Error processing {midi_path}: {e}")

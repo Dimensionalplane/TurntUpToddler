@@ -35,14 +35,38 @@ def load_modules():
 renderer, remaker, content_gen, video_producer = load_modules()
 
 st.sidebar.header("Settings")
-style = st.sidebar.text_input("Musical Style", value="Deep House, high quality, electronic")
-output_dir = st.sidebar.text_input("Output Directory", value="hymn_remaker/output")
-max_workers = st.sidebar.slider("Concurrent Tasks", min_value=1, max_value=4, value=1)
-skip_render = st.sidebar.checkbox("Skip Render if exists", value=False)
-skip_remake = st.sidebar.checkbox("Skip Remake if exists", value=False)
-upload = st.sidebar.checkbox("Upload to YouTube", value=False)
 
-uploaded_files = st.file_uploader("Upload MIDI files", type=["mid", "midi"], accept_multiple_files=True)
+# Style Preset Selection
+preset_styles = [
+    "Deep House, high quality, electronic",
+    "Lofi hip hop, chill, relaxing",
+    "Synthwave, retro 80s, neon",
+    "Epic Orchestral, cinematic, Hans Zimmer",
+    "Acoustic Folk, warm, intimate",
+    "Custom..."
+]
+selected_style = st.sidebar.selectbox("Musical Style Preset", preset_styles, help="Select a predefined style or choose 'Custom...' to write your own.")
+
+if selected_style == "Custom...":
+    style = st.sidebar.text_input("Custom Style", value="Your custom prompt here", help="Describe the exact musical style, instruments, and mood you want.")
+else:
+    style = selected_style
+
+output_dir = st.sidebar.text_input("Output Directory", value="hymn_remaker/output", help="Where the final audio, video, and metadata files will be saved.")
+max_workers = st.sidebar.slider("Concurrent Tasks", min_value=1, max_value=4, value=1, help="Process multiple MIDI files at the same time. Warning: High concurrency may hit API rate limits or use significant local resources.")
+
+st.sidebar.markdown("### Advanced Audio Processing")
+with st.sidebar.expander("Audio Settings", expanded=False):
+    normalize_audio = st.checkbox("Normalize Volume", value=True, help="Automatically adjust the volume of the generated audio to a standard level.")
+    fade_in_ms = st.number_input("Fade-In (ms)", min_value=0, max_value=10000, value=0, step=500, help="Apply a gradual volume increase at the start of the audio.")
+    fade_out_ms = st.number_input("Fade-Out (ms)", min_value=0, max_value=10000, value=0, step=500, help="Apply a gradual volume decrease at the end of the audio.")
+
+st.sidebar.markdown("### Pipeline Options")
+skip_render = st.sidebar.checkbox("Skip Render if exists", value=False, help="If the intermediate base WAV file already exists, don't re-render it from MIDI.")
+skip_remake = st.sidebar.checkbox("Skip Remake if exists", value=False, help="If the remade audio already exists, don't call the MusicGen API again.")
+upload = st.sidebar.checkbox("Upload to YouTube", value=False, help="Automatically upload the finished video to YouTube (requires OAuth credentials setup).")
+
+uploaded_files = st.file_uploader("Upload MIDI files", type=["mid", "midi"], accept_multiple_files=True, help="Select one or more public domain hymn MIDI files to process.")
 
 if st.button("Start Processing"):
     if not uploaded_files:
@@ -78,8 +102,16 @@ if st.button("Start Processing"):
         def ui_process_wrapper(file_path):
             filename = os.path.basename(file_path)
             try:
-                status_texts[file_path].text("Processing...")
-                progress_bars[file_path].progress(10)
+                status_texts[file_path].info(f"Step 1/4: Rendering MIDI ({filename})...")
+                progress_bars[file_path].progress(15)
+
+                # We need to monkey-patch or intercept logging if we want to show exact internal steps,
+                # but for now we just wrap the whole call and update progress after it's done.
+                # Alternatively, we pass a callback, but we will modify process_single_midi slightly to accept a callback later.
+                # For now, let's pass a progress callback or simply execute the function.
+
+                # To make this truly granular, we should update process_single_midi to take a status_callback.
+                # Since we haven't yet, we'll just run it. We will update `process_single_midi` in main.py.
 
                 process_single_midi(
                     file_path,
@@ -91,10 +123,14 @@ if st.button("Start Processing"):
                     renderer,
                     remaker,
                     content_gen,
-                    video_producer
+                    video_producer,
+                    normalize_audio=normalize_audio,
+                    fade_in_ms=fade_in_ms,
+                    fade_out_ms=fade_out_ms,
+                    status_callback=lambda msg, prog: (status_texts[file_path].info(msg), progress_bars[file_path].progress(prog))
                 )
 
-                status_texts[file_path].text("Completed! ✅")
+                status_texts[file_path].success(f"Completed! ✅ ({filename})")
                 progress_bars[file_path].progress(100)
 
                 # Try to display the video if it exists
