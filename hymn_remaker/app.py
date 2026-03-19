@@ -34,6 +34,18 @@ def load_modules():
 
 renderer, remaker, content_gen, video_producer = load_modules()
 
+st.sidebar.header("Environment & API")
+missing_keys = []
+if not os.environ.get("OPENAI_API_KEY"):
+    missing_keys.append("OPENAI_API_KEY")
+if not os.environ.get("REPLICATE_API_TOKEN"):
+    missing_keys.append("REPLICATE_API_TOKEN")
+
+if missing_keys:
+    st.sidebar.error(f"Missing API Keys: {', '.join(missing_keys)}. The pipeline may fail. Please set them in your `.env` file.")
+else:
+    st.sidebar.success("API Keys configured! ✅")
+
 st.sidebar.header("Settings")
 
 # Style Preset Selection
@@ -66,9 +78,23 @@ skip_render = st.sidebar.checkbox("Skip Render if exists", value=False, help="If
 skip_remake = st.sidebar.checkbox("Skip Remake if exists", value=False, help="If the remade audio already exists, don't call the MusicGen API again.")
 upload = st.sidebar.checkbox("Upload to YouTube", value=False, help="Automatically upload the finished video to YouTube (requires OAuth credentials setup).")
 
+st.sidebar.markdown("---")
+if st.sidebar.button("🗑️ Clear Workspace", help="Delete all files in the input and output directories."):
+    import shutil
+    try:
+        if os.path.exists("hymn_remaker/input"):
+            shutil.rmtree("hymn_remaker/input")
+            os.makedirs("hymn_remaker/input")
+        if os.path.exists(output_dir):
+            shutil.rmtree(output_dir)
+            os.makedirs(output_dir)
+        st.sidebar.success("Workspace cleared successfully.")
+    except Exception as e:
+        st.sidebar.error(f"Failed to clear workspace: {e}")
+
 uploaded_files = st.file_uploader("Upload MIDI files", type=["mid", "midi"], accept_multiple_files=True, help="Select one or more public domain hymn MIDI files to process.")
 
-if st.button("Start Processing"):
+if st.button("Start Processing", type="primary"):
     if not uploaded_files:
         st.warning("Please upload at least one MIDI file.")
     elif renderer is None:
@@ -136,8 +162,36 @@ if st.button("Start Processing"):
                 # Try to display the video if it exists
                 name_no_ext = os.path.splitext(filename)[0]
                 video_path = os.path.join(output_dir, f"{name_no_ext}.mp4")
+                audio_path = os.path.join(output_dir, f"{name_no_ext}_remake.wav")
+                metadata_path = os.path.join(output_dir, f"{name_no_ext}_metadata.json")
+
                 if os.path.exists(video_path):
                     st.video(video_path)
+
+                    # Create columns for download buttons
+                    col1, col2, col3 = st.columns(3)
+
+                    with open(video_path, "rb") as f:
+                        col1.download_button("Download Video 🎥", f, file_name=f"{name_no_ext}.mp4", mime="video/mp4")
+
+                    if os.path.exists(audio_path):
+                        with open(audio_path, "rb") as f:
+                            col2.download_button("Download Audio 🎵", f, file_name=f"{name_no_ext}_remake.wav", mime="audio/wav")
+
+                    if os.path.exists(metadata_path):
+                        with open(metadata_path, "r") as f:
+                            import json
+                            metadata = json.load(f)
+                            col3.download_button("Download Metadata 📄", json.dumps(metadata, indent=4), file_name=f"{name_no_ext}_metadata.json", mime="application/json")
+
+                        with st.expander(f"Metadata & Lyrics for {name_no_ext}"):
+                            st.write(f"**Title:** {metadata.get('title', 'N/A')}")
+                            st.write(f"**Description:** {metadata.get('description', 'N/A')}")
+                            st.write(f"**Tags:** {', '.join(metadata.get('tags', []))}")
+                            if metadata.get("lyrics"):
+                                st.write("**Lyrics:**")
+                                for line in metadata["lyrics"]:
+                                    st.write(f"[{line.get('start')}s -> {line.get('end')}s] {line.get('text')}")
 
             except Exception as e:
                 status_texts[file_path].text(f"Error: {e} ❌")

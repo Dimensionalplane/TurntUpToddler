@@ -102,30 +102,39 @@ class VideoProducer:
                 "-i", audio_path,
             ]
 
-            if has_subtitles:
-                # Add subtitle filter using the generated SRT file.
-                # Important: ffmpeg subtitles filter needs the path safely formatted for complex filters if path has weird chars,
-                # but temp_srt_path should be safe enough here.
-                safe_srt_path = temp_srt_path.replace('\\', '/').replace(':', '\\:')
-                cmd.extend(["-vf", f"subtitles='{safe_srt_path}'"])
+            # Helper to execute ffmpeg
+            def run_ffmpeg(subtitles_enabled):
+                ffmpeg_cmd = cmd.copy()
+                if subtitles_enabled:
+                    safe_srt_path = temp_srt_path.replace('\\', '/').replace(':', '\\:')
+                    ffmpeg_cmd.extend(["-vf", f"subtitles='{safe_srt_path}'"])
 
-            cmd.extend([
-                "-c:v", "libx264",
-                "-tune", "stillimage",
-                "-c:a", "aac",
-                "-b:a", "192k",
-                "-pix_fmt", "yuv420p",
-                "-shortest",
-                output_path
-            ])
+                ffmpeg_cmd.extend([
+                    "-c:v", "libx264",
+                    "-tune", "stillimage",
+                    "-c:a", "aac",
+                    "-b:a", "192k",
+                    "-pix_fmt", "yuv420p",
+                    "-shortest",
+                    output_path
+                ])
+                logger.info(f"Running ffmpeg: {' '.join(ffmpeg_cmd)}")
+                subprocess.run(ffmpeg_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-            logger.info(f"Running ffmpeg: {' '.join(cmd)}")
-            subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            logger.info(f"Video created at {output_path}")
+            try:
+                # Try with subtitles first if they exist
+                run_ffmpeg(has_subtitles)
+                logger.info(f"Video created at {output_path}")
+            except subprocess.CalledProcessError as e:
+                error_msg = e.stderr.decode()
+                logger.error(f"FFmpeg failed: {error_msg}")
+                if has_subtitles:
+                    logger.warning("FFmpeg failed with subtitles. Retrying WITHOUT subtitles...")
+                    run_ffmpeg(False)
+                    logger.info(f"Video created at {output_path} (without subtitles fallback)")
+                else:
+                    raise
 
-        except subprocess.CalledProcessError as e:
-            logger.error(f"FFmpeg failed: {e.stderr.decode()}")
-            raise
         except Exception as e:
             logger.error(f"Failed to create video: {e}")
             raise
