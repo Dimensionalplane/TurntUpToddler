@@ -43,13 +43,27 @@ Create a `.env` file in the `hymn_remaker` directory (see `.env.example`) with t
 
 -   `REPLICATE_API_TOKEN`: Your API token from [Replicate](https://replicate.com/).
 -   `OPENAI_API_KEY`: Your API key from [OpenAI](https://openai.com/).
+-   `ELEVENLABS_API_KEY`: (Optional) Your API key from [ElevenLabs](https://elevenlabs.io/) to generate high-quality vocals.
 -   `GOOGLE_CLIENT_SECRETS_FILE`: Path to your `client_secrets.json` file for the Google/YouTube API.
 
 **Note:** To upload to YouTube, you must create a project in the [Google Cloud Console](https://console.cloud.google.com/), enable the YouTube Data API v3, and download the OAuth 2.0 Client ID JSON file. Rename it to `client_secrets.json` and place it in the project root.
 
 ## Usage
 
-### Web UI (Recommended)
+### Docker (Recommended)
+
+The easiest way to get the pipeline running is using Docker. This avoids needing to install system dependencies like `fluidsynth` and `ffmpeg` manually on your machine.
+
+Make sure you have [Docker](https://docs.docker.com/get-docker/) installed, then run:
+
+```bash
+cd hymn_remaker
+docker compose up --build
+```
+
+The Web UI will now be available at `http://localhost:8501`. Your `input/` and `output/` folders will be synced locally, so you can drag and drop your files or download them natively!
+
+### Local Development / Web UI
 
 The easiest way to use the Hymn Remaker Pipeline is through the built-in Streamlit Web UI. It allows you to upload MIDI files, tweak audio settings, and process multiple files concurrently.
 
@@ -64,6 +78,7 @@ This will launch a local web server, typically accessible at `http://localhost:8
 - **Style Presets:** Choose from Deep House, Lofi, Synthwave, Epic Orchestral, or write your own custom prompt.
 - **Advanced Audio Processing:** Toggle volume normalization and set fade-in/fade-out durations.
 - **Automatic Lyrics:** Generates synced lyric subtitles for the video.
+- **TTS Vocal Generation:** Automatically detect lyrics, generate vocals using the ElevenLabs API, and mix them precisely with the remade instrumental audio track.
 
 ### Command Line Interface
 

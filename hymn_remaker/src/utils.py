@@ -15,13 +15,13 @@ def retry_request(max_retries=3, delay=2, backoff=2, exceptions=(Exception,)):
         def wrapper(*args, **kwargs):
             retries = 0
             current_delay = delay
-            while retries < max_retries:
+            while retries <= max_retries:
                 try:
                     return func(*args, **kwargs)
                 except exceptions as e:
                     logger.warning(f"Attempt {retries + 1} failed: {e}")
                     retries += 1
-                    if retries >= max_retries:
+                    if retries > max_retries:
                         logger.error(f"Max retries reached for {func.__name__}")
                         raise e
                     logger.info(f"Retrying in {current_delay} seconds...")
