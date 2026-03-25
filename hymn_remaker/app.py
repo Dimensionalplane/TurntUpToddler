@@ -11,9 +11,10 @@ from src.midi_renderer import MidiRenderer
 from src.remaker import MusicRemaker
 from src.content_generator import ContentGenerator
 from src.video_uploader import VideoProducer
+from src.tts_generator import TTSGenerator
 from main import process_single_midi
 
-st.set_page_config(page_title="Hymn Remaker UI", page_icon="🎵")
+st.set_page_config(page_title="Hymn Remaker UI", page_icon="🎵", layout="wide")
 
 st.title("🎵 Hymn Remaker Pipeline")
 st.write("Convert MIDI files into modern music videos with AI!")
@@ -26,13 +27,14 @@ def load_modules():
             MidiRenderer(),
             MusicRemaker(),
             ContentGenerator(),
-            VideoProducer()
+            VideoProducer(),
+            TTSGenerator()
         )
     except Exception as e:
         st.error(f"Failed to initialize modules: {e}")
-        return None, None, None, None
+        return None, None, None, None, None
 
-renderer, remaker, content_gen, video_producer = load_modules()
+renderer, remaker, content_gen, video_producer, tts_generator = load_modules()
 
 st.sidebar.header("Environment & API")
 missing_keys = []
@@ -42,9 +44,12 @@ if not os.environ.get("REPLICATE_API_TOKEN"):
     missing_keys.append("REPLICATE_API_TOKEN")
 
 if missing_keys:
-    st.sidebar.error(f"Missing API Keys: {', '.join(missing_keys)}. The pipeline may fail. Please set them in your `.env` file.")
+    st.sidebar.error(f"Missing Essential API Keys: {', '.join(missing_keys)}. The pipeline may fail. Please set them in your `.env` file.")
 else:
-    st.sidebar.success("API Keys configured! ✅")
+    st.sidebar.success("Essential API Keys configured! ✅")
+
+if not os.environ.get("ELEVENLABS_API_KEY"):
+    st.sidebar.warning("Missing ELEVENLABS_API_KEY. Vocal generation will be disabled.")
 
 st.sidebar.header("Settings")
 
@@ -74,6 +79,10 @@ with st.sidebar.expander("Audio Settings", expanded=False):
     fade_out_ms = st.number_input("Fade-Out (ms)", min_value=0, max_value=10000, value=0, step=500, help="Apply a gradual volume decrease at the end of the audio.")
 
 st.sidebar.markdown("### Pipeline Options")
+generate_vocals = st.sidebar.checkbox("Generate Vocals (ElevenLabs)", value=False, help="Automatically generate singing/spoken word vocals for the lyrics and mix them into the final track.")
+if generate_vocals and not os.environ.get("ELEVENLABS_API_KEY"):
+    st.sidebar.error("Cannot generate vocals without an ELEVENLABS_API_KEY.")
+
 skip_render = st.sidebar.checkbox("Skip Render if exists", value=False, help="If the intermediate base WAV file already exists, don't re-render it from MIDI.")
 skip_remake = st.sidebar.checkbox("Skip Remake if exists", value=False, help="If the remade audio already exists, don't call the MusicGen API again.")
 upload = st.sidebar.checkbox("Upload to YouTube", value=False, help="Automatically upload the finished video to YouTube (requires OAuth credentials setup).")
@@ -150,9 +159,11 @@ if st.button("Start Processing", type="primary"):
                     remaker,
                     content_gen,
                     video_producer,
+                    tts_generator=tts_generator,
                     normalize_audio=normalize_audio,
                     fade_in_ms=fade_in_ms,
                     fade_out_ms=fade_out_ms,
+                    generate_vocals=generate_vocals,
                     status_callback=lambda msg, prog: (status_texts[file_path].info(msg), progress_bars[file_path].progress(prog))
                 )
 

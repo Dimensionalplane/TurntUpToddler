@@ -14,6 +14,7 @@ from src.midi_renderer import MidiRenderer
 from src.remaker import MusicRemaker
 from src.content_generator import ContentGenerator
 from src.video_uploader import VideoProducer
+from src.tts_generator import TTSGenerator
 from src.utils import process_audio
 
 # Load environment variables
@@ -93,8 +94,8 @@ def main():
 
 def process_single_midi(
     midi_path, output_dir, style, skip_render, skip_remake, upload,
-    renderer, remaker, content_gen, video_producer,
-    normalize_audio=True, fade_in_ms=0, fade_out_ms=0, status_callback=None
+    renderer, remaker, content_gen, video_producer, tts_generator=None,
+    normalize_audio=True, fade_in_ms=0, fade_out_ms=0, generate_vocals=False, status_callback=None
 ):
     try:
         filename = os.path.basename(midi_path)
@@ -151,6 +152,30 @@ def process_single_midi(
         with open(metadata_path, "w") as f:
             metadata["lyrics"] = lyrics # Add lyrics to saved metadata
             json.dump(metadata, f, indent=4)
+
+        # Optional: Generate Vocals via ElevenLabs
+        vocal_track_path = None
+        if generate_vocals and tts_generator and lyrics:
+            update_status(f"Step 3.5/4: Generating Vocals via ElevenLabs ({filename})...", 80)
+            vocal_track_path = os.path.join(output_dir, f"{name_no_ext}_vocals.wav")
+            try:
+                tts_generator.generate_vocals(lyrics, vocal_track_path)
+            except Exception as e:
+                logger.error(f"Failed to generate vocals: {e}")
+                vocal_track_path = None # Fallback to no vocals
+
+        # If vocals were generated, we need to mix them into the remake_audio_path now
+        if vocal_track_path:
+            update_status(f"Mixing Vocals into Instrumental ({filename})...", 82)
+            # Re-process the audio to mix the vocals (process_audio handles mixing if vocal_track_path is provided)
+            process_audio(
+                remake_audio_path,
+                remake_audio_path,
+                normalize=normalize_audio,
+                fade_in_ms=fade_in_ms,
+                fade_out_ms=fade_out_ms,
+                vocal_track_path=vocal_track_path
+            )
 
         # 4. Create Video (with subtitles if lyrics exist)
         update_status(f"Step 4/4: Creating Video with Subtitles ({filename})...", 85)
