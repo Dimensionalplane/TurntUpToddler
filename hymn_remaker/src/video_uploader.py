@@ -32,56 +32,166 @@ class VideoProducer:
         )
         self.youtube = None
 
-    def create_video(self, audio_path, image_url, output_path):
+    def _create_srt_file(self, lyrics, srt_path):
+        """Convert list of lyric dicts into a standard SRT file."""
+        if not lyrics:
+            return False
+
+        try:
+            with open(srt_path, 'w') as f:
+                for i, line in enumerate(lyrics):
+                    start = float(line.get('start', i * 5))
+                    end = float(line.get('end', start + 4))
+                    text = line.get('text', '')
+
+                    # Convert seconds to SRT timestamp: HH:MM:SS,mmm
+                    def format_time(seconds):
+                        hours = int(seconds // 3600)
+                        minutes = int((seconds % 3600) // 60)
+                        secs = int(seconds % 60)
+                        millis = int((seconds - int(seconds)) * 1000)
+                        return f"{hours:02d}:{minutes:02d}:{secs:02d},{millis:03d}"
+
+                    start_str = format_time(start)
+                    end_str = format_time(end)
+
+                    f.write(f"{i+1}\n")
+                    f.write(f"{start_str} --> {end_str}\n")
+                    f.write(f"{text}\n\n")
+
+            logger.info(f"SRT file created at {srt_path}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to create SRT: {e}")
+            return False
+
+    def create_video(self, audio_path, image_url, output_path, lyrics=None, use_visualizer=False):
         """
-        Create an MP4 video from an audio file and an image URL using ffmpeg.
+        Create an MP4 video from an audio file, image URL, and optional lyrics using ffmpeg.
 
         Args:
             audio_path (str): Path to the input audio file.
             image_url (str): URL of the album art image.
             output_path (str): Path to the output video file.
+            lyrics (list): Optional list of synced lyrics dicts.
+            use_visualizer (bool): If True, use a dynamic ffmpeg waveform instead of the static image.
         """
-        logger.info(f"Creating video from {audio_path} and {image_url}...")
+        logger.info(f"Creating video from {audio_path}...")
 
-        # 1. Download the image to a temporary file
-        temp_image_path = "temp_art.png"
+        import uuid
+        unique_id = uuid.uuid4().hex
+        temp_image_path = f"temp_art_{unique_id}.png"
+        temp_srt_path = f"{output_path}.srt"
+
         try:
-            response = requests.get(image_url)
-            response.raise_for_status()
-            with open(temp_image_path, 'wb') as f:
-                f.write(response.content)
+            if not use_visualizer:
+                # 1. Download the image to a temporary file if we are using static art
+                response = requests.get(image_url)
+                response.raise_for_status()
+                with open(temp_image_path, 'wb') as f:
+                    f.write(response.content)
 
-            # 2. Use ffmpeg to combine image and audio
-            # Loop image, use audio, shortest duration (audio length), aac audio codec, libx264 video codec
-            # tuning for still image
-            cmd = [
-                "ffmpeg",
-                "-y", # Overwrite output
-                "-loop", "1",
-                "-i", temp_image_path,
-                "-i", audio_path,
-                "-c:v", "libx264",
-                "-tune", "stillimage",
-                "-c:a", "aac",
-                "-b:a", "192k",
-                "-pix_fmt", "yuv420p",
-                "-shortest",
-                output_path
-            ]
+            # 2. Prepare SRT if lyrics are provided
+            has_subtitles = False
+            if lyrics:
+                has_subtitles = self._create_srt_file(lyrics, temp_srt_path)
 
-            logger.info(f"Running ffmpeg: {' '.join(cmd)}")
-            subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            logger.info(f"Video created at {output_path}")
+            # 3. Setup core ffmpeg command depending on visualizer toggle
+            if use_visualizer:
+                # Complex filter for showwaves visualizer. Needs a background to draw on
+                # We create a black background first, then input the audio
+                cmd = [
+                    "ffmpeg",
+                    "-y",
+                    "-f", "lavfi",
+                    "-i", "color=c=black:s=1920x1080",
+                    "-i", audio_path,
+                ]
+            else:
+                # Static image loop
+                cmd = [
+                    "ffmpeg",
+                    "-y",
+                    "-loop", "1",
+                    "-i", temp_image_path,
+                    "-i", audio_path,
+                ]
 
-        except subprocess.CalledProcessError as e:
-            logger.error(f"FFmpeg failed: {e.stderr.decode()}")
-            raise
+            # Helper to execute ffmpeg
+            def run_ffmpeg(subtitles_enabled):
+                ffmpeg_cmd = cmd.copy()
+
+                # Build the video filter
+                vf_filters = []
+                if use_visualizer:
+                    # [VISUALIZER GENERATION LOGIC]
+                    # We use ffmpeg's 'showwaves' filter to create a dynamic, moving waveform of the audio.
+                    # We output it, scale it, and overlay it on the black background.
+                    vf_filters.append("[1:a]showwaves=s=1920x1080:mode=cline:colors=cyan[v];[0:v][v]overlay=format=auto")
+
+                if subtitles_enabled:
+                    safe_srt_path = temp_srt_path.replace('\\', '/').replace(':', '\\:')
+                    if use_visualizer:
+                        # Append the subtitles to the overlay output
+                        vf_filters.append(f"subtitles='{safe_srt_path}'")
+                    else:
+                        vf_filters.append(f"subtitles='{safe_srt_path}'")
+
+                if vf_filters:
+                    # Combine filters with commas if multiple exist
+                    if use_visualizer:
+                        # For complex graphs with multiple inputs/outputs, commas won't work perfectly if chaining
+                        # We chain the overlay into the subtitles if both exist
+                        filter_str = "[1:a]showwaves=s=1920x1080:mode=cline:colors=cyan[wave];[0:v][wave]overlay=format=auto[out1]"
+                        if subtitles_enabled:
+                            safe_srt_path = temp_srt_path.replace('\\', '/').replace(':', '\\:')
+                            filter_str += f";[out1]subtitles='{safe_srt_path}'[out2]"
+                            ffmpeg_cmd.extend(["-filter_complex", filter_str, "-map", "[out2]", "-map", "1:a"])
+                        else:
+                            ffmpeg_cmd.extend(["-filter_complex", filter_str, "-map", "[out1]", "-map", "1:a"])
+                    else:
+                        ffmpeg_cmd.extend(["-vf", ",".join(vf_filters)])
+
+                # Encoding parameters
+                ffmpeg_cmd.extend([
+                    "-c:v", "libx264",
+                    "-c:a", "aac",
+                    "-b:a", "192k",
+                    "-pix_fmt", "yuv420p",
+                    "-shortest",
+                    output_path
+                ])
+
+                # If using static art, we want to tune for stillimage to save space
+                if not use_visualizer:
+                    ffmpeg_cmd.insert(ffmpeg_cmd.index("-c:v") + 2, "-tune")
+                    ffmpeg_cmd.insert(ffmpeg_cmd.index("-tune") + 1, "stillimage")
+
+                logger.info(f"Running ffmpeg: {' '.join(ffmpeg_cmd)}")
+                subprocess.run(ffmpeg_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+            try:
+                # Try with subtitles first if they exist
+                run_ffmpeg(has_subtitles)
+                logger.info(f"Video created at {output_path}")
+            except subprocess.CalledProcessError as e:
+                error_msg = e.stderr.decode()
+                logger.error(f"FFmpeg failed: {error_msg}")
+                if has_subtitles:
+                    logger.warning("FFmpeg failed with subtitles. Retrying WITHOUT subtitles...")
+                    run_ffmpeg(False)
+                    logger.info(f"Video created at {output_path} (without subtitles fallback)")
+                else:
+                    raise
+
         except Exception as e:
             logger.error(f"Failed to create video: {e}")
             raise
         finally:
             if os.path.exists(temp_image_path):
                 os.remove(temp_image_path)
+            if os.path.exists(temp_srt_path):
+                os.remove(temp_srt_path)
 
     def _get_authenticated_service(self):
         """Authenticate and return the YouTube API service."""

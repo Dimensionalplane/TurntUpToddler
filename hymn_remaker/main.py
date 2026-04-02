@@ -14,6 +14,9 @@ from src.midi_renderer import MidiRenderer
 from src.remaker import MusicRemaker
 from src.content_generator import ContentGenerator
 from src.video_uploader import VideoProducer
+from src.tts_generator import TTSGenerator
+from src.utils import process_audio
+from src.db import add_history
 
 # Load environment variables
 load_dotenv()
@@ -61,61 +64,152 @@ def main():
 
     logger.info(f"Found {len(midi_files)} MIDI files to process.")
 
-    for midi_path in midi_files:
+    import concurrent.futures
+
+    # [CONCURRENCY LIMITS EXPLAINED]
+    # We use ThreadPoolExecutor to process multiple MIDI files simultaneously.
+    # We cap `max_workers` to 4 globally across the project to prevent Replicate, OpenAI, and ElevenLabs
+    # API endpoints from hitting Too Many Requests (429) rate limit errors, and to prevent ffmpeg/fluidsynth
+    # from entirely starving local CPU cores, especially if deployed in constrained Docker environments.
+    max_workers = min(4, len(midi_files))
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {
+            executor.submit(
+                process_single_midi,
+                midi_path,
+                args.output_dir,
+                args.style,
+                args.skip_render,
+                args.skip_remake,
+                args.upload,
+                renderer,
+                remaker,
+                content_gen,
+                video_producer
+            ): midi_path for midi_path in midi_files
+        }
+
+        for future in concurrent.futures.as_completed(futures):
+            midi_path = futures[future]
+            try:
+                future.result()
+            except Exception as e:
+                logger.error(f"Error processing {midi_path} through executor: {e}")
+
+def process_single_midi(
+    midi_path, output_dir, style, skip_render, skip_remake, upload,
+    renderer, remaker, content_gen, video_producer, tts_generator=None,
+    normalize_audio=True, fade_in_ms=0, fade_out_ms=0, generate_vocals=False, use_visualizer=False, status_callback=None
+):
+    try:
+        filename = os.path.basename(midi_path)
+        name_no_ext = os.path.splitext(filename)[0]
+
+        def update_status(msg, progress):
+            logger.info(msg)
+            if status_callback:
+                status_callback(msg, progress)
+
+        update_status(f"Processing {filename}...", 10)
+
+        # 1. Render MIDI to Audio (WAV)
+        update_status(f"Step 1/4: Rendering MIDI ({filename})...", 20)
+        base_audio_path = os.path.join(output_dir, f"{name_no_ext}_base.wav")
+        if not skip_render or not os.path.exists(base_audio_path):
+            renderer.render(midi_path, base_audio_path)
+        else:
+            update_status(f"Skipping render for {filename}, {base_audio_path} exists.", 30)
+
+        # 2. Generate Remake (MusicGen)
+        update_status(f"Step 2/4: Remaking Audio via Replicate ({filename})...", 40)
+        remake_audio_path = os.path.join(output_dir, f"{name_no_ext}_remake.wav")
+
+        if not skip_remake or not os.path.exists(remake_audio_path):
+            # Call Replicate
+            remake_url = remaker.remake(base_audio_path, style)
+
+            # Download the remake
+            update_status(f"Downloading remake from {remake_url}...", 50)
+            response = requests.get(remake_url)
+            response.raise_for_status()
+            with open(remake_audio_path, "wb") as f:
+                f.write(response.content)
+
+            # Apply audio processing (Normalization & Fades)
+            update_status(f"Applying advanced audio processing to {filename}...", 60)
+            process_audio(remake_audio_path, remake_audio_path, normalize=normalize_audio, fade_in_ms=fade_in_ms, fade_out_ms=fade_out_ms)
+
+        else:
+             update_status(f"Skipping remake for {filename}, {remake_audio_path} exists.", 60)
+
+        # 3. Generate Content (Metadata, Lyrics & Art)
+        update_status(f"Step 3/4: Generating Lyrics, Art & Metadata ({filename})...", 70)
+        # We can do this in parallel, but sequential is safer for now
+        metadata = content_gen.generate_metadata(name_no_ext, style=style)
+        lyrics = content_gen.generate_lyrics(name_no_ext)
+
+        art_prompt = f"Abstract album art for {metadata.get('title', name_no_ext)}, {style} style, high quality, 4k"
+        art_url = content_gen.generate_art(art_prompt)
+
+        # Save metadata to file for reference
+        metadata_path = os.path.join(output_dir, f"{name_no_ext}_metadata.json")
+        with open(metadata_path, "w") as f:
+            metadata["lyrics"] = lyrics # Add lyrics to saved metadata
+            json.dump(metadata, f, indent=4)
+
+        # Optional: Generate Vocals via ElevenLabs
+        vocal_track_path = None
+        if generate_vocals and tts_generator and lyrics:
+            update_status(f"Step 3.5/4: Generating Vocals via ElevenLabs ({filename})...", 80)
+            vocal_track_path = os.path.join(output_dir, f"{name_no_ext}_vocals.wav")
+            try:
+                tts_generator.generate_vocals(lyrics, vocal_track_path)
+            except Exception as e:
+                logger.error(f"Failed to generate vocals: {e}")
+                vocal_track_path = None # Fallback to no vocals
+
+        # If vocals were generated, we need to mix them into the remake_audio_path now
+        if vocal_track_path:
+            update_status(f"Mixing Vocals into Instrumental ({filename})...", 82)
+            # Re-process the audio to mix the vocals (process_audio handles mixing if vocal_track_path is provided)
+            process_audio(
+                remake_audio_path,
+                remake_audio_path,
+                normalize=normalize_audio,
+                fade_in_ms=fade_in_ms,
+                fade_out_ms=fade_out_ms,
+                vocal_track_path=vocal_track_path
+            )
+
+        # 4. Create Video (with subtitles if lyrics exist)
+        update_status(f"Step 4/4: Creating Video with Subtitles ({filename})...", 85)
+        video_path = os.path.join(output_dir, f"{name_no_ext}.mp4")
+        video_producer.create_video(remake_audio_path, art_url, video_path, lyrics=lyrics, use_visualizer=use_visualizer)
+
+        # 5. Upload to YouTube (Optional)
+        if upload:
+            update_status(f"Uploading {filename} to YouTube...", 95)
+            video_id = video_producer.upload_to_youtube(video_path, metadata)
+            update_status(f"Video uploaded: https://youtu.be/{video_id}", 100)
+        else:
+            update_status(f"Finished processing {filename}", 100)
+
+        # 6. Add to SQLite History DB
         try:
-            filename = os.path.basename(midi_path)
-            name_no_ext = os.path.splitext(filename)[0]
-            logger.info(f"Processing {filename}...")
+            add_history(
+                hymn_name=name_no_ext,
+                style=style,
+                video_path=video_path,
+                audio_path=remake_audio_path,
+                metadata_path=metadata_path
+            )
+        except Exception as db_err:
+            logger.error(f"Failed to record history to SQLite: {db_err}")
 
-            # 1. Render MIDI to Audio (WAV)
-            base_audio_path = os.path.join(args.output_dir, f"{name_no_ext}_base.wav")
-            if not args.skip_render or not os.path.exists(base_audio_path):
-                renderer.render(midi_path, base_audio_path)
-            else:
-                logger.info(f"Skipping render for {filename}, {base_audio_path} exists.")
-
-            # 2. Generate Remake (MusicGen)
-            remake_audio_path = os.path.join(args.output_dir, f"{name_no_ext}_remake.wav")
-
-            if not args.skip_remake or not os.path.exists(remake_audio_path):
-                # Call Replicate
-                remake_url = remaker.remake(base_audio_path, args.style)
-
-                # Download the remake
-                logger.info(f"Downloading remake from {remake_url}...")
-                response = requests.get(remake_url)
-                response.raise_for_status()
-                with open(remake_audio_path, "wb") as f:
-                    f.write(response.content)
-            else:
-                 logger.info(f"Skipping remake for {filename}, {remake_audio_path} exists.")
-
-            # 3. Generate Content (Metadata & Art)
-            # We can do this in parallel, but sequential is safer for now
-            metadata = content_gen.generate_metadata(name_no_ext, style=args.style)
-
-            art_prompt = f"Abstract album art for {metadata.get('title', name_no_ext)}, {args.style} style, high quality, 4k"
-            art_url = content_gen.generate_art(art_prompt)
-
-            # Save metadata to file for reference
-            metadata_path = os.path.join(args.output_dir, f"{name_no_ext}_metadata.json")
-            with open(metadata_path, "w") as f:
-                json.dump(metadata, f, indent=4)
-
-            # 4. Create Video
-            video_path = os.path.join(args.output_dir, f"{name_no_ext}.mp4")
-            video_producer.create_video(remake_audio_path, art_url, video_path)
-
-            # 5. Upload to YouTube (Optional)
-            if args.upload:
-                video_id = video_producer.upload_to_youtube(video_path, metadata)
-                logger.info(f"Video uploaded: https://youtu.be/{video_id}")
-
-            logger.info(f"Finished processing {filename}")
-
-        except Exception as e:
-            logger.error(f"Error processing {midi_path}: {e}")
-            continue
+    except Exception as e:
+        logger.error(f"Error processing {midi_path}: {e}")
+        raise e
 
 if __name__ == "__main__":
     main()

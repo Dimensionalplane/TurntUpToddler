@@ -62,6 +62,46 @@ class ContentGenerator:
         return metadata
 
     @retry_request(max_retries=3, delay=2, backoff=2)
+    def generate_lyrics(self, hymn_name):
+        """
+        Generate or retrieve the original lyrics for a hymn and estimate timestamps for subtitles.
+
+        Args:
+            hymn_name (str): Name of the original hymn.
+
+        Returns:
+            list: A list of dicts with 'start', 'end' (in seconds, approximate) and 'text'.
+        """
+        prompt = (
+            f"Provide the original public domain lyrics for the hymn '{hymn_name}'.\n"
+            f"Please output them in a JSON array where each element is an object with:\n"
+            f"- 'text': The line of lyrics.\n"
+            f"- 'start': An estimated start time in seconds (float) for this line, assuming a standard tempo.\n"
+            f"- 'end': An estimated end time in seconds (float) for this line.\n"
+            f"Make the first line start around 5 seconds in. Just estimate the pacing for a standard 3-4 minute song."
+        )
+
+        logger.info(f"Generating synced lyrics for '{hymn_name}'...")
+        response = self.client.chat.completions.create(
+            model="gpt-4-turbo",
+            messages=[
+                {"role": "system", "content": "You are a lyric synchronization expert. You must respond in valid JSON containing a list of objects under the key 'lyrics'."},
+                {"role": "user", "content": prompt}
+            ],
+            response_format={ "type": "json_object" }
+        )
+
+        content = response.choices[0].message.content
+        try:
+            lyrics_data = json.loads(content)
+            lyrics = lyrics_data.get("lyrics", [])
+            logger.info(f"Generated {len(lyrics)} lines of synced lyrics.")
+            return lyrics
+        except Exception as e:
+            logger.error(f"Failed to parse lyrics JSON: {e}")
+            return []
+
+    @retry_request(max_retries=3, delay=2, backoff=2)
     def generate_art(self, prompt):
         """
         Generate album art using DALL-E 3.
