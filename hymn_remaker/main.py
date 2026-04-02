@@ -15,6 +15,8 @@ from src.remaker import MusicRemaker
 from src.content_generator import ContentGenerator
 from src.video_uploader import VideoProducer
 from src.tts_generator import TTSGenerator
+from src.s3_uploader import S3Uploader
+from src.webhook_notifier import WebhookNotifier
 from src.utils import process_audio
 from src.db import add_history
 
@@ -100,7 +102,8 @@ def main():
 def process_single_midi(
     midi_path, output_dir, style, skip_render, skip_remake, upload,
     renderer, remaker, content_gen, video_producer, tts_generator=None,
-    normalize_audio=True, fade_in_ms=0, fade_out_ms=0, generate_vocals=False, use_visualizer=False, status_callback=None
+    normalize_audio=True, fade_in_ms=0, fade_out_ms=0, generate_vocals=False, use_visualizer=False,
+    s3_bucket=None, webhook_url=None, status_callback=None
 ):
     try:
         filename = os.path.basename(midi_path)
@@ -188,21 +191,48 @@ def process_single_midi(
         video_producer.create_video(remake_audio_path, art_url, video_path, lyrics=lyrics, use_visualizer=use_visualizer)
 
         # 5. Upload to YouTube (Optional)
+        youtube_url = None
         if upload:
-            update_status(f"Uploading {filename} to YouTube...", 95)
+            update_status(f"Uploading {filename} to YouTube...", 90)
             video_id = video_producer.upload_to_youtube(video_path, metadata)
-            update_status(f"Video uploaded: https://youtu.be/{video_id}", 100)
-        else:
-            update_status(f"Finished processing {filename}", 100)
+            youtube_url = f"https://youtu.be/{video_id}"
+            update_status(f"Video uploaded: {youtube_url}", 92)
 
-        # 6. Add to SQLite History DB
+        # 6. Upload to AWS S3 (Optional)
+        s3_video_url = None
+        s3_audio_url = None
+        if s3_bucket:
+            update_status(f"Uploading {filename} to AWS S3 ({s3_bucket})...", 94)
+            s3_uploader = S3Uploader()
+            # Upload Video
+            s3_video_url = s3_uploader.upload_file(video_path, s3_bucket)
+            # Upload Audio
+            s3_audio_url = s3_uploader.upload_file(remake_audio_path, s3_bucket)
+            # Upload Metadata
+            s3_uploader.upload_file(metadata_path, s3_bucket)
+            update_status(f"S3 Upload Complete.", 96)
+
+        # 7. Send Webhook Notification (Optional)
+        if webhook_url:
+            update_status(f"Sending Webhook Notification for {filename}...", 98)
+            notifier = WebhookNotifier(webhook_url=webhook_url)
+            title = f"🎵 New Hymn Generated: {metadata.get('title', name_no_ext)}"
+            desc = metadata.get('description', f"A new {style} remake of {name_no_ext} has finished processing.")
+            notifier.send_notification(title, desc, s3_video_url=s3_video_url, youtube_url=youtube_url, s3_audio_url=s3_audio_url, style=style)
+            update_status(f"Webhook Sent.", 99)
+
+        update_status(f"Finished processing {filename}", 100)
+
+        # 8. Add to SQLite History DB
         try:
             add_history(
                 hymn_name=name_no_ext,
                 style=style,
                 video_path=video_path,
                 audio_path=remake_audio_path,
-                metadata_path=metadata_path
+                metadata_path=metadata_path,
+                remote_video_url=s3_video_url,
+                remote_audio_url=s3_audio_url
             )
         except Exception as db_err:
             logger.error(f"Failed to record history to SQLite: {db_err}")

@@ -6,5 +6,6 @@
 - [x] ElevenLabs automated TTS singing/spoken-word track mixing.
 - [x] SQLite generation tracking and history management.
 - [x] FFmpeg visualizer implementation (waveform).
-- [ ] AWS S3 Integration for storing outputs remotely.
+- [x] AWS S3 Integration for storing outputs remotely.
+- [x] Webhook Discord/Slack rich embed notifications.
 - [ ] Add submodules dashboard tracking version compatibility.

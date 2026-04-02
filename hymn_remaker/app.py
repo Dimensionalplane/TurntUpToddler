@@ -111,6 +111,11 @@ skip_render = st.sidebar.checkbox("Skip Render if exists", value=False, help="If
 skip_remake = st.sidebar.checkbox("Skip Remake if exists", value=False, help="If the remade audio already exists, don't call the MusicGen API again.")
 upload = st.sidebar.checkbox("Upload to YouTube", value=False, help="Automatically upload the finished video to YouTube (requires OAuth credentials setup).")
 
+st.sidebar.markdown("### Cloud & Notifications")
+with st.sidebar.expander("S3 & Webhooks", expanded=False):
+    s3_bucket = st.text_input("AWS S3 Bucket Name", value=os.environ.get("AWS_S3_BUCKET", ""), help="Upload generated assets to this S3 bucket automatically. Requires AWS credentials in .env.")
+    webhook_url = st.text_input("Discord/Slack Webhook URL", value=os.environ.get("WEBHOOK_URL", ""), help="Send a notification to this webhook when generation completes.")
+
 st.sidebar.markdown("---")
 if st.sidebar.button("🗑️ Clear Workspace", help="Delete all files in the input and output directories."):
     import shutil
@@ -198,6 +203,8 @@ with tab1:
                         fade_out_ms=fade_out_ms,
                         generate_vocals=generate_vocals,
                         use_visualizer=use_visualizer,
+                    s3_bucket=s3_bucket if s3_bucket else None,
+                    webhook_url=webhook_url if webhook_url else None,
                         status_callback=lambda msg, prog: (status_texts[file_path].info(msg), progress_bars[file_path].progress(prog))
                     )
 
@@ -291,4 +298,10 @@ with tab2:
                         except Exception:
                             st.write("Metadata file unavailable.")
                 else:
-                    st.warning("Video file has been deleted or moved from output directory.")
+                    if record.get('remote_video_url'):
+                        st.info("Local file deleted, but cloud backups are available.")
+                        st.markdown(f"[Watch/Download Video from S3]({record['remote_video_url']})")
+                        if record.get('remote_audio_url'):
+                            st.markdown(f"[Download Audio from S3]({record['remote_audio_url']})")
+                    else:
+                        st.warning("Video file has been deleted or moved from output directory, and no cloud backup exists.")

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2024-05-22
+### Added
+- **AWS S3 Integration**: Integrated `boto3` via `s3_uploader.py` to seamlessly backup generated MP4s, WAVs, and metadata to S3-compatible cloud storage. Added Cloud expander to the UI to configure target buckets.
+- **Webhook Notifications**: Added `WebhookNotifier` capable of pinging Discord/Slack URLs with a rich-embed payload when a song completes, including S3 download links, YouTube URLs, and style metadata.
+- **Cloud History Database**: Updated the local SQLite database to persist `remote_video_url` and `remote_audio_url`. The UI's Gallery tab now defaults to providing these cloud backup links if the local files are cleared or deleted.
+
 ## [1.2.0] - 2024-05-22
 ### Added
 - **Gallery & History Database**: Integrated a local SQLite database (`history.db`) to track all successful generations. Added a "Gallery & History" tab to the Streamlit UI to browse, play, and download past remixes natively without having to re-generate them.
