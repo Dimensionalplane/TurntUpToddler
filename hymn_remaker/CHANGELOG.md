@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0] - 2024-05-22
+### Added
+- **Dynamic AI Prompts**: Introduced `midi_analyzer.py` utilizing the `mido` library to parse `.mid` files at the byte-level, extracting the BPM and Time Signature. This is fed into GPT-4 to generate highly specific, expert-level Replicate prompts dynamically based on the user's base style.
+- **Prompt Transparency**: The final generated prompt is now logged inside the JSON metadata and rendered in the UI expanders for full transparency on what was sent to the audio models.
+
 ## [1.3.0] - 2024-05-22
 ### Added
 - **AWS S3 Integration**: Integrated `boto3` via `s3_uploader.py` to seamlessly backup generated MP4s, WAVs, and metadata to S3-compatible cloud storage. Added Cloud expander to the UI to configure target buckets.

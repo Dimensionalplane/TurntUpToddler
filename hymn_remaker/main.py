@@ -17,6 +17,7 @@ from src.video_uploader import VideoProducer
 from src.tts_generator import TTSGenerator
 from src.s3_uploader import S3Uploader
 from src.webhook_notifier import WebhookNotifier
+from src.midi_analyzer import MidiAnalyzer
 from src.utils import process_audio
 from src.db import add_history
 
@@ -103,7 +104,7 @@ def process_single_midi(
     midi_path, output_dir, style, skip_render, skip_remake, upload,
     renderer, remaker, content_gen, video_producer, tts_generator=None,
     normalize_audio=True, fade_in_ms=0, fade_out_ms=0, generate_vocals=False, use_visualizer=False,
-    s3_bucket=None, webhook_url=None, status_callback=None
+    use_dynamic_prompt=False, s3_bucket=None, webhook_url=None, status_callback=None
 ):
     try:
         filename = os.path.basename(midi_path)
@@ -115,6 +116,23 @@ def process_single_midi(
                 status_callback(msg, progress)
 
         update_status(f"Processing {filename}...", 10)
+
+        # 0. Pre-Process: Analyze MIDI and Generate Dynamic Prompt
+        final_prompt = style
+        if use_dynamic_prompt:
+            update_status(f"Analyzing MIDI structure & generating dynamic AI prompt ({filename})...", 15)
+            midi_metrics = MidiAnalyzer.analyze_file(midi_path)
+
+            try:
+                final_prompt = content_gen.generate_dynamic_prompt(
+                    name_no_ext,
+                    style,
+                    bpm=midi_metrics.get("bpm"),
+                    time_signature=midi_metrics.get("time_signature")
+                )
+                logger.info(f"Replaced generic style '{style}' with dynamic prompt: '{final_prompt}'")
+            except Exception as e:
+                logger.error(f"Failed to generate dynamic prompt, falling back to generic style: {e}")
 
         # 1. Render MIDI to Audio (WAV)
         update_status(f"Step 1/4: Rendering MIDI ({filename})...", 20)
@@ -130,7 +148,7 @@ def process_single_midi(
 
         if not skip_remake or not os.path.exists(remake_audio_path):
             # Call Replicate
-            remake_url = remaker.remake(base_audio_path, style)
+            remake_url = remaker.remake(base_audio_path, final_prompt)
 
             # Download the remake
             update_status(f"Downloading remake from {remake_url}...", 50)
@@ -149,7 +167,7 @@ def process_single_midi(
         # 3. Generate Content (Metadata, Lyrics & Art)
         update_status(f"Step 3/4: Generating Lyrics, Art & Metadata ({filename})...", 70)
         # We can do this in parallel, but sequential is safer for now
-        metadata = content_gen.generate_metadata(name_no_ext, style=style)
+        metadata = content_gen.generate_metadata(name_no_ext, style=style) # Metadata prompt stays original style so titles aren't crazy long
         lyrics = content_gen.generate_lyrics(name_no_ext)
 
         art_prompt = f"Abstract album art for {metadata.get('title', name_no_ext)}, {style} style, high quality, 4k"
@@ -159,6 +177,7 @@ def process_single_midi(
         metadata_path = os.path.join(output_dir, f"{name_no_ext}_metadata.json")
         with open(metadata_path, "w") as f:
             metadata["lyrics"] = lyrics # Add lyrics to saved metadata
+            metadata["ai_generation_prompt"] = final_prompt # Log what was actually fed to Replicate
             json.dump(metadata, f, indent=4)
 
         # Optional: Generate Vocals via ElevenLabs

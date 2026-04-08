@@ -10,3 +10,4 @@ pydub
 streamlit
 elevenlabs
 boto3
+mido

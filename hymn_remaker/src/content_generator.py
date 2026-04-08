@@ -62,6 +62,53 @@ class ContentGenerator:
         return metadata
 
     @retry_request(max_retries=3, delay=2, backoff=2)
+    def generate_dynamic_prompt(self, hymn_name, style, bpm=None, time_signature=None):
+        """
+        Generate an expert-level MusicGen prompt based on the user's style, hymn name, and extracted MIDI metrics.
+
+        Args:
+            hymn_name (str): Name of the original hymn.
+            style (str): User's selected generic style (e.g. 'Deep House').
+            bpm (int): Extracted BPM from MIDI file.
+            time_signature (str): Extracted time signature (e.g., '4/4').
+
+        Returns:
+            str: An optimized, detailed music prompt for Replicate's MusicGen.
+        """
+        metrics = []
+        if bpm:
+            metrics.append(f"{bpm} BPM")
+        if time_signature:
+            metrics.append(f"{time_signature} time signature")
+
+        metric_str = f", structured precisely at {', '.join(metrics)}, " if metrics else " "
+
+        system_prompt = (
+            "You are a master music producer and prompt engineer. Your job is to convert a user's generic "
+            "style request and a hymn's name into a highly specific, professional, and detailed text-to-music prompt. "
+            "Describe the instruments, the energy level, the groove, and the mixing quality required. "
+            "Do NOT include conversational filler like 'Here is your prompt:'. Only output the raw prompt string itself, max 250 characters."
+        )
+
+        user_prompt = (
+            f"Write a detailed music production prompt to remix the traditional hymn '{hymn_name}' "
+            f"into a modern '{style}' track{metric_str}combining the original melody with high-end modern production techniques."
+        )
+
+        logger.info(f"Generating dynamic MusicGen prompt for '{hymn_name}'...")
+        response = self.client.chat.completions.create(
+            model="gpt-4-turbo",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+        )
+
+        dynamic_prompt = response.choices[0].message.content.strip().strip('"')
+        logger.info(f"Dynamic Prompt: '{dynamic_prompt}'")
+        return dynamic_prompt
+
+    @retry_request(max_retries=3, delay=2, backoff=2)
     def generate_lyrics(self, hymn_name):
         """
         Generate or retrieve the original lyrics for a hymn and estimate timestamps for subtitles.

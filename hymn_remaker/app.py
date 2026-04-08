@@ -107,6 +107,8 @@ replicate_model_hash = st.sidebar.text_input(
 )
 os.environ["REPLICATE_MODEL"] = replicate_model_hash
 
+use_dynamic_prompt = st.sidebar.checkbox("Use AI Dynamic Prompting", value=True, help="Automatically analyze the MIDI structure (BPM, Time Signature) and use OpenAI to craft an expert-level prompt for Replicate, rather than just passing the generic style text.")
+
 skip_render = st.sidebar.checkbox("Skip Render if exists", value=False, help="If the intermediate base WAV file already exists, don't re-render it from MIDI.")
 skip_remake = st.sidebar.checkbox("Skip Remake if exists", value=False, help="If the remade audio already exists, don't call the MusicGen API again.")
 upload = st.sidebar.checkbox("Upload to YouTube", value=False, help="Automatically upload the finished video to YouTube (requires OAuth credentials setup).")
@@ -203,8 +205,9 @@ with tab1:
                         fade_out_ms=fade_out_ms,
                         generate_vocals=generate_vocals,
                         use_visualizer=use_visualizer,
-                    s3_bucket=s3_bucket if s3_bucket else None,
-                    webhook_url=webhook_url if webhook_url else None,
+                        use_dynamic_prompt=use_dynamic_prompt,
+                        s3_bucket=s3_bucket if s3_bucket else None,
+                        webhook_url=webhook_url if webhook_url else None,
                         status_callback=lambda msg, prog: (status_texts[file_path].info(msg), progress_bars[file_path].progress(prog))
                     )
 
@@ -239,6 +242,7 @@ with tab1:
                             with st.expander(f"Metadata & Lyrics for {name_no_ext}"):
                                 st.write(f"**Title:** {metadata.get('title', 'N/A')}")
                                 st.write(f"**Description:** {metadata.get('description', 'N/A')}")
+                                st.write(f"**Actual AI Prompt Used:** _{metadata.get('ai_generation_prompt', 'N/A')}_")
                                 st.write(f"**Tags:** {', '.join(metadata.get('tags', []))}")
                                 if metadata.get("lyrics"):
                                     st.write("**Lyrics:**")
