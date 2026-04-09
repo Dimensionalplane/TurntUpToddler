@@ -132,7 +132,7 @@ if st.sidebar.button("🗑️ Clear Workspace", help="Delete all files in the in
     except Exception as e:
         st.sidebar.error(f"Failed to clear workspace: {e}")
 
-tab1, tab2 = st.tabs(["🚀 Generate", "📁 Gallery & History"])
+tab1, tab2, tab3 = st.tabs(["🚀 Generate", "📁 Gallery & History", "⚙️ System Dashboard"])
 
 with tab1:
     st.subheader("Create New Hymn")
@@ -309,3 +309,67 @@ with tab2:
                             st.markdown(f"[Download Audio from S3]({record['remote_audio_url']})")
                     else:
                         st.warning("Video file has been deleted or moved from output directory, and no cloud backup exists.")
+
+with tab3:
+    st.subheader("System & Dependencies Dashboard")
+    st.write("Track the version compatibility of the underlying project submodules and system binaries. Useful for debugging Docker environments.")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("#### System Binaries")
+        import subprocess
+        # Check FFmpeg
+        try:
+            ffmpeg_version = subprocess.check_output(["ffmpeg", "-version"]).decode().split('\n')[0]
+            st.success(f"✅ FFmpeg: `{ffmpeg_version}`")
+        except Exception:
+            st.error("❌ FFmpeg: Not Installed or Not in PATH")
+
+        # Check FluidSynth
+        try:
+            fluidsynth_version = subprocess.check_output(["fluidsynth", "--version"]).decode().split('\n')[0]
+            st.success(f"✅ FluidSynth: `{fluidsynth_version}`")
+        except Exception:
+            st.error("❌ FluidSynth: Not Installed or Not in PATH")
+
+    with col2:
+        st.markdown("#### Python Submodules (`requirements.txt`)")
+        try:
+            req_path = os.path.join(os.path.dirname(__file__), "requirements.txt")
+            if os.path.exists(req_path):
+                with open(req_path, "r") as f:
+                    reqs = f.read().splitlines()
+
+                # Fetch installed versions
+                import importlib.metadata
+                for req in reqs:
+                    if not req.strip() or req.startswith('#'): continue
+                    pkg_name = req.split('==')[0].split('>=')[0].split('<')[0].strip()
+                    try:
+                        version = importlib.metadata.version(pkg_name)
+                        st.write(f"- **{pkg_name}**: `v{version}`")
+                    except importlib.metadata.PackageNotFoundError:
+                        st.write(f"- **{pkg_name}**: `Not Installed` ❌")
+            else:
+                st.warning("`requirements.txt` not found.")
+        except Exception as e:
+            st.error(f"Could not load requirements: {e}")
+
+    st.markdown("---")
+    st.markdown("#### Project Directory Structure")
+    st.code("""
+hymn_remaker/
+├── app.py                  # Streamlit Web UI
+├── main.py                 # Core parallel processing pipeline
+├── src/                    # Submodules & API Integrations
+│   ├── content_generator.py # OpenAI GPT-4 / DALL-E
+│   ├── midi_analyzer.py     # Mido BPM/Time Signature Parsing
+│   ├── tts_generator.py     # ElevenLabs Voice Synthesis
+│   ├── s3_uploader.py       # Boto3 AWS S3 Backup
+│   ├── video_uploader.py    # FFmpeg & YouTube Data API
+│   ├── webhook_notifier.py  # Discord/Slack Integrations
+│   └── utils.py             # Pydub Audio Ducking/Mixing
+├── input/                  # MIDI drop folder
+└── output/                 # Final MP4/WAV/JSON destination
+    """)

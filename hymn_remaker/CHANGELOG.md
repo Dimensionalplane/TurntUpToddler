@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.0] - 2024-05-22
+### Added
+- **System Dashboard Tab**: Added a third tab to the Streamlit UI called "⚙️ System Dashboard". It queries the OS to track versions of `ffmpeg`, `fluidsynth`, Python dependencies in `requirements.txt`, and displays a project directory map. This is incredibly useful for users deploying via Docker to ensure their system binaries are correctly hooked up.
+- **Granular TTS Progress Logging**: Passed the UI `status_callback` deep into the ElevenLabs iterative loop inside `tts_generator.py`. Rather than stalling the UI progress bar, it now ticks up per lyric line (e.g., "Synthesizing Vocal Line 3/10: 'Amazing Grace'").
+
 ## [1.4.0] - 2024-05-22
 ### Added
 - **Dynamic AI Prompts**: Introduced `midi_analyzer.py` utilizing the `mido` library to parse `.mid` files at the byte-level, extracting the BPM and Time Signature. This is fed into GPT-4 to generate highly specific, expert-level Replicate prompts dynamically based on the user's base style.

@@ -183,10 +183,11 @@ def process_single_midi(
         # Optional: Generate Vocals via ElevenLabs
         vocal_track_path = None
         if generate_vocals and tts_generator and lyrics:
-            update_status(f"Step 3.5/4: Generating Vocals via ElevenLabs ({filename})...", 80)
+            update_status(f"Step 3.5/4: Generating Vocals via ElevenLabs ({filename})...", 70)
             vocal_track_path = os.path.join(output_dir, f"{name_no_ext}_vocals.wav")
             try:
-                tts_generator.generate_vocals(lyrics, vocal_track_path)
+                # Pass the update_status callback deep into the generator so the UI ticks up per lyric line
+                tts_generator.generate_vocals(lyrics, vocal_track_path, status_callback=update_status)
             except Exception as e:
                 logger.error(f"Failed to generate vocals: {e}")
                 vocal_track_path = None # Fallback to no vocals

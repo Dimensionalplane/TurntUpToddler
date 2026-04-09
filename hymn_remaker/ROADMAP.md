@@ -9,4 +9,4 @@
 - [x] AWS S3 Integration for storing outputs remotely.
 - [x] Webhook Discord/Slack rich embed notifications.
 - [x] Dynamic prompt generation based on MIDI Tempo parsing.
-- [ ] Add submodules dashboard tracking version compatibility.
+- [x] Add submodules dashboard tracking version compatibility.
