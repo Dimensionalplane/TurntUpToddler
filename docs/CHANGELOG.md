@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.2.0] - 2024-04-10
+### Added
+- Added local caching for DALL-E 3 generated album art to prevent redundant API calls.
+
 ## [1.1.0] - 2024-04-10
 ### Added
 - Comprehensive documentation suite (`ROADMAP.md`, `VISION.md`, `TODO.md`, etc.) aligned with the Omni-Workspace specifications.

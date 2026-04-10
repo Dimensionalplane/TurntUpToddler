@@ -77,16 +77,22 @@ class VideoProducer:
         """
         logger.info(f"Creating video from {audio_path} and {image_url}...")
 
-        # 1. Download the image to a temporary file
+        # 1. Download the image to a temporary file, or copy if local
         import uuid
         unique_id = uuid.uuid4().hex
         temp_image_path = f"temp_art_{unique_id}.png"
         temp_srt_path = f"{output_path}.srt"
         try:
-            response = requests.get(image_url)
-            response.raise_for_status()
-            with open(temp_image_path, 'wb') as f:
-                f.write(response.content)
+            if image_url.startswith('http://') or image_url.startswith('https://'):
+                response = requests.get(image_url)
+                response.raise_for_status()
+                with open(temp_image_path, 'wb') as f:
+                    f.write(response.content)
+            else:
+                # Assume it's a local file path
+                if not os.path.exists(image_url):
+                    raise FileNotFoundError(f"Local image file not found: {image_url}")
+                shutil.copy2(image_url, temp_image_path)
 
             # 2. Prepare SRT if lyrics are provided
             has_subtitles = False

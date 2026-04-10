@@ -2,6 +2,8 @@ import os
 import openai
 import logging
 import json
+import hashlib
+import requests
 from .utils import retry_request
 
 logging.basicConfig(level=logging.INFO)
@@ -104,14 +106,24 @@ class ContentGenerator:
     @retry_request(max_retries=3, delay=2, backoff=2)
     def generate_art(self, prompt):
         """
-        Generate album art using DALL-E 3.
+        Generate album art using DALL-E 3, with local caching to avoid redundant API calls.
 
         Args:
             prompt (str): Description for the image.
 
         Returns:
-            str: URL of the generated image.
+            str: URL of the generated image or path to the local cached image.
         """
+        cache_dir = "hymn_remaker/.cache/art"
+        os.makedirs(cache_dir, exist_ok=True)
+
+        prompt_hash = hashlib.md5(prompt.encode('utf-8')).hexdigest()
+        cached_image_path = os.path.join(cache_dir, f"{prompt_hash}.png")
+
+        if os.path.exists(cached_image_path):
+            logger.info(f"Found cached album art for prompt hash {prompt_hash}")
+            return cached_image_path
+
         logger.info(f"Generating album art for prompt: '{prompt}'...")
         response = self.client.images.generate(
             model="dall-e-3",
@@ -123,7 +135,18 @@ class ContentGenerator:
 
         image_url = response.data[0].url
         logger.info(f"Album art generated: {image_url}")
-        return image_url
+
+        # Download and cache the image
+        try:
+            logger.info(f"Caching album art to {cached_image_path}...")
+            img_response = requests.get(image_url)
+            img_response.raise_for_status()
+            with open(cached_image_path, "wb") as f:
+                f.write(img_response.content)
+            return cached_image_path
+        except Exception as e:
+            logger.error(f"Failed to cache album art: {e}")
+            return image_url # Fallback to URL if caching fails
 
 if __name__ == "__main__":
     if os.environ.get("OPENAI_API_KEY"):
