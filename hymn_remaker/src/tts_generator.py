@@ -24,7 +24,7 @@ class TTSGenerator:
             self.client = ElevenLabs(api_key=self.api_key)
 
     @retry_request(max_retries=3, delay=2, backoff=2)
-    def generate_vocals(self, lyrics, output_path, voice_id="21m00Tcm4TlvDq8ikWAM", model="eleven_multilingual_v2"):
+    def generate_vocals(self, lyrics, output_path, voice_id="21m00Tcm4TlvDq8ikWAM", model="eleven_multilingual_v2", **kwargs):
         """
         Generate a single synchronized vocal track from a list of lyrics and timestamps.
 

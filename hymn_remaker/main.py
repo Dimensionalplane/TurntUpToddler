@@ -39,6 +39,8 @@ def main():
     parser.add_argument("--upload", action="store_true", help="Upload to YouTube after generation")
     parser.add_argument("--skip-render", action="store_true", help="Skip MIDI rendering if WAV exists")
     parser.add_argument("--skip-remake", action="store_true", help="Skip music generation if output audio exists")
+    parser.add_argument("--voice-id", default="21m00Tcm4TlvDq8ikWAM", help="ElevenLabs Voice ID")
+    parser.add_argument("--model", default="eleven_multilingual_v2", help="ElevenLabs Model")
 
     args = parser.parse_args()
 
@@ -81,7 +83,9 @@ def main():
                 renderer,
                 remaker,
                 content_gen,
-                video_producer
+                video_producer,
+                voice_id=args.voice_id,
+                model=args.model
             ): midi_path for midi_path in midi_files
         }
 
@@ -95,7 +99,8 @@ def main():
 def process_single_midi(
     midi_path, output_dir, style, skip_render, skip_remake, upload,
     renderer, remaker, content_gen, video_producer, tts_generator=None,
-    normalize_audio=True, fade_in_ms=0, fade_out_ms=0, generate_vocals=False, status_callback=None
+    normalize_audio=True, fade_in_ms=0, fade_out_ms=0, generate_vocals=False,
+    voice_id="21m00Tcm4TlvDq8ikWAM", model="eleven_multilingual_v2", status_callback=None
 ):
     try:
         filename = os.path.basename(midi_path)
@@ -159,7 +164,7 @@ def process_single_midi(
             update_status(f"Step 3.5/4: Generating Vocals via ElevenLabs ({filename})...", 80)
             vocal_track_path = os.path.join(output_dir, f"{name_no_ext}_vocals.wav")
             try:
-                tts_generator.generate_vocals(lyrics, vocal_track_path)
+                tts_generator.generate_vocals(lyrics, vocal_track_path, voice_id=voice_id, model=model)
             except Exception as e:
                 logger.error(f"Failed to generate vocals: {e}")
                 vocal_track_path = None # Fallback to no vocals

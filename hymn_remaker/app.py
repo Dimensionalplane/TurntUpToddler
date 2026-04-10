@@ -4,6 +4,27 @@ import sys
 import glob
 import concurrent.futures
 
+# Load global version
+VERSION = "Unknown"
+try:
+    # Try reading from root VERSION file or docs/VERSION.md
+    import os
+    version_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "VERSION")
+    if os.path.exists(version_path):
+        with open(version_path, "r") as vf:
+            VERSION = vf.read().strip()
+    else:
+        version_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "docs", "VERSION.md")
+        if os.path.exists(version_path):
+             with open(version_path, "r") as vf:
+                 VERSION = vf.read().strip()
+except Exception:
+    pass
+
+st.sidebar.markdown(f"**Version: {VERSION}**")
+st.sidebar.markdown("---")
+
+
 # Add src to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -80,8 +101,18 @@ with st.sidebar.expander("Audio Settings", expanded=False):
 
 st.sidebar.markdown("### Pipeline Options")
 generate_vocals = st.sidebar.checkbox("Generate Vocals (ElevenLabs)", value=False, help="Automatically generate singing/spoken word vocals for the lyrics and mix them into the final track.")
-if generate_vocals and not os.environ.get("ELEVENLABS_API_KEY"):
-    st.sidebar.error("Cannot generate vocals without an ELEVENLABS_API_KEY.")
+
+elevenlabs_voice_id = "21m00Tcm4TlvDq8ikWAM"
+elevenlabs_model = "eleven_multilingual_v2"
+
+if generate_vocals:
+    if not os.environ.get("ELEVENLABS_API_KEY"):
+        st.sidebar.error("Cannot generate vocals without an ELEVENLABS_API_KEY.")
+    else:
+        with st.sidebar.expander("ElevenLabs Settings", expanded=True):
+            elevenlabs_voice_id = st.text_input("Voice ID", value="21m00Tcm4TlvDq8ikWAM", help="The ElevenLabs Voice ID to use.")
+            elevenlabs_model = st.selectbox("Model", ["eleven_multilingual_v2", "eleven_monolingual_v1", "eleven_turbo_v2"], index=0, help="The ElevenLabs model to use.")
+
 
 skip_render = st.sidebar.checkbox("Skip Render if exists", value=False, help="If the intermediate base WAV file already exists, don't re-render it from MIDI.")
 skip_remake = st.sidebar.checkbox("Skip Remake if exists", value=False, help="If the remade audio already exists, don't call the MusicGen API again.")
@@ -164,6 +195,8 @@ if st.button("Start Processing", type="primary"):
                     fade_in_ms=fade_in_ms,
                     fade_out_ms=fade_out_ms,
                     generate_vocals=generate_vocals,
+                    voice_id=elevenlabs_voice_id,
+                    model=elevenlabs_model,
                     status_callback=lambda msg, prog: (status_texts[file_path].info(msg), progress_bars[file_path].progress(prog))
                 )
 
