@@ -12,5 +12,5 @@
 - [x] Add a progress bar specifically for the YouTube upload chunking process.
 
 ## Low Priority / Polish
-- [ ] Clean up temporary files more aggressively if a pipeline step fails mid-way.
-- [ ] Add unit tests specifically mocking the ElevenLabs API responses.
+- [x] Clean up temporary files more aggressively if a pipeline step fails mid-way.
+- [x] Add unit tests specifically mocking the ElevenLabs API responses.

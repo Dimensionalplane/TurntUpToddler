@@ -49,6 +49,7 @@ def main():
 
     # Initialize modules
     try:
+        base_audio_path = remake_audio_path = metadata_path = vocal_track_path = None
         renderer = MidiRenderer(soundfont_path=args.soundfont)
         remaker = MusicRemaker()
         content_gen = ContentGenerator()
@@ -201,6 +202,16 @@ def process_single_midi(
 
     except Exception as e:
         logger.error(f"Error processing {midi_path}: {e}")
+        logger.info(f"Cleaning up temporary files for {filename} due to failure...")
+
+        # Cleanup files if they were created during this failed run
+        for path in [base_audio_path, remake_audio_path, metadata_path, vocal_track_path]:
+            if path and os.path.exists(path):
+                try:
+                    os.remove(path)
+                    logger.info(f"Cleaned up {path}")
+                except OSError:
+                    pass
         raise e
 
 if __name__ == "__main__":

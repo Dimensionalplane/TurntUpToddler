@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0] - 2024-04-10
+### Added
+- Enhanced unit tests for the ElevenLabs TTS generator parameter assertions.
+
+### Fixed
+- Added aggressive file cleanup to the pipeline orchestrator if a processing step crashes mid-way.
+
 ## [1.3.0] - 2024-04-10
 ### Added
 - YouTube upload progress bar mapping to Streamlit UI via chunking callbacks.

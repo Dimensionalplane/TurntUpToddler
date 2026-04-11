@@ -114,7 +114,7 @@ class ContentGenerator:
         Returns:
             str: URL of the generated image or path to the local cached image.
         """
-        cache_dir = "hymn_remaker/.cache/art"
+        cache_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".cache", "art")
         os.makedirs(cache_dir, exist_ok=True)
 
         prompt_hash = hashlib.md5(prompt.encode('utf-8')).hexdigest()
