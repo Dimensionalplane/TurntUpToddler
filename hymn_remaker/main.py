@@ -103,6 +103,7 @@ def process_single_midi(
     normalize_audio=True, fade_in_ms=0, fade_out_ms=0, generate_vocals=False,
     voice_id="21m00Tcm4TlvDq8ikWAM", model="eleven_multilingual_v2", status_callback=None
 ):
+    base_audio_path = remake_audio_path = metadata_path = vocal_track_path = None
     try:
         filename = os.path.basename(midi_path)
         name_no_ext = os.path.splitext(filename)[0]
