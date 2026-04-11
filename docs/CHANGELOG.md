@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0] - 2024-04-10
+### Added
+- YouTube upload progress bar mapping to Streamlit UI via chunking callbacks.
+
+### Fixed
+- Added max_retries and lyric sanitization logic to FFmpeg subtitle burning to improve resilience against weird characters.
+
 ## [1.2.0] - 2024-04-10
 ### Added
 - Added local caching for DALL-E 3 generated album art to prevent redundant API calls.

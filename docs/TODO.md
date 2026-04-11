@@ -7,9 +7,9 @@
 - [x] Update `process_single_midi` in `main.py` to accept and pass the Voice ID and Model parameters.
 
 ## Medium Priority
-- [ ] Improve error handling and retry logic around FFmpeg subtitle burning.
+- [x] Improve error handling and retry logic around FFmpeg subtitle burning.
 - [x] Add caching for DALL-E 3 image generation so re-running the same pipeline doesn't burn credits.
-- [ ] Add a progress bar specifically for the YouTube upload chunking process.
+- [x] Add a progress bar specifically for the YouTube upload chunking process.
 
 ## Low Priority / Polish
 - [ ] Clean up temporary files more aggressively if a pipeline step fails mid-way.

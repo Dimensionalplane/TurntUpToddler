@@ -127,15 +127,33 @@ class VideoProducer:
                 logger.info(f"Running ffmpeg: {' '.join(ffmpeg_cmd)}")
                 subprocess.run(ffmpeg_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-            try:
-                # Try with subtitles first if they exist
-                run_ffmpeg(has_subtitles)
-                logger.info(f"Video created at {output_path}")
-            except subprocess.CalledProcessError as e:
-                error_msg = e.stderr.decode()
-                logger.error(f"FFmpeg failed: {error_msg}")
+            max_retries = 3
+            success = False
+            for attempt in range(max_retries):
+                try:
+                    # Try with subtitles first if they exist
+                    run_ffmpeg(has_subtitles)
+                    logger.info(f"Video created at {output_path}")
+                    success = True
+                    break
+                except subprocess.CalledProcessError as e:
+                    error_msg = e.stderr.decode()
+                    logger.error(f"FFmpeg failed on attempt {attempt + 1}: {error_msg}")
+                    if has_subtitles and attempt < max_retries - 1:
+                        logger.warning("Sanitizing lyrics and retrying...")
+                        # Basic sanitization: strip non-ascii
+                        sanitized_lyrics = []
+                        for line in lyrics:
+                            new_line = line.copy()
+                            new_line['text'] = "".join([c for c in line.get('text', '') if ord(c) < 128])
+                            sanitized_lyrics.append(new_line)
+                        self._create_srt_file(sanitized_lyrics, temp_srt_path)
+                    else:
+                        break
+
+            if not success:
                 if has_subtitles:
-                    logger.warning("FFmpeg failed with subtitles. Retrying WITHOUT subtitles...")
+                    logger.warning("All subtitle retries failed. Retrying WITHOUT subtitles...")
                     run_ffmpeg(False)
                     logger.info(f"Video created at {output_path} (without subtitles fallback)")
                 else:
@@ -179,13 +197,14 @@ class VideoProducer:
 
         return build("youtube", "v3", credentials=creds)
 
-    def upload_to_youtube(self, video_path, metadata):
+    def upload_to_youtube(self, video_path, metadata, progress_callback=None):
         """
         Upload the video to YouTube.
 
         Args:
             video_path (str): Path to the video file.
             metadata (dict): Metadata dictionary (title, description, tags).
+            progress_callback (callable): Optional callback function for upload progress (takes integer 0-100).
 
         Returns:
             str: ID of the uploaded video.
@@ -219,7 +238,10 @@ class VideoProducer:
         while response is None:
             status, response = request.next_chunk()
             if status:
-                logger.info(f"Uploaded {int(status.progress() * 100)}%")
+                pct = int(status.progress() * 100)
+                logger.info(f"Uploaded {pct}%")
+                if progress_callback:
+                    progress_callback(pct)
 
         logger.info(f"Upload complete! Video ID: {response['id']}")
         return response['id']

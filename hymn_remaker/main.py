@@ -190,7 +190,11 @@ def process_single_midi(
         # 5. Upload to YouTube (Optional)
         if upload:
             update_status(f"Uploading {filename} to YouTube...", 95)
-            video_id = video_producer.upload_to_youtube(video_path, metadata)
+            def upload_progress_cb(pct):
+                scaled_pct = int(95 + (pct * 0.05))
+                update_status(f"Uploading {filename} to YouTube... {pct}%", scaled_pct)
+
+            video_id = video_producer.upload_to_youtube(video_path, metadata, progress_callback=upload_progress_cb)
             update_status(f"Video uploaded: https://youtu.be/{video_id}", 100)
         else:
             update_status(f"Finished processing {filename}", 100)
