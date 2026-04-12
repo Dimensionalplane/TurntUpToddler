@@ -100,6 +100,7 @@ with st.sidebar.expander("Audio Settings", expanded=False):
     fade_out_ms = st.number_input("Fade-Out (ms)", min_value=0, max_value=10000, value=0, step=500, help="Apply a gradual volume decrease at the end of the audio.")
 
 st.sidebar.markdown("### Pipeline Options")
+video_format = st.sidebar.selectbox("Video Format", ["Standard 16:9", "Vertical 9:16 (TikTok/Reels)"], index=0, help="Output video aspect ratio.")
 generate_vocals = st.sidebar.checkbox("Generate Vocals (ElevenLabs)", value=False, help="Automatically generate singing/spoken word vocals for the lyrics and mix them into the final track.")
 
 elevenlabs_voice_id = "21m00Tcm4TlvDq8ikWAM"
@@ -197,6 +198,7 @@ if st.button("Start Processing", type="primary"):
                     generate_vocals=generate_vocals,
                     voice_id=elevenlabs_voice_id,
                     model=elevenlabs_model,
+                    video_format=video_format,
                     status_callback=lambda msg, prog: (status_texts[file_path].info(msg), progress_bars[file_path].progress(prog))
                 )
 

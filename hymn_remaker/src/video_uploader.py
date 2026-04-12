@@ -66,7 +66,7 @@ class VideoProducer:
             logger.error(f"Failed to create SRT: {e}")
             return False
 
-    def create_video(self, audio_path, image_url, output_path, lyrics=None):
+    def create_video(self, audio_path, image_url, output_path, lyrics=None, video_format="Standard 16:9"):
         """
         Create an MP4 video from an audio file, image URL, and optional lyrics using ffmpeg.
 
@@ -75,6 +75,7 @@ class VideoProducer:
             image_url (str): URL of the album art image.
             output_path (str): Path to the output video file.
             lyrics (list): Optional list of synced lyrics dicts.
+            video_format (str): The aspect ratio of the output video.
         """
         logger.info(f"Creating video from {audio_path} and {image_url}...")
 
@@ -112,9 +113,27 @@ class VideoProducer:
             # Helper to execute ffmpeg
             def run_ffmpeg(subtitles_enabled):
                 ffmpeg_cmd = cmd.copy()
+
+                # Determine base filters depending on format
+                base_vf = ""
+                if video_format == "Vertical 9:16 (TikTok/Reels)":
+                    # Scale the image to fit horizontally, pad vertically, and blur the background
+                    base_vf = "[0:v]scale=1080:-1,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black[v]"
+                else:
+                    # Standard 16:9, just scale/pad to 1920x1080
+                    base_vf = "[0:v]scale=-1:1080,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:black[v]"
+
+                # Build filter complex
+                filters = []
+                filters.append(base_vf)
+
                 if subtitles_enabled:
                     safe_srt_path = temp_srt_path.replace('\\', '/').replace(':', '\\:')
-                    ffmpeg_cmd.extend(["-vf", f"subtitles='{safe_srt_path}'"])
+                    # Add subtitle filter on top of the mapped [v] stream
+                    filters.append(f"[v]subtitles='{safe_srt_path}'[v_sub]")
+                    ffmpeg_cmd.extend(["-filter_complex", ";".join(filters), "-map", "[v_sub]", "-map", "1:a"])
+                else:
+                    ffmpeg_cmd.extend(["-filter_complex", ";".join(filters), "-map", "[v]", "-map", "1:a"])
 
                 ffmpeg_cmd.extend([
                     "-c:v", "libx264",

@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.5.0] - 2024-04-10
+### Added
+- Support for Vertical 9:16 Video Formatting (TikTok/Instagram Reels) via FFmpeg padding and scaling.
+- Video Format configuration exposed in the Streamlit UI and CLI.
+
 ## [1.4.0] - 2024-04-10
 ### Added
 - Enhanced unit tests for the ElevenLabs TTS generator parameter assertions.

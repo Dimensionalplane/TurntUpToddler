@@ -41,6 +41,7 @@ def main():
     parser.add_argument("--skip-remake", action="store_true", help="Skip music generation if output audio exists")
     parser.add_argument("--voice-id", default="21m00Tcm4TlvDq8ikWAM", help="ElevenLabs Voice ID")
     parser.add_argument("--model", default="eleven_multilingual_v2", help="ElevenLabs Model")
+    parser.add_argument("--video-format", default="Standard 16:9", choices=["Standard 16:9", "Vertical 9:16 (TikTok/Reels)"], help="Output video format")
 
     args = parser.parse_args()
 
@@ -86,7 +87,8 @@ def main():
                 content_gen,
                 video_producer,
                 voice_id=args.voice_id,
-                model=args.model
+                model=args.model,
+                video_format=args.video_format
             ): midi_path for midi_path in midi_files
         }
 
@@ -101,7 +103,7 @@ def process_single_midi(
     midi_path, output_dir, style, skip_render, skip_remake, upload,
     renderer, remaker, content_gen, video_producer, tts_generator=None,
     normalize_audio=True, fade_in_ms=0, fade_out_ms=0, generate_vocals=False,
-    voice_id="21m00Tcm4TlvDq8ikWAM", model="eleven_multilingual_v2", status_callback=None
+    voice_id="21m00Tcm4TlvDq8ikWAM", model="eleven_multilingual_v2", video_format="Standard 16:9", status_callback=None
 ):
     base_audio_path = remake_audio_path = metadata_path = vocal_track_path = None
     try:
@@ -187,7 +189,7 @@ def process_single_midi(
         # 4. Create Video (with subtitles if lyrics exist)
         update_status(f"Step 4/4: Creating Video with Subtitles ({filename})...", 85)
         video_path = os.path.join(output_dir, f"{name_no_ext}.mp4")
-        video_producer.create_video(remake_audio_path, art_url, video_path, lyrics=lyrics)
+        video_producer.create_video(remake_audio_path, art_url, video_path, lyrics=lyrics, video_format=video_format)
 
         # 5. Upload to YouTube (Optional)
         if upload:
