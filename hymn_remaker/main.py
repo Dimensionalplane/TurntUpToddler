@@ -46,6 +46,7 @@ def main():
     parser.add_argument("--model", default="eleven_multilingual_v2", help="ElevenLabs Model")
     parser.add_argument("--video-format", default="Standard 16:9", choices=["Standard 16:9", "Vertical 9:16 (TikTok/Reels)"], help="Output video format")
     parser.add_argument("--daemon", action="store_true", help="Run in daemon mode, watching the input directory for new files continuously.")
+    parser.add_argument("--create-shorts", action="store_true", help="Extract 15-second short clips from the final video.")
 
     args = parser.parse_args()
 
@@ -86,7 +87,8 @@ def main():
                     video_producer,
                     voice_id=args.voice_id,
                     model=args.model,
-                    video_format=args.video_format
+                    video_format=args.video_format,
+                    create_shorts=args.create_shorts
                 ): midi_path for midi_path in midi_file_list
             }
 
@@ -141,7 +143,7 @@ def process_single_midi(
     midi_path, output_dir, style, skip_render, skip_remake, upload,
     renderer, remaker, content_gen, video_producer, tts_generator=None,
     normalize_audio=True, fade_in_ms=0, fade_out_ms=0, generate_vocals=False,
-    voice_id="21m00Tcm4TlvDq8ikWAM", model="eleven_multilingual_v2", video_format="Standard 16:9", status_callback=None
+    voice_id="21m00Tcm4TlvDq8ikWAM", model="eleven_multilingual_v2", video_format="Standard 16:9", create_shorts=False, status_callback=None
 ):
     base_audio_path = remake_audio_path = metadata_path = vocal_track_path = None
     try:
@@ -228,6 +230,15 @@ def process_single_midi(
         update_status(f"Step 4/4: Creating Video with Subtitles ({filename})...", 85)
         video_path = os.path.join(output_dir, f"{name_no_ext}.mp4")
         video_producer.create_video(remake_audio_path, art_url, video_path, lyrics=lyrics, video_format=video_format)
+
+        # 4.5 Create Shorts
+        if create_shorts:
+            update_status(f"Extracting Short Clips ({filename})...", 90)
+            try:
+                video_producer.create_shorts(video_path, output_dir)
+                update_status(f"Short clips generated in output/shorts/", 92)
+            except Exception as e:
+                logger.error(f"Failed to generate shorts: {e}")
 
         # 5. Upload to YouTube (Optional)
         if upload:

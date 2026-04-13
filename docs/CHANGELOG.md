@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.7.0] - 2024-04-10
+### Added
+- Added `--create-shorts` CLI flag and Streamlit UI toggle to automatically extract 15-second segments from the rendered video using FFmpeg.
+
 ## [1.6.0] - 2024-04-10
 ### Added
 - Added `--daemon` mode to `main.py` which uses `watchdog` to continuously monitor the input directory for new MIDI files, automatically processing and uploading them.

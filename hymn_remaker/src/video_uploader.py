@@ -217,6 +217,43 @@ class VideoProducer:
 
         return build("youtube", "v3", credentials=creds)
 
+    def create_shorts(self, video_path, output_dir):
+        """
+        Extract 15-second short clips from the main video using FFmpeg.
+
+        Args:
+            video_path (str): Path to the main output video.
+            output_dir (str): Base output directory.
+        """
+        shorts_dir = os.path.join(output_dir, "shorts")
+        os.makedirs(shorts_dir, exist_ok=True)
+
+        logger.info(f"Extracting 15-second shorts from {video_path} into {shorts_dir}...")
+
+        filename = os.path.basename(video_path)
+        name_no_ext = os.path.splitext(filename)[0]
+
+        output_pattern = os.path.join(shorts_dir, f"{name_no_ext}_short_%03d.mp4")
+
+        cmd = [
+            "ffmpeg",
+            "-y",
+            "-i", video_path,
+            "-f", "segment",
+            "-segment_time", "15",
+            "-c", "copy",
+            output_pattern
+        ]
+
+        try:
+            logger.info(f"Running ffmpeg: {' '.join(cmd)}")
+            subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            logger.info(f"Shorts generated successfully in {shorts_dir}")
+        except subprocess.CalledProcessError as e:
+            error_msg = e.stderr.decode()
+            logger.error(f"FFmpeg shorts extraction failed: {error_msg}")
+            raise e
+
     def upload_to_youtube(self, video_path, metadata, progress_callback=None):
         """
         Upload the video to YouTube.
