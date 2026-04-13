@@ -5,6 +5,9 @@ import logging
 import argparse
 import json
 import requests
+import time
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 from dotenv import load_dotenv
 
 # Add the project root to sys.path so we can import from src
@@ -42,6 +45,7 @@ def main():
     parser.add_argument("--voice-id", default="21m00Tcm4TlvDq8ikWAM", help="ElevenLabs Voice ID")
     parser.add_argument("--model", default="eleven_multilingual_v2", help="ElevenLabs Model")
     parser.add_argument("--video-format", default="Standard 16:9", choices=["Standard 16:9", "Vertical 9:16 (TikTok/Reels)"], help="Output video format")
+    parser.add_argument("--daemon", action="store_true", help="Run in daemon mode, watching the input directory for new files continuously.")
 
     args = parser.parse_args()
 
@@ -59,45 +63,79 @@ def main():
         logger.error(f"Failed to initialize pipeline: {e}")
         sys.exit(1)
 
-    # Find MIDI files
-    midi_files = glob.glob(os.path.join(args.input_dir, "*.mid"))
-    if not midi_files:
-        logger.warning(f"No MIDI files found in {args.input_dir}")
-        sys.exit(0)
-
-    logger.info(f"Found {len(midi_files)} MIDI files to process.")
-
     import concurrent.futures
 
-    # We use ThreadPoolExecutor to run process_single_midi concurrently for each file
-    max_workers = min(4, len(midi_files)) # Adjust this value as needed, but let's stick to max 4 to not overload rate limits
+    def run_pipeline(midi_file_list):
+        if not midi_file_list:
+            return
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = {
-            executor.submit(
-                process_single_midi,
-                midi_path,
-                args.output_dir,
-                args.style,
-                args.skip_render,
-                args.skip_remake,
-                args.upload,
-                renderer,
-                remaker,
-                content_gen,
-                video_producer,
-                voice_id=args.voice_id,
-                model=args.model,
-                video_format=args.video_format
-            ): midi_path for midi_path in midi_files
-        }
+        max_workers = min(4, len(midi_file_list))
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {
+                executor.submit(
+                    process_single_midi,
+                    midi_path,
+                    args.output_dir,
+                    args.style,
+                    args.skip_render,
+                    args.skip_remake,
+                    args.upload,
+                    renderer,
+                    remaker,
+                    content_gen,
+                    video_producer,
+                    voice_id=args.voice_id,
+                    model=args.model,
+                    video_format=args.video_format
+                ): midi_path for midi_path in midi_file_list
+            }
 
-        for future in concurrent.futures.as_completed(futures):
-            midi_path = futures[future]
-            try:
-                future.result()
-            except Exception as e:
-                logger.error(f"Error processing {midi_path} through executor: {e}")
+            for future in concurrent.futures.as_completed(futures):
+                midi_path = futures[future]
+                try:
+                    future.result()
+                except Exception as e:
+                    logger.error(f"Error processing {midi_path} through executor: {e}")
+
+    # Process initial files
+    initial_midi_files = glob.glob(os.path.join(args.input_dir, "*.mid"))
+    if initial_midi_files:
+        logger.info(f"Found {len(initial_midi_files)} initial MIDI files to process.")
+        run_pipeline(initial_midi_files)
+    else:
+        logger.warning(f"No initial MIDI files found in {args.input_dir}")
+
+    # Daemon Mode Logic
+    if args.daemon:
+        logger.info(f"Starting Daemon Mode. Monitoring {args.input_dir} for new MIDI files...")
+
+        class MidiHandler(FileSystemEventHandler):
+            def on_created(self, event):
+                if not event.is_directory and event.src_path.lower().endswith(".mid"):
+                    logger.info(f"Detected new MIDI file: {event.src_path}")
+                    # Give the file a moment to finish copying/downloading
+                    time.sleep(1)
+                    run_pipeline([event.src_path])
+
+            def on_moved(self, event):
+                if not event.is_directory and event.dest_path.lower().endswith(".mid"):
+                    logger.info(f"Detected moved MIDI file: {event.dest_path}")
+                    time.sleep(1)
+                    run_pipeline([event.dest_path])
+
+        observer = Observer()
+        observer.schedule(MidiHandler(), args.input_dir, recursive=False)
+        observer.start()
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            logger.info("Stopping Daemon Mode...")
+            observer.stop()
+        observer.join()
+    else:
+        if not initial_midi_files:
+            sys.exit(0)
 
 def process_single_midi(
     midi_path, output_dir, style, skip_render, skip_remake, upload,

@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.6.0] - 2024-04-10
+### Added
+- Added `--daemon` mode to `main.py` which uses `watchdog` to continuously monitor the input directory for new MIDI files, automatically processing and uploading them.
+
 ## [1.5.0] - 2024-04-10
 ### Added
 - Support for Vertical 9:16 Video Formatting (TikTok/Instagram Reels) via FFmpeg padding and scaling.
