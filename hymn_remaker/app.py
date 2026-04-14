@@ -131,6 +131,7 @@ st.sidebar.markdown("### Pipeline Options")
 <<<<<<< HEAD
 video_format = st.sidebar.selectbox("Video Format", ["Standard 16:9", "Vertical 9:16 (TikTok/Reels)"], index=0, help="Output video aspect ratio.")
 generate_vocals = st.sidebar.checkbox("Generate Vocals (ElevenLabs)", value=False, help="Automatically generate singing/spoken word vocals for the lyrics and mix them into the final track.")
+create_shorts = st.sidebar.checkbox("Create 15s Shorts", value=False, help="Extract 15-second clips from the final video into the output/shorts directory.")
 
 elevenlabs_voice_id = "21m00Tcm4TlvDq8ikWAM"
 elevenlabs_model = "eleven_multilingual_v2"
@@ -254,6 +255,7 @@ if st.button("Start Processing", type="primary"):
                     voice_id=elevenlabs_voice_id,
                     model=elevenlabs_model,
                     video_format=video_format,
+                    create_shorts=create_shorts,
                     status_callback=lambda msg, prog: (status_texts[file_path].info(msg), progress_bars[file_path].progress(prog))
                 )
 

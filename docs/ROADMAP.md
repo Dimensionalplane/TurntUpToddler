@@ -17,7 +17,7 @@
 ## Phase 3: Scaling & Platform Expansion
 - [ ] Support for multiple input formats beyond MIDI (MusicXML, sheet music PDFs via OMR).
 - [x] TikTok/Instagram Reels native vertical video formatting.
-- [ ] Automated short-form clip extraction from the main video.
+- [x] Automated short-form clip extraction from the main video.
 - [ ] Integration with advanced video generation AI (e.g., Runway Gen-2, Sora) to replace static DALL-E album art with dynamic, reactive music videos.
 
 ## Phase 4: Autonomy
