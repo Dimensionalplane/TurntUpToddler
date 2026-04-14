@@ -9,4 +9,9 @@ Pillow
 pydub
 streamlit
 elevenlabs
+<<<<<<< HEAD
 watchdog
+=======
+boto3
+mido
+>>>>>>> origin/feature/web-ui-and-parallelization-5540056130352860192

@@ -66,7 +66,11 @@ class VideoProducer:
             logger.error(f"Failed to create SRT: {e}")
             return False
 
+<<<<<<< HEAD
     def create_video(self, audio_path, image_url, output_path, lyrics=None, video_format="Standard 16:9"):
+=======
+    def create_video(self, audio_path, image_url, output_path, lyrics=None, use_visualizer=False):
+>>>>>>> origin/feature/web-ui-and-parallelization-5540056130352860192
         """
         Create an MP4 video from an audio file, image URL, and optional lyrics using ffmpeg.
 
@@ -75,10 +79,20 @@ class VideoProducer:
             image_url (str): URL of the album art image.
             output_path (str): Path to the output video file.
             lyrics (list): Optional list of synced lyrics dicts.
+<<<<<<< HEAD
             video_format (str): The aspect ratio of the output video.
+=======
+            use_visualizer (bool): If True, use a dynamic ffmpeg waveform instead of the static image.
+>>>>>>> origin/feature/web-ui-and-parallelization-5540056130352860192
         """
-        logger.info(f"Creating video from {audio_path} and {image_url}...")
+        logger.info(f"Creating video from {audio_path}...")
 
+        import uuid
+        unique_id = uuid.uuid4().hex
+        temp_image_path = f"temp_art_{unique_id}.png"
+        temp_srt_path = f"{output_path}.srt"
+
+<<<<<<< HEAD
         # 1. Download the image to a temporary file, or copy if local
         import uuid
         unique_id = uuid.uuid4().hex
@@ -86,20 +100,29 @@ class VideoProducer:
         temp_srt_path = f"{output_path}.srt"
         try:
             if image_url.startswith('http://') or image_url.startswith('https://'):
+=======
+        try:
+            if not use_visualizer:
+                # 1. Download the image to a temporary file if we are using static art
+>>>>>>> origin/feature/web-ui-and-parallelization-5540056130352860192
                 response = requests.get(image_url)
                 response.raise_for_status()
                 with open(temp_image_path, 'wb') as f:
                     f.write(response.content)
+<<<<<<< HEAD
             else:
                 # Assume it's a local file path
                 if not os.path.exists(image_url):
                     raise FileNotFoundError(f"Local image file not found: {image_url}")
                 shutil.copy2(image_url, temp_image_path)
+=======
+>>>>>>> origin/feature/web-ui-and-parallelization-5540056130352860192
 
             # 2. Prepare SRT if lyrics are provided
             has_subtitles = False
             if lyrics:
                 has_subtitles = self._create_srt_file(lyrics, temp_srt_path)
+<<<<<<< HEAD
 
             # 3. Use ffmpeg to combine image and audio (and burn subtitles if available)
             cmd = [
@@ -110,10 +133,35 @@ class VideoProducer:
                 "-i", audio_path,
             ]
 
+=======
+
+            # 3. Setup core ffmpeg command depending on visualizer toggle
+            if use_visualizer:
+                # Complex filter for showwaves visualizer. Needs a background to draw on
+                # We create a black background first, then input the audio
+                cmd = [
+                    "ffmpeg",
+                    "-y",
+                    "-f", "lavfi",
+                    "-i", "color=c=black:s=1920x1080",
+                    "-i", audio_path,
+                ]
+            else:
+                # Static image loop
+                cmd = [
+                    "ffmpeg",
+                    "-y",
+                    "-loop", "1",
+                    "-i", temp_image_path,
+                    "-i", audio_path,
+                ]
+
+>>>>>>> origin/feature/web-ui-and-parallelization-5540056130352860192
             # Helper to execute ffmpeg
             def run_ffmpeg(subtitles_enabled):
                 ffmpeg_cmd = cmd.copy()
 
+<<<<<<< HEAD
                 # Determine base filters depending on format
                 base_vf = ""
                 if video_format == "Vertical 9:16 (TikTok/Reels)":
@@ -138,12 +186,49 @@ class VideoProducer:
                 ffmpeg_cmd.extend([
                     "-c:v", "libx264",
                     "-tune", "stillimage",
+=======
+                # Build the video filter
+                vf_filters = []
+                if use_visualizer:
+                    # [VISUALIZER GENERATION LOGIC]
+                    # We use ffmpeg's 'showwaves' filter to create a dynamic, moving waveform of the audio.
+                    # We output it, scale it, and overlay it on the black background.
+                    vf_filters.append("[1:a]showwaves=s=1920x1080:mode=cline:colors=cyan[v];[0:v][v]overlay=format=auto")
+
+                if subtitles_enabled:
+                    safe_srt_path = temp_srt_path.replace('\\', '/').replace(':', '\\:')
+                    if use_visualizer:
+                        # Append the subtitles to the overlay output
+                        vf_filters.append(f"subtitles='{safe_srt_path}'")
+                    else:
+                        vf_filters.append(f"subtitles='{safe_srt_path}'")
+
+                if vf_filters:
+                    # Combine filters with commas if multiple exist
+                    if use_visualizer:
+                        # For complex graphs with multiple inputs/outputs, commas won't work perfectly if chaining
+                        # We chain the overlay into the subtitles if both exist
+                        filter_str = "[1:a]showwaves=s=1920x1080:mode=cline:colors=cyan[wave];[0:v][wave]overlay=format=auto[out1]"
+                        if subtitles_enabled:
+                            safe_srt_path = temp_srt_path.replace('\\', '/').replace(':', '\\:')
+                            filter_str += f";[out1]subtitles='{safe_srt_path}'[out2]"
+                            ffmpeg_cmd.extend(["-filter_complex", filter_str, "-map", "[out2]", "-map", "1:a"])
+                        else:
+                            ffmpeg_cmd.extend(["-filter_complex", filter_str, "-map", "[out1]", "-map", "1:a"])
+                    else:
+                        ffmpeg_cmd.extend(["-vf", ",".join(vf_filters)])
+
+                # Encoding parameters
+                ffmpeg_cmd.extend([
+                    "-c:v", "libx264",
+>>>>>>> origin/feature/web-ui-and-parallelization-5540056130352860192
                     "-c:a", "aac",
                     "-b:a", "192k",
                     "-pix_fmt", "yuv420p",
                     "-shortest",
                     output_path
                 ])
+<<<<<<< HEAD
                 logger.info(f"Running ffmpeg: {' '.join(ffmpeg_cmd)}")
                 subprocess.run(ffmpeg_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -174,6 +259,26 @@ class VideoProducer:
             if not success:
                 if has_subtitles:
                     logger.warning("All subtitle retries failed. Retrying WITHOUT subtitles...")
+=======
+
+                # If using static art, we want to tune for stillimage to save space
+                if not use_visualizer:
+                    ffmpeg_cmd.insert(ffmpeg_cmd.index("-c:v") + 2, "-tune")
+                    ffmpeg_cmd.insert(ffmpeg_cmd.index("-tune") + 1, "stillimage")
+
+                logger.info(f"Running ffmpeg: {' '.join(ffmpeg_cmd)}")
+                subprocess.run(ffmpeg_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+            try:
+                # Try with subtitles first if they exist
+                run_ffmpeg(has_subtitles)
+                logger.info(f"Video created at {output_path}")
+            except subprocess.CalledProcessError as e:
+                error_msg = e.stderr.decode()
+                logger.error(f"FFmpeg failed: {error_msg}")
+                if has_subtitles:
+                    logger.warning("FFmpeg failed with subtitles. Retrying WITHOUT subtitles...")
+>>>>>>> origin/feature/web-ui-and-parallelization-5540056130352860192
                     run_ffmpeg(False)
                     logger.info(f"Video created at {output_path} (without subtitles fallback)")
                 else:
