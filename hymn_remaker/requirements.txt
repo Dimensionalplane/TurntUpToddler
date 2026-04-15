@@ -9,3 +9,4 @@ Pillow
 pydub
 streamlit
 elevenlabs
+watchdog

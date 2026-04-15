@@ -102,6 +102,11 @@ python3 hymn_remaker/main.py
 
 ```bash
 python3 hymn_remaker/main.py --style "Lofi hip hop, chill, relaxing" --upload
+
+### Example (Daemon Mode)
+```bash
+python3 hymn_remaker/main.py --daemon --upload
+```
 ```
 
 ## Structure

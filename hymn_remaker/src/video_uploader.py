@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 import logging
 import json
@@ -65,7 +66,7 @@ class VideoProducer:
             logger.error(f"Failed to create SRT: {e}")
             return False
 
-    def create_video(self, audio_path, image_url, output_path, lyrics=None):
+    def create_video(self, audio_path, image_url, output_path, lyrics=None, video_format="Standard 16:9"):
         """
         Create an MP4 video from an audio file, image URL, and optional lyrics using ffmpeg.
 
@@ -74,19 +75,26 @@ class VideoProducer:
             image_url (str): URL of the album art image.
             output_path (str): Path to the output video file.
             lyrics (list): Optional list of synced lyrics dicts.
+            video_format (str): The aspect ratio of the output video.
         """
         logger.info(f"Creating video from {audio_path} and {image_url}...")
 
-        # 1. Download the image to a temporary file
+        # 1. Download the image to a temporary file, or copy if local
         import uuid
         unique_id = uuid.uuid4().hex
         temp_image_path = f"temp_art_{unique_id}.png"
         temp_srt_path = f"{output_path}.srt"
         try:
-            response = requests.get(image_url)
-            response.raise_for_status()
-            with open(temp_image_path, 'wb') as f:
-                f.write(response.content)
+            if image_url.startswith('http://') or image_url.startswith('https://'):
+                response = requests.get(image_url)
+                response.raise_for_status()
+                with open(temp_image_path, 'wb') as f:
+                    f.write(response.content)
+            else:
+                # Assume it's a local file path
+                if not os.path.exists(image_url):
+                    raise FileNotFoundError(f"Local image file not found: {image_url}")
+                shutil.copy2(image_url, temp_image_path)
 
             # 2. Prepare SRT if lyrics are provided
             has_subtitles = False
@@ -105,9 +113,27 @@ class VideoProducer:
             # Helper to execute ffmpeg
             def run_ffmpeg(subtitles_enabled):
                 ffmpeg_cmd = cmd.copy()
+
+                # Determine base filters depending on format
+                base_vf = ""
+                if video_format == "Vertical 9:16 (TikTok/Reels)":
+                    # Scale the image to fit horizontally, pad vertically, and blur the background
+                    base_vf = "[0:v]scale=1080:-1,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black[v]"
+                else:
+                    # Standard 16:9, just scale/pad to 1920x1080
+                    base_vf = "[0:v]scale=-1:1080,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:black[v]"
+
+                # Build filter complex
+                filters = []
+                filters.append(base_vf)
+
                 if subtitles_enabled:
                     safe_srt_path = temp_srt_path.replace('\\', '/').replace(':', '\\:')
-                    ffmpeg_cmd.extend(["-vf", f"subtitles='{safe_srt_path}'"])
+                    # Add subtitle filter on top of the mapped [v] stream
+                    filters.append(f"[v]subtitles='{safe_srt_path}'[v_sub]")
+                    ffmpeg_cmd.extend(["-filter_complex", ";".join(filters), "-map", "[v_sub]", "-map", "1:a"])
+                else:
+                    ffmpeg_cmd.extend(["-filter_complex", ";".join(filters), "-map", "[v]", "-map", "1:a"])
 
                 ffmpeg_cmd.extend([
                     "-c:v", "libx264",
@@ -121,15 +147,33 @@ class VideoProducer:
                 logger.info(f"Running ffmpeg: {' '.join(ffmpeg_cmd)}")
                 subprocess.run(ffmpeg_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-            try:
-                # Try with subtitles first if they exist
-                run_ffmpeg(has_subtitles)
-                logger.info(f"Video created at {output_path}")
-            except subprocess.CalledProcessError as e:
-                error_msg = e.stderr.decode()
-                logger.error(f"FFmpeg failed: {error_msg}")
+            max_retries = 3
+            success = False
+            for attempt in range(max_retries):
+                try:
+                    # Try with subtitles first if they exist
+                    run_ffmpeg(has_subtitles)
+                    logger.info(f"Video created at {output_path}")
+                    success = True
+                    break
+                except subprocess.CalledProcessError as e:
+                    error_msg = e.stderr.decode()
+                    logger.error(f"FFmpeg failed on attempt {attempt + 1}: {error_msg}")
+                    if has_subtitles and attempt < max_retries - 1:
+                        logger.warning("Sanitizing lyrics and retrying...")
+                        # Basic sanitization: strip non-ascii
+                        sanitized_lyrics = []
+                        for line in lyrics:
+                            new_line = line.copy()
+                            new_line['text'] = "".join([c for c in line.get('text', '') if ord(c) < 128])
+                            sanitized_lyrics.append(new_line)
+                        self._create_srt_file(sanitized_lyrics, temp_srt_path)
+                    else:
+                        break
+
+            if not success:
                 if has_subtitles:
-                    logger.warning("FFmpeg failed with subtitles. Retrying WITHOUT subtitles...")
+                    logger.warning("All subtitle retries failed. Retrying WITHOUT subtitles...")
                     run_ffmpeg(False)
                     logger.info(f"Video created at {output_path} (without subtitles fallback)")
                 else:
@@ -173,13 +217,51 @@ class VideoProducer:
 
         return build("youtube", "v3", credentials=creds)
 
-    def upload_to_youtube(self, video_path, metadata):
+    def create_shorts(self, video_path, output_dir):
+        """
+        Extract 15-second short clips from the main video using FFmpeg.
+
+        Args:
+            video_path (str): Path to the main output video.
+            output_dir (str): Base output directory.
+        """
+        shorts_dir = os.path.join(output_dir, "shorts")
+        os.makedirs(shorts_dir, exist_ok=True)
+
+        logger.info(f"Extracting 15-second shorts from {video_path} into {shorts_dir}...")
+
+        filename = os.path.basename(video_path)
+        name_no_ext = os.path.splitext(filename)[0]
+
+        output_pattern = os.path.join(shorts_dir, f"{name_no_ext}_short_%03d.mp4")
+
+        cmd = [
+            "ffmpeg",
+            "-y",
+            "-i", video_path,
+            "-f", "segment",
+            "-segment_time", "15",
+            "-c", "copy",
+            output_pattern
+        ]
+
+        try:
+            logger.info(f"Running ffmpeg: {' '.join(cmd)}")
+            subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            logger.info(f"Shorts generated successfully in {shorts_dir}")
+        except subprocess.CalledProcessError as e:
+            error_msg = e.stderr.decode()
+            logger.error(f"FFmpeg shorts extraction failed: {error_msg}")
+            raise e
+
+    def upload_to_youtube(self, video_path, metadata, progress_callback=None):
         """
         Upload the video to YouTube.
 
         Args:
             video_path (str): Path to the video file.
             metadata (dict): Metadata dictionary (title, description, tags).
+            progress_callback (callable): Optional callback function for upload progress (takes integer 0-100).
 
         Returns:
             str: ID of the uploaded video.
@@ -213,7 +295,10 @@ class VideoProducer:
         while response is None:
             status, response = request.next_chunk()
             if status:
-                logger.info(f"Uploaded {int(status.progress() * 100)}%")
+                pct = int(status.progress() * 100)
+                logger.info(f"Uploaded {pct}%")
+                if progress_callback:
+                    progress_callback(pct)
 
         logger.info(f"Upload complete! Video ID: {response['id']}")
         return response['id']
