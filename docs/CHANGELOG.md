@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.7.1] - 2024-04-10
+### Added
+- Finalized comprehensive project memory summary mapping the architecture, decisions, and patterns implemented in this session.
+- Updated HANDOFF.md with a detailed review of 1.7.x additions including DALL-E caching, Shorts extraction, Daemon mode, and Vertical 9:16 video support.
+
 ## [1.7.0] - 2024-04-10
 ### Added
 - Added `--create-shorts` CLI flag and Streamlit UI toggle to automatically extract 15-second segments from the rendered video using FFmpeg.
