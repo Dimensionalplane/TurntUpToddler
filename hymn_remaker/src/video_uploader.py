@@ -66,7 +66,7 @@ class VideoProducer:
             logger.error(f"Failed to create SRT: {e}")
             return False
 
-    def create_video(self, audio_path, image_url, output_path, lyrics=None, video_format="Standard 16:9"):
+    def create_video(self, audio_path, image_url, output_path, lyrics=None, video_format="Standard 16:9", sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True):
         """
         Create an MP4 video from an audio file, image URL, and optional lyrics using ffmpeg.
 
@@ -130,7 +130,22 @@ class VideoProducer:
                 if subtitles_enabled:
                     safe_srt_path = temp_srt_path.replace('\\', '/').replace(':', '\\:')
                     # Add subtitle filter on top of the mapped [v] stream
-                    filters.append(f"[v]subtitles='{safe_srt_path}'[v_sub]")
+
+                    # Convert hex colors (#RRGGBB) to ASS format (&HBBGGRR&)
+                    def to_ass_color(hex_str):
+                        h = hex_str.lstrip('#')
+                        if len(h) == 6:
+                            return f"&H00{h[4:6]}{h[2:4]}{h[0:2]}&"
+                        return "&H00FFFFFF&"
+
+                    p_color = to_ass_color(sub_primary_color)
+                    o_color = to_ass_color(sub_outline_color)
+                    b_color = to_ass_color(sub_back_color)
+                    border_style = "3" if sub_box else "1" # 3 = Opaque box, 1 = Outline
+
+                    force_style = f"FontSize={sub_font_size},PrimaryColour={p_color},OutlineColour={o_color},BackColour={b_color},BorderStyle={border_style}"
+                    filters.append(f"[v]subtitles='{safe_srt_path}':force_style='{force_style}'[v_sub]")
+
                     ffmpeg_cmd.extend(["-filter_complex", ";".join(filters), "-map", "[v_sub]", "-map", "1:a"])
                 else:
                     ffmpeg_cmd.extend(["-filter_complex", ";".join(filters), "-map", "[v]", "-map", "1:a"])

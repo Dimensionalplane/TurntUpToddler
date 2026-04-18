@@ -99,7 +99,17 @@ with st.sidebar.expander("Audio Settings", expanded=False):
     fade_in_ms = st.number_input("Fade-In (ms)", min_value=0, max_value=10000, value=0, step=500, help="Apply a gradual volume increase at the start of the audio.")
     fade_out_ms = st.number_input("Fade-Out (ms)", min_value=0, max_value=10000, value=0, step=500, help="Apply a gradual volume decrease at the end of the audio.")
 
+
+st.sidebar.markdown("### Subtitle Styling")
+with st.sidebar.expander("Subtitle Style Settings", expanded=False):
+    sub_font_size = st.number_input("Font Size", min_value=12, max_value=72, value=24, step=2, help="Font size for burned-in subtitles.")
+    sub_primary_color = st.color_picker("Primary Color", value="#FFFFFF", help="Main text color for subtitles.")
+    sub_outline_color = st.color_picker("Outline Color", value="#000000", help="Outline color for subtitles.")
+    sub_back_color = st.color_picker("Background Box Color", value="#000000", help="Background box color (if enabled).")
+    sub_box = st.checkbox("Show Background Box", value=True, help="Draw a semi-transparent box behind subtitle text for readability.")
+
 st.sidebar.markdown("### Pipeline Options")
+
 video_format = st.sidebar.selectbox("Video Format", ["Standard 16:9", "Vertical 9:16 (TikTok/Reels)"], index=0, help="Output video aspect ratio.")
 generate_vocals = st.sidebar.checkbox("Generate Vocals (ElevenLabs)", value=False, help="Automatically generate singing/spoken word vocals for the lyrics and mix them into the final track.")
 create_shorts = st.sidebar.checkbox("Create 15s Shorts", value=False, help="Extract 15-second clips from the final video into the output/shorts directory.")
@@ -201,6 +211,11 @@ if st.button("Start Processing", type="primary"):
                     model=elevenlabs_model,
                     video_format=video_format,
                     create_shorts=create_shorts,
+                    sub_font_size=sub_font_size,
+                    sub_primary_color=sub_primary_color,
+                    sub_outline_color=sub_outline_color,
+                    sub_back_color=sub_back_color,
+                    sub_box=sub_box,
                     status_callback=lambda msg, prog: (status_texts[file_path].info(msg), progress_bars[file_path].progress(prog))
                 )
 

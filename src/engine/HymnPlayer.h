@@ -2,11 +2,11 @@
 #define HYMNPLAYER_H
 
 #include <string>
-#include <vector>
+#include <fluidsynth.h>
 
 class HymnPlayer {
 public:
-    HymnPlayer();
+    HymnPlayer(const std::string& soundfontPath = "/usr/share/sounds/sf2/FluidR3_GM.sf2");
     ~HymnPlayer();
 
     bool load(const std::string& filename);
@@ -20,7 +20,13 @@ public:
 private:
     bool playing;
     std::string currentFile;
-    // Add internal state for fluid synth or other rendering engine here
+
+    // FluidSynth components
+    fluid_settings_t* settings;
+    fluid_synth_t* synth;
+    fluid_player_t* player;
+
+    int soundfontId;
 };
 
 #endif // HYMNPLAYER_H

@@ -143,7 +143,8 @@ def process_single_midi(
     midi_path, output_dir, style, skip_render, skip_remake, upload,
     renderer, remaker, content_gen, video_producer, tts_generator=None,
     normalize_audio=True, fade_in_ms=0, fade_out_ms=0, generate_vocals=False,
-    voice_id="21m00Tcm4TlvDq8ikWAM", model="eleven_multilingual_v2", video_format="Standard 16:9", create_shorts=False, status_callback=None
+    voice_id="21m00Tcm4TlvDq8ikWAM", model="eleven_multilingual_v2", video_format="Standard 16:9", create_shorts=False, status_callback=None,
+    sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True
 ):
     base_audio_path = remake_audio_path = metadata_path = vocal_track_path = None
     try:
@@ -229,7 +230,7 @@ def process_single_midi(
         # 4. Create Video (with subtitles if lyrics exist)
         update_status(f"Step 4/4: Creating Video with Subtitles ({filename})...", 85)
         video_path = os.path.join(output_dir, f"{name_no_ext}.mp4")
-        video_producer.create_video(remake_audio_path, art_url, video_path, lyrics=lyrics, video_format=video_format)
+        video_producer.create_video(remake_audio_path, art_url, video_path, lyrics=lyrics, video_format=video_format, sub_font_size=sub_font_size, sub_primary_color=sub_primary_color, sub_outline_color=sub_outline_color, sub_back_color=sub_back_color, sub_box=sub_box)
 
         # 4.5 Create Shorts
         if create_shorts:
