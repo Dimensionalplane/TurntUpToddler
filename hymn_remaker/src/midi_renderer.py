@@ -6,7 +6,7 @@ import numpy as np
 import mido
 import math
 import time
-from .. import settings
+from hymn_remaker import settings
 
 # Ensure the root directory is in sys.path so we can import hymn_player_ext
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))

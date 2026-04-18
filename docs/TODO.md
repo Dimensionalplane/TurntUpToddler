@@ -3,15 +3,13 @@
 This list tracks immediate, actionable tasks, bug fixes, and minor feature requests necessary to push the project toward its roadmap goals.
 
 ## High Priority
-- [ ] **Pybind11 Integration:** Create a `pybind11` wrapper for the `HymnPlayer` C++ class. Ensure the Python orchestrator can instantiate the player, load a MIDI, and extract the rendered audio buffer directly into a `numpy` array or `pydub.AudioSegment`.
-- [ ] **Dependency Audit:** Verify all Python dependencies in `requirements.txt` have explicit versions pinned to prevent upstream breaking changes.
-- [ ] **Streamlit UI Expansion:** Expose the FFmpeg subtitle styling options (font size, color, background box) to the Streamlit UI. Currently, they are hardcoded in `video_uploader.py`.
+- [ ] **OMR Proof of Concept:** Research Python wrappers for Audiveris or similar Optical Music Recognition tools. The goal is to allow users to drop a `.pdf` sheet music file into the `input/` folder and have the daemon automatically convert it to MusicXML for processing.
+- [ ] **Multi-Voice Harmonization Proof of Concept:** Update `tts_generator.py` to optionally accept a list of `voice_ids`. Generate separate audio tracks for each voice, pitch-shift them (e.g., using `librosa` or `pydub`) to create chords, and mix them before overlaying onto the instrumental.
+- [ ] **Live DJ Radio Stream Research:** Investigate FFmpeg's `icecast` or HLS streaming capabilities. The goal is to pipe the output of `video_uploader.py` directly to a continuous RTMP/HLS stream endpoint.
 
 ## Medium Priority
-- [ ] **MusicXML Parser:** Research and implement a Python parser (e.g., `music21`) to extract tempo, key signature, and existing lyrics from `.mxl` files before falling back to ChatGPT generation.
-- [ ] **TTS Alignment Smoothing:** Sometimes the ElevenLabs TTS audio is slightly longer or shorter than the instrumental track. Implement a dynamic time-stretching function using `pydub` (or `librosa`) to slightly speed up or slow down the vocals to match the exact duration of the instrumental.
-- [ ] **Centralized Config File:** Move all hardcoded fallback paths (like `/usr/share/sounds/sf2/FluidR3_GM.sf2` and `.cache/art/`) into a central `config.yaml` or `settings.py` file.
+- [ ] **Dynamic Time-Stretching Refinement:** Currently, `src/utils.py` uses a simple `atempo` stretch ratio for the entire vocal track. Investigate using forced alignment (like Whisper timestamps) to stretch individual words or phrases to fall perfectly on the downbeat.
+- [ ] **Advanced Subtitle Parsing:** The current MusicXML parser aggressively strips hyphens from extracted lyrics. Implement a smarter parsing algorithm that preserves syllables and outputs a valid `.srt` or `.ass` file with precise note-by-note timing extracted from the `.mxl` file.
 
 ## Low Priority / Polish
-- [ ] **Docker Optimization:** Multi-stage Dockerfile build to compile the C++ engine in a build container, resulting in a smaller final runtime image.
 - [ ] **UI Loading States:** Add Streamlit `st.spinner` or progress bars to the DALL-E and ElevenLabs API calls to improve user experience during long network requests.

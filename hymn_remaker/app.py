@@ -3,6 +3,7 @@ import os
 import sys
 import glob
 import concurrent.futures
+from hymn_remaker import settings
 
 # Load global version
 VERSION = "Unknown"
@@ -144,7 +145,7 @@ if st.sidebar.button("🗑️ Clear Workspace", help="Delete all files in the in
     except Exception as e:
         st.sidebar.error(f"Failed to clear workspace: {e}")
 
-uploaded_files = st.file_uploader("Upload MIDI files", type=["mid", "midi"], accept_multiple_files=True, help="Select one or more public domain hymn MIDI files to process.")
+uploaded_files = st.file_uploader("Upload MIDI or MusicXML files", type=["mid", "midi", "mxl", "xml"], accept_multiple_files=True, help="Select one or more public domain hymn MIDI or MusicXML files to process.")
 
 if st.button("Start Processing", type="primary"):
     if not uploaded_files:
@@ -202,6 +203,7 @@ if st.button("Start Processing", type="primary"):
                     remaker,
                     content_gen,
                     video_producer,
+                    mxl_parser=mxl_parser,
                     tts_generator=tts_generator,
                     normalize_audio=normalize_audio,
                     fade_in_ms=fade_in_ms,

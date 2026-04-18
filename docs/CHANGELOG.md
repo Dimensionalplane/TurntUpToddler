@@ -3,24 +3,20 @@
 All notable changes to this project will be documented in this file.
 The format is based on Keep a Changelog.
 
-## [1.7.2] - Current
+## [1.8.0] - Current
 ### Added
-- **Native C++ Engine:** Implemented the `HymnPlayer` class (`src/engine/HymnPlayer.cpp`) utilizing the FluidSynth API for low-level audio rendering.
-- **C++ Build System:** Added a standard `Makefile` to compile the native C++ code and test suite.
-- **Native Testing:** Added `tests/HymnPlayerTests.cpp` featuring dynamic MIDI file creation for robust unit testing of the native engine.
-- **Omni-Workspace Compliance:** Massive documentation overhaul to comply with cross-repository LLM agent standards. Created `docs/UNIVERSAL_LLM_INSTRUCTIONS.md` and updated `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `GPT.md`, and `copilot-instructions.md`.
-- **Project Documentation Expansion:** Extensively detailed `VISION.md`, `ROADMAP.md`, `MEMORY.md`, and `DEPLOY.md` to capture current architectural decisions and future feature goals.
+- **MusicXML Parsing:** Integrated `music21` library to natively parse `.mxl` and `.xml` sheet music files. The pipeline now extracts title, composer, and lyrics metadata directly from the source file before converting it to MIDI for the audio engine, allowing it to augment or bypass ChatGPT generative steps.
+- **Docker Production Optimization:** Created a multi-stage `Dockerfile` and a `docker-compose.yml`. The build stage compiles the native C++ `pybind11` audio engine, and the runtime stage creates a lightweight container with `ffmpeg` and `fluidsynth` pre-installed, offering out-of-the-box local deployment for the UI and Daemon modes.
+- **Pybind11 Native Rendering:** The `MidiRenderer` class now successfully instantiates the native C++ `HymnPlayer` engine (via `hymn_player_ext.so`) to render audio chunks directly into NumPy arrays and export them using `soundfile`, bypassing `midi2audio` shell commands.
+- **Centralized Application Settings:** Created `hymn_remaker/settings.py` to house all hardcoded fallback paths (SoundFonts, caching directories) and default UI/Pipeline configuration strings. Refactored `main.py`, `app.py`, and source modules to import from this single source of truth.
+- **TTS Alignment Smoothing:** Overhauled the vocal ducking system in `src/utils.py` to calculate the duration of the Replicate instrumental and apply an FFmpeg `atempo` time-stretch to the ElevenLabs vocal track to ensure perfectly matched runtimes before mixing.
+- **Streamlit Subtitle Styling:** Exposed FFmpeg subtitle customization options (Font Size, Primary Color, Outline Color, Background Box Color) directly into the Streamlit UI sidebar, piping those parameters down into the `ffmpeg` filter string in `video_uploader.py`.
 
-### Fixed
-- **FluidSynth Clock Synchronization:** Corrected an issue in `HymnPlayer::renderAudio` where calling both `fluid_synth_process` and `fluid_synth_write_float` caused double-advancement of the synth clock resulting in audio skipping.
+### Changed
+- Pinned all Python dependencies in `requirements.txt` to exact versions to prevent upstream breaking changes across AI agent sessions.
+- Updated `ROADMAP.md` and `TODO.md` to reflect the completion of Phase 3 and outline Phase 4 features (OMR, Live DJ Mode, Multi-Voice Harmonization).
 
-## [1.7.1] - Previous
+## [1.7.2] - Previous
 ### Added
-- **Daemon Mode:** Implemented `--daemon` CLI flag using the `watchdog` library to continuously monitor the input directory for automated processing.
-- **Vertical Video & Shorts Extraction:** Added logic in `video_uploader.py` to support 9:16 vertical formatting. Added `--create-shorts` flag utilizing FFmpeg's `segment` muxer to generate 15-second clips.
-- **Cost Optimization:** Implemented local DALL-E image caching in `.cache/art/` using MD5 hashing of prompts to prevent redundant API charges.
-- **Robust Subtitles:** Added a retry loop to FFmpeg subtitle burning that strips non-ASCII characters upon crash, falling back to a textless video if all retries fail.
-- **Parameter Exposure:** Exposed ElevenLabs `voice_id` and `model` configuration to the CLI and Streamlit UI.
-
-### Fixed
-- **UnboundLocalError:** Fixed a crash during pipeline failure cleanup in `main.py` by properly initializing path variables to `None` at the start of scope.
+- Native C++ Engine implementation (`HymnPlayer`) utilizing FluidSynth API for low-level audio rendering.
+- Omni-Workspace Compliance (UNIVERSAL_LLM_INSTRUCTIONS.md, AGENTS.md, etc.).

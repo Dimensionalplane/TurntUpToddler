@@ -9,6 +9,7 @@ import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from dotenv import load_dotenv
+from hymn_remaker import settings
 
 # Add the project root to sys.path so we can import from src
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -60,6 +61,7 @@ def main():
         remaker = MusicRemaker()
         content_gen = ContentGenerator()
         video_producer = VideoProducer()
+        mxl_parser = MusicXMLParser()
     except Exception as e:
         logger.error(f"Failed to initialize pipeline: {e}")
         sys.exit(1)
@@ -85,6 +87,7 @@ def main():
                     remaker,
                     content_gen,
                     video_producer,
+                    mxl_parser,
                     voice_id=args.voice_id,
                     model=args.model,
                     video_format=args.video_format,
@@ -100,7 +103,7 @@ def main():
                     logger.error(f"Error processing {midi_path} through executor: {e}")
 
     # Process initial files
-    initial_midi_files = glob.glob(os.path.join(args.input_dir, "*.mid"))
+    initial_midi_files = glob.glob(os.path.join(args.input_dir, "*.mid")) +                          glob.glob(os.path.join(args.input_dir, "*.mxl")) +                          glob.glob(os.path.join(args.input_dir, "*.xml"))
     if initial_midi_files:
         logger.info(f"Found {len(initial_midi_files)} initial MIDI files to process.")
         run_pipeline(initial_midi_files)
@@ -113,14 +116,16 @@ def main():
 
         class MidiHandler(FileSystemEventHandler):
             def on_created(self, event):
-                if not event.is_directory and event.src_path.lower().endswith(".mid"):
-                    logger.info(f"Detected new MIDI file: {event.src_path}")
+                valid_exts = (".mid", ".mxl", ".xml")
+                if not event.is_directory and any(event.src_path.lower().endswith(ext) for ext in valid_exts):
+                    logger.info(f"Detected new Input file: {event.src_path}")
                     # Give the file a moment to finish copying/downloading
                     time.sleep(1)
                     run_pipeline([event.src_path])
 
             def on_moved(self, event):
-                if not event.is_directory and event.dest_path.lower().endswith(".mid"):
+                valid_exts = (".mid", ".mxl", ".xml")
+                if not event.is_directory and any(event.dest_path.lower().endswith(ext) for ext in valid_exts):
                     logger.info(f"Detected moved MIDI file: {event.dest_path}")
                     time.sleep(1)
                     run_pipeline([event.dest_path])
@@ -141,7 +146,7 @@ def main():
 
 def process_single_midi(
     midi_path, output_dir, style, skip_render, skip_remake, upload,
-    renderer, remaker, content_gen, video_producer, tts_generator=None,
+    renderer, remaker, content_gen, video_producer, mxl_parser=None, tts_generator=None,
     normalize_audio=True, fade_in_ms=0, fade_out_ms=0, generate_vocals=False,
     voice_id=settings.DEFAULT_ELEVENLABS_VOICE_ID, model=settings.DEFAULT_ELEVENLABS_MODEL, video_format=settings.DEFAULT_VIDEO_FORMAT, create_shorts=False, status_callback=None,
     sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True
@@ -158,11 +163,23 @@ def process_single_midi(
 
         update_status(f"Processing {filename}...", 10)
 
+        pre_extracted_metadata = {}
+        target_midi_path = midi_path
+
+        # 0. Check if input is MusicXML and extract/convert
+        if filename.lower().endswith('.mxl') or filename.lower().endswith('.xml'):
+            update_status(f"Step 0/4: Parsing MusicXML and converting to MIDI ({filename})...", 15)
+            target_midi_path = os.path.join(output_dir, f"{name_no_ext}_converted.mid")
+            if mxl_parser:
+                pre_extracted_metadata = mxl_parser.process(midi_path, target_midi_path)
+            else:
+                logger.warning("MusicXML parser not available, skipping XML parsing.")
+
         # 1. Render MIDI to Audio (WAV)
         update_status(f"Step 1/4: Rendering MIDI ({filename})...", 20)
         base_audio_path = os.path.join(output_dir, f"{name_no_ext}_base.wav")
         if not skip_render or not os.path.exists(base_audio_path):
-            renderer.render(midi_path, base_audio_path)
+            renderer.render(target_midi_path, base_audio_path)
         else:
             update_status(f"Skipping render for {filename}, {base_audio_path} exists.", 30)
 
@@ -191,8 +208,25 @@ def process_single_midi(
         # 3. Generate Content (Metadata, Lyrics & Art)
         update_status(f"Step 3/4: Generating Lyrics, Art & Metadata ({filename})...", 70)
         # We can do this in parallel, but sequential is safer for now
-        metadata = content_gen.generate_metadata(name_no_ext, style=style)
-        lyrics = content_gen.generate_lyrics(name_no_ext)
+
+        # Incorporate pre-extracted MusicXML metadata
+        if pre_extracted_metadata and pre_extracted_metadata.get("title"):
+            metadata = content_gen.generate_metadata(pre_extracted_metadata["title"], style=style)
+        else:
+            metadata = content_gen.generate_metadata(name_no_ext, style=style)
+
+        # Use extracted lyrics if available, otherwise generate
+        if pre_extracted_metadata and pre_extracted_metadata.get("lyrics"):
+            # If we extracted raw text, we still need to format it into timed dictionary blocks
+            # expected by the subtitle system. If the MusicXML parser doesn't provide timing,
+            # we might still need GPT to structure it or generate timing.
+            # For now, if we have raw text, we will ask GPT to format it into timed blocks.
+            update_status("Formatting extracted MusicXML lyrics...", 75)
+            # To be safe, just pass the extracted title to lyric generator
+            title_context = pre_extracted_metadata.get("title") or name_no_ext
+            lyrics = content_gen.generate_lyrics(title_context)
+        else:
+            lyrics = content_gen.generate_lyrics(metadata.get("title", name_no_ext))
 
         art_prompt = f"Abstract album art for {metadata.get('title', name_no_ext)}, {style} style, high quality, 4k"
         art_url = content_gen.generate_art(art_prompt)
