@@ -1,16 +1,17 @@
 # TODO
 
+This list tracks immediate, actionable tasks, bug fixes, and minor feature requests necessary to push the project toward its roadmap goals.
+
 ## High Priority
-- [x] Implement robust documentation structure across `docs/`.
-- [x] Modify `hymn_remaker/app.py` to display the global version number in the sidebar.
-- [x] Modify `hymn_remaker/app.py` to allow user selection of ElevenLabs Voice ID and Model.
-- [x] Update `process_single_midi` in `main.py` to accept and pass the Voice ID and Model parameters.
+- [ ] **Pybind11 Integration:** Create a `pybind11` wrapper for the `HymnPlayer` C++ class. Ensure the Python orchestrator can instantiate the player, load a MIDI, and extract the rendered audio buffer directly into a `numpy` array or `pydub.AudioSegment`.
+- [ ] **Dependency Audit:** Verify all Python dependencies in `requirements.txt` have explicit versions pinned to prevent upstream breaking changes.
+- [ ] **Streamlit UI Expansion:** Expose the FFmpeg subtitle styling options (font size, color, background box) to the Streamlit UI. Currently, they are hardcoded in `video_uploader.py`.
 
 ## Medium Priority
-- [x] Improve error handling and retry logic around FFmpeg subtitle burning.
-- [x] Add caching for DALL-E 3 image generation so re-running the same pipeline doesn't burn credits.
-- [x] Add a progress bar specifically for the YouTube upload chunking process.
+- [ ] **MusicXML Parser:** Research and implement a Python parser (e.g., `music21`) to extract tempo, key signature, and existing lyrics from `.mxl` files before falling back to ChatGPT generation.
+- [ ] **TTS Alignment Smoothing:** Sometimes the ElevenLabs TTS audio is slightly longer or shorter than the instrumental track. Implement a dynamic time-stretching function using `pydub` (or `librosa`) to slightly speed up or slow down the vocals to match the exact duration of the instrumental.
+- [ ] **Centralized Config File:** Move all hardcoded fallback paths (like `/usr/share/sounds/sf2/FluidR3_GM.sf2` and `.cache/art/`) into a central `config.yaml` or `settings.py` file.
 
 ## Low Priority / Polish
-- [x] Clean up temporary files more aggressively if a pipeline step fails mid-way.
-- [x] Add unit tests specifically mocking the ElevenLabs API responses.
+- [ ] **Docker Optimization:** Multi-stage Dockerfile build to compile the C++ engine in a build container, resulting in a smaller final runtime image.
+- [ ] **UI Loading States:** Add Streamlit `st.spinner` or progress bars to the DALL-E and ElevenLabs API calls to improve user experience during long network requests.
