@@ -177,7 +177,7 @@ class VideoProducer:
                     run_ffmpeg(False)
                     logger.info(f"Video created at {output_path} (without subtitles fallback)")
                 else:
-                    raise
+                    raise RuntimeError("FFmpeg failed to create video after all retries.")
 
         except Exception as e:
             logger.error(f"Failed to create video: {e}")
