@@ -10,3 +10,5 @@ pydub
 streamlit
 elevenlabs
 watchdog
+soundfile==0.13.1
+mido==1.3.3

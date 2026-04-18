@@ -143,7 +143,7 @@ def process_single_midi(
     midi_path, output_dir, style, skip_render, skip_remake, upload,
     renderer, remaker, content_gen, video_producer, tts_generator=None,
     normalize_audio=True, fade_in_ms=0, fade_out_ms=0, generate_vocals=False,
-    voice_id="21m00Tcm4TlvDq8ikWAM", model="eleven_multilingual_v2", video_format="Standard 16:9", create_shorts=False, status_callback=None,
+    voice_id=settings.DEFAULT_ELEVENLABS_VOICE_ID, model=settings.DEFAULT_ELEVENLABS_MODEL, video_format=settings.DEFAULT_VIDEO_FORMAT, create_shorts=False, status_callback=None,
     sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True
 ):
     base_audio_path = remake_audio_path = metadata_path = vocal_track_path = None

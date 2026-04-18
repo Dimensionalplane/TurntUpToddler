@@ -76,7 +76,7 @@ st.sidebar.header("Settings")
 
 # Style Preset Selection
 preset_styles = [
-    "Deep House, high quality, electronic",
+    settings.DEFAULT_STYLE,
     "Lofi hip hop, chill, relaxing",
     "Synthwave, retro 80s, neon",
     "Epic Orchestral, cinematic, Hans Zimmer",
@@ -90,7 +90,7 @@ if selected_style == "Custom...":
 else:
     style = selected_style
 
-output_dir = st.sidebar.text_input("Output Directory", value="hymn_remaker/output", help="Where the final audio, video, and metadata files will be saved.")
+output_dir = st.sidebar.text_input("Output Directory", value=settings.OUTPUT_DIR, help="Where the final audio, video, and metadata files will be saved.")
 max_workers = st.sidebar.slider("Concurrent Tasks", min_value=1, max_value=4, value=1, help="Process multiple MIDI files at the same time. Warning: High concurrency may hit API rate limits or use significant local resources.")
 
 st.sidebar.markdown("### Advanced Audio Processing")
@@ -114,15 +114,15 @@ video_format = st.sidebar.selectbox("Video Format", ["Standard 16:9", "Vertical 
 generate_vocals = st.sidebar.checkbox("Generate Vocals (ElevenLabs)", value=False, help="Automatically generate singing/spoken word vocals for the lyrics and mix them into the final track.")
 create_shorts = st.sidebar.checkbox("Create 15s Shorts", value=False, help="Extract 15-second clips from the final video into the output/shorts directory.")
 
-elevenlabs_voice_id = "21m00Tcm4TlvDq8ikWAM"
-elevenlabs_model = "eleven_multilingual_v2"
+elevenlabs_voice_id = settings.DEFAULT_ELEVENLABS_VOICE_ID
+elevenlabs_model = settings.DEFAULT_ELEVENLABS_MODEL
 
 if generate_vocals:
     if not os.environ.get("ELEVENLABS_API_KEY"):
         st.sidebar.error("Cannot generate vocals without an ELEVENLABS_API_KEY.")
     else:
         with st.sidebar.expander("ElevenLabs Settings", expanded=True):
-            elevenlabs_voice_id = st.text_input("Voice ID", value="21m00Tcm4TlvDq8ikWAM", help="The ElevenLabs Voice ID to use.")
+            elevenlabs_voice_id = st.text_input("Voice ID", value=settings.DEFAULT_ELEVENLABS_VOICE_ID, help="The ElevenLabs Voice ID to use.")
             elevenlabs_model = st.selectbox("Model", ["eleven_multilingual_v2", "eleven_monolingual_v1", "eleven_turbo_v2"], index=0, help="The ElevenLabs model to use.")
 
 
@@ -134,9 +134,9 @@ st.sidebar.markdown("---")
 if st.sidebar.button("🗑️ Clear Workspace", help="Delete all files in the input and output directories."):
     import shutil
     try:
-        if os.path.exists("hymn_remaker/input"):
-            shutil.rmtree("hymn_remaker/input")
-            os.makedirs("hymn_remaker/input")
+        if os.path.exists(settings.INPUT_DIR):
+            shutil.rmtree(settings.INPUT_DIR)
+            os.makedirs(settings.INPUT_DIR)
         if os.path.exists(output_dir):
             shutil.rmtree(output_dir)
             os.makedirs(output_dir)
@@ -153,13 +153,13 @@ if st.button("Start Processing", type="primary"):
         st.error("Pipeline modules failed to load.")
     else:
         # Ensure input/output dirs exist
-        os.makedirs("hymn_remaker/input", exist_ok=True)
+        os.makedirs(settings.INPUT_DIR, exist_ok=True)
         os.makedirs(output_dir, exist_ok=True)
 
         # Save uploaded files to input directory
         saved_files = []
         for uf in uploaded_files:
-            file_path = os.path.join("hymn_remaker/input", uf.name)
+            file_path = os.path.join(settings.INPUT_DIR, uf.name)
             with open(file_path, "wb") as f:
                 f.write(uf.getbuffer())
             saved_files.append(file_path)
