@@ -19,6 +19,7 @@ from src.remaker import MusicRemaker
 from src.content_generator import ContentGenerator
 from src.video_uploader import VideoProducer
 from src.tts_generator import TTSGenerator
+from src.musicxml_parser import MusicXMLParser
 from src.utils import process_audio
 
 # Load environment variables
@@ -62,6 +63,7 @@ def main():
         content_gen = ContentGenerator()
         video_producer = VideoProducer()
         mxl_parser = MusicXMLParser()
+        omr_processor = OMRProcessor()
     except Exception as e:
         logger.error(f"Failed to initialize pipeline: {e}")
         sys.exit(1)
@@ -88,6 +90,7 @@ def main():
                     content_gen,
                     video_producer,
                     mxl_parser,
+                    omr_processor,
                     voice_id=args.voice_id,
                     model=args.model,
                     video_format=args.video_format,
@@ -116,7 +119,7 @@ def main():
 
         class MidiHandler(FileSystemEventHandler):
             def on_created(self, event):
-                valid_exts = (".mid", ".mxl", ".xml")
+                valid_exts = (".mid", ".mxl", ".xml", ".png", ".jpg", ".pdf")
                 if not event.is_directory and any(event.src_path.lower().endswith(ext) for ext in valid_exts):
                     logger.info(f"Detected new Input file: {event.src_path}")
                     # Give the file a moment to finish copying/downloading
@@ -124,7 +127,7 @@ def main():
                     run_pipeline([event.src_path])
 
             def on_moved(self, event):
-                valid_exts = (".mid", ".mxl", ".xml")
+                valid_exts = (".mid", ".mxl", ".xml", ".png", ".jpg", ".pdf")
                 if not event.is_directory and any(event.dest_path.lower().endswith(ext) for ext in valid_exts):
                     logger.info(f"Detected moved MIDI file: {event.dest_path}")
                     time.sleep(1)
@@ -146,10 +149,11 @@ def main():
 
 def process_single_midi(
     midi_path, output_dir, style, skip_render, skip_remake, upload,
-    renderer, remaker, content_gen, video_producer, mxl_parser=None, tts_generator=None,
+    renderer, remaker, content_gen, video_producer, mxl_parser=None, omr_processor=None, tts_generator=None,
     normalize_audio=True, fade_in_ms=0, fade_out_ms=0, generate_vocals=False,
     voice_id=settings.DEFAULT_ELEVENLABS_VOICE_ID, model=settings.DEFAULT_ELEVENLABS_MODEL, video_format=settings.DEFAULT_VIDEO_FORMAT, create_shorts=False, status_callback=None,
-    sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True
+    sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True,
+    interactive_callback=None
 ):
     base_audio_path = remake_audio_path = metadata_path = vocal_track_path = None
     try:
@@ -165,6 +169,18 @@ def process_single_midi(
 
         pre_extracted_metadata = {}
         target_midi_path = midi_path
+
+        # -1. Check if input is an image/PDF (OMR)
+        if filename.lower().endswith('.png') or filename.lower().endswith('.jpg') or filename.lower().endswith('.pdf'):
+            update_status(f"Step 0/4: Running OMR on sheet music ({filename})...", 12)
+            if omr_processor and omr_processor.is_available():
+                target_mxl_path = omr_processor.process(midi_path, output_dir)
+                filename = os.path.basename(target_mxl_path)
+                midi_path = target_mxl_path
+                name_no_ext = os.path.splitext(filename)[0]
+            else:
+                logger.error("OMR processor is not available or oemer is not installed.")
+                raise RuntimeError("Cannot process image/PDF without an active OMR processor.")
 
         # 0. Check if input is MusicXML and extract/convert
         if filename.lower().endswith('.mxl') or filename.lower().endswith('.xml'):
@@ -207,35 +223,82 @@ def process_single_midi(
 
         # 3. Generate Content (Metadata, Lyrics & Art)
         update_status(f"Step 3/4: Generating Lyrics, Art & Metadata ({filename})...", 70)
-        # We can do this in parallel, but sequential is safer for now
 
-        # Incorporate pre-extracted MusicXML metadata
-        if pre_extracted_metadata and pre_extracted_metadata.get("title"):
-            metadata = content_gen.generate_metadata(pre_extracted_metadata["title"], style=style)
-        else:
-            metadata = content_gen.generate_metadata(name_no_ext, style=style)
-
-        # Use extracted lyrics if available, otherwise generate
-        if pre_extracted_metadata and pre_extracted_metadata.get("lyrics"):
-            # If we extracted raw text, we still need to format it into timed dictionary blocks
-            # expected by the subtitle system. If the MusicXML parser doesn't provide timing,
-            # we might still need GPT to structure it or generate timing.
-            # For now, if we have raw text, we will ask GPT to format it into timed blocks.
-            update_status("Formatting extracted MusicXML lyrics...", 75)
-            # To be safe, just pass the extracted title to lyric generator
-            title_context = pre_extracted_metadata.get("title") or name_no_ext
-            lyrics = content_gen.generate_lyrics(title_context)
-        else:
-            lyrics = content_gen.generate_lyrics(metadata.get("title", name_no_ext))
-
-        art_prompt = f"Abstract album art for {metadata.get('title', name_no_ext)}, {style} style, high quality, 4k"
-        art_url = content_gen.generate_art(art_prompt)
-
-        # Save metadata to file for reference
         metadata_path = os.path.join(output_dir, f"{name_no_ext}_metadata.json")
-        with open(metadata_path, "w") as f:
-            metadata["lyrics"] = lyrics # Add lyrics to saved metadata
-            json.dump(metadata, f, indent=4)
+
+        # Check if we already generated (and potentially edited) this data
+        if os.path.exists(metadata_path):
+            update_status(f"Loading existing metadata and lyrics from {metadata_path}...", 72)
+            with open(metadata_path, "r") as f:
+                metadata = json.load(f)
+            lyrics = metadata.get("lyrics", [])
+            art_prompt = metadata.get("art_prompt", f"Abstract album art for {metadata.get('title', name_no_ext)}, {style} style, high quality, 4k")
+
+            # If in interactive mode, we still need to yield back to UI to approve/edit
+            if interactive_callback:
+                update_status(f"Pausing for interactive review...", 76)
+                edited_data = interactive_callback({
+                    'metadata': metadata,
+                    'lyrics': lyrics,
+                    'art_prompt': art_prompt
+                })
+                if edited_data:
+                    metadata = edited_data.get('metadata', metadata)
+                    lyrics = edited_data.get('lyrics', lyrics)
+                    art_prompt = edited_data.get('art_prompt', art_prompt)
+
+                # Save edits
+                with open(metadata_path, "w") as f:
+                    metadata["lyrics"] = lyrics
+                    metadata["art_prompt"] = art_prompt
+                    json.dump(metadata, f, indent=4)
+                update_status(f"Resuming pipeline...", 78)
+        else:
+            # First time generation
+            # Incorporate pre-extracted MusicXML metadata
+            if pre_extracted_metadata and pre_extracted_metadata.get("title"):
+                metadata = content_gen.generate_metadata(pre_extracted_metadata["title"], style=style)
+            else:
+                metadata = content_gen.generate_metadata(name_no_ext, style=style)
+
+            # Use extracted lyrics if available, otherwise generate
+            if pre_extracted_metadata and pre_extracted_metadata.get("lyrics"):
+                update_status("Formatting extracted MusicXML lyrics...", 75)
+                title_context = pre_extracted_metadata.get("title") or name_no_ext
+                lyrics = content_gen.generate_lyrics(title_context)
+            else:
+                lyrics = content_gen.generate_lyrics(metadata.get("title", name_no_ext))
+
+            art_prompt = f"Abstract album art for {metadata.get('title', name_no_ext)}, {style} style, high quality, 4k"
+
+            # Save initial generation before review so it's cached for the Streamlit rerun
+            with open(metadata_path, "w") as f:
+                metadata["lyrics"] = lyrics
+                metadata["art_prompt"] = art_prompt
+                json.dump(metadata, f, indent=4)
+
+            # If in interactive mode, yield execution back to the UI to allow the user to edit metadata/lyrics/art_prompt
+            if interactive_callback:
+                update_status(f"Pausing for interactive review...", 76)
+                edited_data = interactive_callback({
+                    'metadata': metadata,
+                    'lyrics': lyrics,
+                    'art_prompt': art_prompt
+                })
+                if edited_data:
+                    metadata = edited_data.get('metadata', metadata)
+                    lyrics = edited_data.get('lyrics', lyrics)
+                    art_prompt = edited_data.get('art_prompt', art_prompt)
+
+                # Save edits
+                with open(metadata_path, "w") as f:
+                    metadata["lyrics"] = lyrics
+                    metadata["art_prompt"] = art_prompt
+                    json.dump(metadata, f, indent=4)
+                update_status(f"Resuming pipeline...", 78)
+
+        # Generate the actual image using the (potentially edited) prompt
+        art_url = content_gen.generate_art(art_prompt)
 
         # Optional: Generate Vocals via ElevenLabs
         vocal_track_path = None

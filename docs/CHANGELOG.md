@@ -3,20 +3,21 @@
 All notable changes to this project will be documented in this file.
 The format is based on Keep a Changelog.
 
-## [1.8.0] - Current
+## [1.9.0] - Current
 ### Added
-- **MusicXML Parsing:** Integrated `music21` library to natively parse `.mxl` and `.xml` sheet music files. The pipeline now extracts title, composer, and lyrics metadata directly from the source file before converting it to MIDI for the audio engine, allowing it to augment or bypass ChatGPT generative steps.
-- **Docker Production Optimization:** Created a multi-stage `Dockerfile` and a `docker-compose.yml`. The build stage compiles the native C++ `pybind11` audio engine, and the runtime stage creates a lightweight container with `ffmpeg` and `fluidsynth` pre-installed, offering out-of-the-box local deployment for the UI and Daemon modes.
-- **Pybind11 Native Rendering:** The `MidiRenderer` class now successfully instantiates the native C++ `HymnPlayer` engine (via `hymn_player_ext.so`) to render audio chunks directly into NumPy arrays and export them using `soundfile`, bypassing `midi2audio` shell commands.
-- **Centralized Application Settings:** Created `hymn_remaker/settings.py` to house all hardcoded fallback paths (SoundFonts, caching directories) and default UI/Pipeline configuration strings. Refactored `main.py`, `app.py`, and source modules to import from this single source of truth.
-- **TTS Alignment Smoothing:** Overhauled the vocal ducking system in `src/utils.py` to calculate the duration of the Replicate instrumental and apply an FFmpeg `atempo` time-stretch to the ElevenLabs vocal track to ensure perfectly matched runtimes before mixing.
-- **Streamlit Subtitle Styling:** Exposed FFmpeg subtitle customization options (Font Size, Primary Color, Outline Color, Background Box Color) directly into the Streamlit UI sidebar, piping those parameters down into the `ffmpeg` filter string in `video_uploader.py`.
+- **OMR (Optical Music Recognition) Support**: Integrated the `oemer` library (`src/omr_processor.py`) to fully support reading raw physical sheet music images (`.png`, `.jpg`) and PDFs (`.pdf`). The pipeline now autonomously converts dropped or uploaded images into MusicXML (`.mxl`) files, bridging the gap between physical paper and the digital generative pipeline.
+- Streamlit UI file uploaders and Watchdog daemon logic were expanded to handle the new image and PDF extensions natively.
 
-### Changed
-- Pinned all Python dependencies in `requirements.txt` to exact versions to prevent upstream breaking changes across AI agent sessions.
-- Updated `ROADMAP.md` and `TODO.md` to reflect the completion of Phase 3 and outline Phase 4 features (OMR, Live DJ Mode, Multi-Voice Harmonization).
+### Fixed
+- **Critical Thread Safety Regression:** Resolved a severe multithreading bug where the single global instance of the native C++ `HymnPlayer` engine was being shared concurrently across multiple `ThreadPoolExecutor` workers. `midi_renderer.py` now instantiates the Pybind11 engine locally per-call, eliminating race conditions and corrupted audio interleaving.
+- **Streamlit Interactive Mode Bug:** Fixed the interactive UI review loop where clicking "Start Processing" would drop the file queue from `session_state` due to Streamlit's top-down rerun model. The pipeline now correctly tracks `completed_files` in session state to seamlessly resume execution after manual lyric/metadata edits are approved.
+- Unpinned dependencies in `requirements.txt` to resolve a bug where python environment specific versions (e.g., `streamlit==1.56.0` or `Pillow==12.2.0`) caused cross-platform build failures.
 
-## [1.7.2] - Previous
+## [1.8.0] - Previous
 ### Added
-- Native C++ Engine implementation (`HymnPlayer`) utilizing FluidSynth API for low-level audio rendering.
-- Omni-Workspace Compliance (UNIVERSAL_LLM_INSTRUCTIONS.md, AGENTS.md, etc.).
+- **MusicXML Parsing:** Integrated `music21` library to natively parse `.mxl` and `.xml` sheet music files.
+- **Docker Production Optimization:** Created a multi-stage `Dockerfile` and a `docker-compose.yml`.
+- **Pybind11 Native Rendering:** The `MidiRenderer` class now successfully instantiates the native C++ `HymnPlayer` engine.
+- **Centralized Application Settings:** Created `hymn_remaker/settings.py`.
+- **TTS Alignment Smoothing:** Overhauled the vocal ducking system in `src/utils.py` using FFmpeg `atempo`.
+- **Streamlit Subtitle Styling:** Exposed FFmpeg subtitle customization options.

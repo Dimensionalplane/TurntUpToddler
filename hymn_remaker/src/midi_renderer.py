@@ -42,9 +42,7 @@ class MidiRenderer:
                 raise FileNotFoundError("No default soundfont found. Please provide a path to a valid .sf2 file.")
 
         logger.info(f"Using SoundFont: {self.soundfont_path}")
-        if NATIVE_ENGINE_AVAILABLE:
-            self.player = hymn_player_ext.HymnPlayer(self.soundfont_path)
-        else:
+        if not NATIVE_ENGINE_AVAILABLE:
             self.fs = FluidSynth(self.soundfont_path)
 
     def _get_midi_duration(self, midi_path):
@@ -71,8 +69,11 @@ class MidiRenderer:
         try:
             if NATIVE_ENGINE_AVAILABLE:
                 logger.info("Using Native C++ Engine for rendering.")
+                # Instantiate player locally per thread to ensure thread-safety
+                player = hymn_player_ext.HymnPlayer(self.soundfont_path)
+
                 # Load the MIDI file
-                success = self.player.load(midi_path)
+                success = player.load(midi_path)
                 if not success:
                     raise RuntimeError("Failed to load MIDI file into native engine.")
 
@@ -82,19 +83,19 @@ class MidiRenderer:
                 sample_rate = settings.SAMPLE_RATE
                 total_frames = math.ceil((duration_sec + settings.REVERB_TAIL_SECONDS) * sample_rate)
 
-                self.player.play()
+                player.play()
 
                 # Render in chunks
                 chunk_size = settings.SAMPLE_RATE # 1 second chunks
                 frames_rendered = 0
                 all_audio = []
 
-                while frames_rendered < total_frames and self.player.is_playing():
-                    audio_chunk = self.player.render_audio(chunk_size)
+                while frames_rendered < total_frames and player.is_playing():
+                    audio_chunk = player.render_audio(chunk_size)
                     all_audio.append(audio_chunk)
                     frames_rendered += chunk_size
 
-                self.player.stop()
+                player.stop()
 
                 if not all_audio:
                     raise RuntimeError("Native engine rendered zero audio frames.")

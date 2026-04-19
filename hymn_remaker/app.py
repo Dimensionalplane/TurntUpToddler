@@ -111,6 +111,8 @@ with st.sidebar.expander("Subtitle Style Settings", expanded=False):
 
 st.sidebar.markdown("### Pipeline Options")
 
+interactive_mode = st.sidebar.checkbox("Interactive Review Mode", value=False, help="Pause the pipeline after metadata/lyrics generation to manually edit the lyrics, title, and art prompt before rendering the final audio and video.")
+
 video_format = st.sidebar.selectbox("Video Format", ["Standard 16:9", "Vertical 9:16 (TikTok/Reels)"], index=0, help="Output video aspect ratio.")
 generate_vocals = st.sidebar.checkbox("Generate Vocals (ElevenLabs)", value=False, help="Automatically generate singing/spoken word vocals for the lyrics and mix them into the final track.")
 create_shorts = st.sidebar.checkbox("Create 15s Shorts", value=False, help="Extract 15-second clips from the final video into the output/shorts directory.")
@@ -145,11 +147,23 @@ if st.sidebar.button("🗑️ Clear Workspace", help="Delete all files in the in
     except Exception as e:
         st.sidebar.error(f"Failed to clear workspace: {e}")
 
-uploaded_files = st.file_uploader("Upload MIDI or MusicXML files", type=["mid", "midi", "mxl", "xml"], accept_multiple_files=True, help="Select one or more public domain hymn MIDI or MusicXML files to process.")
+uploaded_files = st.file_uploader("Upload MIDI, MusicXML, or Sheet Music images (OMR)", type=["mid", "midi", "mxl", "xml", "png", "jpg", "pdf"], accept_multiple_files=True, help="Select one or more public domain hymn MIDI, MusicXML, or Sheet Music image files to process.")
 
 if st.button("Start Processing", type="primary"):
-    if not uploaded_files:
+    st.session_state["is_processing"] = True
+    st.session_state["completed_files"] = []
+    st.session_state["uploaded_files_data"] = []
+    if uploaded_files:
+        for uf in uploaded_files:
+            st.session_state["uploaded_files_data"].append({
+                "name": uf.name,
+                "data": uf.getbuffer().tobytes()
+            })
+
+if st.session_state.get("is_processing", False):
+    if not st.session_state.get("uploaded_files_data"):
         st.warning("Please upload at least one MIDI file.")
+        st.session_state["is_processing"] = False
     elif renderer is None:
         st.error("Pipeline modules failed to load.")
     else:
@@ -159,10 +173,10 @@ if st.button("Start Processing", type="primary"):
 
         # Save uploaded files to input directory
         saved_files = []
-        for uf in uploaded_files:
-            file_path = os.path.join(settings.INPUT_DIR, uf.name)
+        for uf_data in st.session_state["uploaded_files_data"]:
+            file_path = os.path.join(settings.INPUT_DIR, uf_data["name"])
             with open(file_path, "wb") as f:
-                f.write(uf.getbuffer())
+                f.write(uf_data["data"])
             saved_files.append(file_path)
 
         st.success(f"Saved {len(saved_files)} files to input directory.")
@@ -176,6 +190,9 @@ if st.button("Start Processing", type="primary"):
             progress_bars[file_path] = st.progress(0)
             status_texts[file_path] = st.empty()
             status_texts[file_path].text("Queued...")
+
+        import queue
+        interaction_queue = queue.Queue()
 
         # Process function with UI updates
         def ui_process_wrapper(file_path):
@@ -192,6 +209,22 @@ if st.button("Start Processing", type="primary"):
                 # To make this truly granular, we should update process_single_midi to take a status_callback.
                 # Since we haven't yet, we'll just run it. We will update `process_single_midi` in main.py.
 
+                def interactive_callback_impl(data):
+                    # Pause the thread and communicate with the main thread via queue
+                    interaction_queue.put({"file_path": file_path, "data": data})
+
+                    # Block until the main UI thread sends back the edited data
+                    # In a true Streamlit app, we can't easily block like this without custom state handling.
+                    # We will implement a polling loop here, checking session_state set by the main thread.
+                    while f"interactive_data_{file_path}" not in st.session_state:
+                        import time
+                        time.sleep(0.5)
+
+                    edited_data = st.session_state.pop(f"interactive_data_{file_path}")
+                    return edited_data
+
+                callback = interactive_callback_impl if interactive_mode else None
+
                 process_single_midi(
                     file_path,
                     output_dir,
@@ -204,6 +237,7 @@ if st.button("Start Processing", type="primary"):
                     content_gen,
                     video_producer,
                     mxl_parser=mxl_parser,
+                    omr_processor=omr_processor,
                     tts_generator=tts_generator,
                     normalize_audio=normalize_audio,
                     fade_in_ms=fade_in_ms,
@@ -218,7 +252,8 @@ if st.button("Start Processing", type="primary"):
                     sub_outline_color=sub_outline_color,
                     sub_back_color=sub_back_color,
                     sub_box=sub_box,
-                    status_callback=lambda msg, prog: (status_texts[file_path].info(msg), progress_bars[file_path].progress(prog))
+                    status_callback=lambda msg, prog: (status_texts[file_path].info(msg), progress_bars[file_path].progress(prog)),
+                    interactive_callback=callback
                 )
 
                 status_texts[file_path].success(f"Completed! ✅ ({filename})")
@@ -278,5 +313,112 @@ if st.button("Start Processing", type="primary"):
             for future in concurrent.futures.as_completed(futures):
                 pass
 
+
+        # --- Execution Logic ---
+        st.write("---")
+        st.write("Processing log:")
+
+        if interactive_mode:
+            st.warning("Interactive mode enabled: processing files sequentially.")
+            for file_path in saved_files:
+                filename = os.path.basename(file_path)
+
+                if filename in st.session_state.get("completed_files", []):
+                    continue
+
+                def interactive_callback_sync(data):
+                    st.info("Pipeline Paused: Review generated content before final rendering.")
+
+                    # Store data in session state if not already there
+                    state_key = f"interactive_{filename}"
+                    if state_key not in st.session_state:
+                        st.session_state[state_key] = data
+
+                    curr_data = st.session_state[state_key]
+
+                    if st.session_state.get(f"interactive_done_{filename}"):
+                        return st.session_state[state_key]
+
+                    # Render UI
+                    with st.form(key=f"form_{filename}"):
+                        st.subheader(f"Edit Metadata & Art Prompt: {filename}")
+
+                        new_title = st.text_input("Title", value=curr_data['metadata'].get('title', ''))
+                        new_desc = st.text_area("Description", value=curr_data['metadata'].get('description', ''))
+                        new_art = st.text_area("Art Prompt (DALL-E)", value=curr_data['art_prompt'])
+
+                        st.subheader("Edit Lyrics")
+                        # Flatten lyrics to text for easy editing
+                        raw_text = "\n".join([l['text'] for l in curr_data['lyrics']])
+                        new_lyrics_text = st.text_area("Lyrics (One line per subtitle block)", value=raw_text, height=300)
+
+                        submit = st.form_submit_button("Approve & Continue Rendering")
+
+                    if submit:
+                        # Reconstruct lyrics
+                        new_lyrics = []
+                        for idx, line in enumerate(new_lyrics_text.strip().split('\n')):
+                            if line.strip():
+                                if idx < len(curr_data['lyrics']):
+                                    new_line = curr_data['lyrics'][idx].copy()
+                                    new_line['text'] = line.strip()
+                                    new_lyrics.append(new_line)
+                                else:
+                                    new_lyrics.append({'start': 0, 'end': 5, 'text': line.strip()})
+
+                        curr_data['metadata']['title'] = new_title
+                        curr_data['metadata']['description'] = new_desc
+                        curr_data['art_prompt'] = new_art
+                        curr_data['lyrics'] = new_lyrics
+
+                        st.session_state[f"interactive_done_{filename}"] = True
+                        st.session_state[state_key] = curr_data
+                        st.rerun()
+
+                    # If not submitted, stop execution so the UI hangs and waits
+                    st.stop()
+
+
+                # If we are resuming an already reviewed file, we MUST skip render and remake to save API costs/time.
+                force_skip_render = skip_render
+                force_skip_remake = skip_remake
+                if st.session_state.get(f"interactive_done_{filename}"):
+                    force_skip_render = True
+                    force_skip_remake = True
+
+                process_single_midi(
+                    file_path, output_dir, style, force_skip_render, force_skip_remake, upload,
+                    renderer, remaker, content_gen, video_producer, mxl_parser=mxl_parser, tts_generator=tts_generator,
+                    normalize_audio=normalize_audio, fade_in_ms=fade_in_ms, fade_out_ms=fade_out_ms,
+                    generate_vocals=generate_vocals, voice_id=elevenlabs_voice_id, model=elevenlabs_model,
+                    video_format=video_format, create_shorts=create_shorts, sub_font_size=sub_font_size,
+                    sub_primary_color=sub_primary_color, sub_outline_color=sub_outline_color, sub_back_color=sub_back_color, sub_box=sub_box,
+                    status_callback=lambda msg, prog: (status_texts[file_path].info(msg), progress_bars[file_path].progress(prog)),
+                    interactive_callback=interactive_callback_sync
+                )
+                if "completed_files" not in st.session_state:
+                    st.session_state["completed_files"] = []
+                st.session_state["completed_files"].append(filename)
+        else:
+            # Run concurrently for standard background mode
+            from streamlit.runtime.scriptrunner import add_script_run_ctx
+            from streamlit.runtime.scriptrunner import get_script_run_ctx, add_script_run_ctx
+            ctx = get_script_run_ctx()
+
+            def thread_func(fp, context):
+                add_script_run_ctx(ctx=context)
+                ui_process_wrapper(fp)
+
+            with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+                futures = []
+                for fp in saved_files:
+                    future = executor.submit(thread_func, fp, ctx)
+                    futures.append(future)
+
+                for future in concurrent.futures.as_completed(futures):
+                    pass
+
         st.balloons()
         st.success("All processing complete!")
+        st.session_state["is_processing"] = False
+        st.session_state.pop("uploaded_files_data", None)

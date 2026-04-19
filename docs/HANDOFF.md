@@ -1,16 +1,17 @@
 # Handoff Document
 
 ## Session Summary
-- **MusicXML Parsing**: Implemented `src/musicxml_parser.py` using `music21` to parse `.mxl` and `.xml` files natively. The pipeline extracts lyrics and title metadata directly from the source file before converting it to `.mid` for the backend audio renderer, successfully augmenting or bypassing ChatGPT generation steps.
-- **Docker Optimization**: Created a robust multi-stage `Dockerfile` and `docker-compose.yml`. The builder stage compiles the `pybind11` C++ engine (`hymn_player_ext.so`), and the runtime stage installs `ffmpeg`, `fluidsynth`, and pins the dependencies, providing a lightweight, containerized environment for both the Streamlit UI and the Python daemon.
-- **Dependency Audit**: Verified and pinned all Python dependencies in `requirements.txt` to explicit versions to prevent upstream breaking changes.
-- **Documentation Update**: Extensively updated `ROADMAP.md`, `TODO.md`, `CHANGELOG.md`, and bumped the global `VERSION` to **1.8.0**, marking the completion of Phase 3 (Advanced Input & Native Integration).
+- **Concurrency & UI Fixes**: Audited and fixed a severe threading bug in `MidiRenderer` where the single native C++ engine (`HymnPlayer`) was being accessed by multiple Streamlit threads simultaneously, causing segmentation faults. We also repaired the "Interactive Review Mode" UI bug where `st.rerun()` would drop the user's uploaded file queue. The multi-file processing queue is now safely stored in `st.session_state`.
+- **Dependency Audit**: Unpinned `requirements.txt` dependencies. Previous attempts to rigidly pin versions caused cross-platform build failures due to environment-specific packages.
+- **OMR Implementation**: Built `src/omr_processor.py` utilizing the `oemer` library. The pipeline (both the UI and the Watchdog daemon) now accepts raw physical sheet music scans (`.pdf`, `.jpg`, `.png`). It autonomously runs the image through an ONNX/OpenCV neural net, converts the page to a MusicXML file, and bridges it back into the existing parsing pipeline seamlessly.
+- **Documentation Update**: Extensively updated `ROADMAP.md`, `TODO.md`, `CHANGELOG.md`, and bumped the global `VERSION` to **1.9.0**, marking the completion of the first major feature in Phase 4 (Creative Expansion, Live Features & OMR).
 
 ## State of the Project
-- The project is now fully containerized, robust, and highly autonomous.
-- It seamlessly handles both standard MIDI files and rich MusicXML sheets, bridging native C++ processing with high-level AI generation across Replicate, OpenAI, and ElevenLabs.
-- Codebase maintainability is vastly improved with strict dependency pinning and centralized configurations (`hymn_remaker/settings.py`).
+- Extremely robust. The project now successfully ingests all formats (MIDI, MusicXML, PDF, PNG/JPG) entirely natively.
+- The C++ audio engine is safely threaded per-call.
+- The Streamlit interactive wizard is stable across multi-file processing queues.
 
 ## Next Steps for the Next Agent
-- **Roadmap Phase 4:** The immediate next priority is researching and implementing **OMR (Optical Music Recognition)**. The goal is to allow users to drop a `.pdf` of sheet music into the `input/` folder and have the daemon automatically convert it to MusicXML (e.g., via Audiveris) for processing.
-- Look into **Multi-Voice Harmonization** by updating `tts_generator.py` to optionally accept a list of `voice_ids`, generate separate audio tracks for each voice, pitch-shift them to create chords, and mix them before overlaying onto the instrumental.
+- **Roadmap Phase 4:** The immediate next priority is **Multi-Voice Harmonization**. Investigate updating `hymn_remaker/src/tts_generator.py` to optionally accept a list of `voice_ids` (e.g., Soprano, Alto, Tenor). Generate separate audio tracks for each voice, pitch-shift the harmony tracks (using `pydub` or `librosa`), and pan them (left/right) before mixing them down into a single master vocal track.
+- Implement **Dynamic Tempo Extraction** by extracting the BPM from the MIDI or MusicXML file and passing it directly into the Replicate MusicGen prompt.
+- **Docker Optimization**: The addition of `oemer`, `onnxruntime`, and `opencv-python-headless` significantly increases the container footprint. Look into creating a more trimmed, multi-stage runtime build or a dedicated "lite" version of the Dockerfile.
