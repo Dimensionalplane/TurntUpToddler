@@ -15,3 +15,4 @@ mido
 music21
 pybind11
 oemer
+demucs==4.0.1

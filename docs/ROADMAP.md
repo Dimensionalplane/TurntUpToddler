@@ -29,7 +29,7 @@ This document outlines the high-level trajectory of the Hymn Remaker project, mo
 - [x] **Multi-Voice Harmonization:** Utilize multiple ElevenLabs voice models simultaneously. Pitch-shift parallel vocal tracks to create 3-part or 4-part harmonies, mixing them before overlaying onto the instrumental.
 - [x] **Dynamic Tempo Matching:** Analyze the BPM of the original MIDI file using `mido` or `librosa`, and feed that precise BPM into the Replicate MusicGen prompt to ensure output remixes strictly adhere to the source tempo.
 
-## Phase 5: Distribution & Infinite Streaming (Next)
+## Phase 5: Distribution & Infinite Streaming (Current Focus)
+- [x] **Stem Separation:** Utilize an AI stem separator (`demucs`) post-MusicGen to isolate the drum and bass tracks. This allows the TTS vocals to precisely duck *only* the melodic instruments without reducing the energy of the driving house beat.
 - [ ] **Live DJ Mode / Infinite Radio:** Build a continuously running web stream (e.g., Icecast/HLS) that dynamically queues and remixes hymns in real-time, functioning as a 24/7 internet radio station.
 - [ ] **Dynamic Visualizers:** Replace static DALL-E cover art with dynamic, audio-reactive visualizers generated via FFmpeg complex filters or native OpenGL shaders.
-- [ ] **Stem Separation:** Utilize an AI stem separator (e.g., `spleeter`) post-MusicGen to isolate the drum and bass tracks. This will allow the TTS vocals to precisely duck *only* the melodic instruments without reducing the energy of the driving house beat.

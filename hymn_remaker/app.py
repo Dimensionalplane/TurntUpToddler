@@ -253,7 +253,7 @@ with tab1:
 
                 process_single_midi(
                     file_path, output_dir, style, force_skip_render, force_skip_remake, upload,
-                    renderer, remaker, content_gen, video_producer, mxl_parser=mxl_parser, omr_processor=omr_processor, tts_generator=tts_generator,
+                    renderer, remaker, content_gen, video_producer, mxl_parser=mxl_parser, omr_processor=omr_processor, tts_generator=tts_generator, stem_separator=stem_separator,
                     normalize_audio=normalize_audio, fade_in_ms=fade_in_ms, fade_out_ms=fade_out_ms,
                     generate_vocals=generate_vocals, voice_id=elevenlabs_voice_id, model=elevenlabs_model,
                     video_format=video_format, create_shorts=create_shorts, sub_font_size=sub_font_size,
@@ -330,3 +330,75 @@ with tab1:
         st.success("All processing complete!")
         st.session_state["is_processing"] = False
         st.session_state.pop("uploaded_files_data", None)
+
+
+
+with tab2:
+    st.header("Hymn Editor Toolbar")
+    st.info("This section exposes raw backend rendering tools for manual experimentation without running the full generative pipeline.")
+
+    st.subheader("1. File Operations")
+    editor_file = st.file_uploader("Load MIDI or MusicXML file for editing", type=["mid", "midi", "mxl", "xml"], key="editor_uploader")
+
+    if editor_file:
+        file_path = os.path.join(settings.INPUT_DIR, f"edit_{editor_file.name}")
+        with open(file_path, "wb") as f:
+            f.write(editor_file.getbuffer())
+        st.success(f"Loaded: {editor_file.name}")
+
+        st.subheader("2. Native Audio Preview")
+        st.write("Use the native C++ engine to render a fast audio preview of the raw file.")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            preview_soundfont = st.selectbox("Select SoundFont", settings.DEFAULT_SOUNDFONT_PATHS)
+        with col2:
+            st.write(" ")
+            st.write(" ")
+            if st.button("Render Preview 🔊"):
+                with st.spinner("Rendering audio via C++ engine..."):
+                    try:
+                        # Re-instantiate the renderer with the specific selected soundfont just for the preview
+                        temp_renderer = MidiRenderer(soundfont_path=preview_soundfont)
+
+                        # Handle MXL conversion if needed
+                        target_path = file_path
+                        if file_path.lower().endswith('.mxl') or file_path.lower().endswith('.xml'):
+                            target_path = os.path.join(settings.OUTPUT_DIR, f"edit_preview.mid")
+                            mxl_parser.process(file_path, target_path)
+
+                        out_audio = os.path.join(settings.OUTPUT_DIR, "edit_preview.wav")
+                        temp_renderer.render(target_path, out_audio)
+                        st.audio(out_audio)
+                        st.success("Render complete.")
+                    except Exception as e:
+                        st.error(f"Failed to render preview: {e}")
+
+        st.subheader("3. Metadata Extraction")
+        if st.button("Extract Sheet Metadata 📄"):
+            if file_path.lower().endswith('.mxl') or file_path.lower().endswith('.xml'):
+                with st.spinner("Parsing MusicXML..."):
+                    try:
+                        dummy_mid = os.path.join(settings.OUTPUT_DIR, "dummy_extract.mid")
+                        metadata = mxl_parser.process(file_path, dummy_mid)
+
+                        st.text_input("Extracted Title", value=metadata.get("title", "Unknown"))
+                        st.text_input("Extracted Composer", value=metadata.get("composer", "Unknown"))
+
+                        if metadata.get("lyrics"):
+                            edited_lyrics = st.text_area("Extracted Lyrics", value=metadata.get("lyrics"), height=200)
+
+                            if st.button("Save Edited Lyrics to .txt 💾"):
+                                out_txt_path = os.path.join(settings.OUTPUT_DIR, f"{editor_file.name}_lyrics.txt")
+                                with open(out_txt_path, "w") as lf:
+                                    lf.write(edited_lyrics)
+                                st.success(f"Lyrics saved to {out_txt_path}")
+
+                                with open(out_txt_path, "rb") as lf:
+                                    st.download_button("Download .txt", lf, file_name=f"{editor_file.name}_lyrics.txt", mime="text/plain")
+                        else:
+                            st.warning("No lyrics found in this file.")
+                    except Exception as e:
+                        st.error(f"Failed to parse MusicXML: {e}")
+            else:
+                st.warning("Metadata extraction is currently only supported for MusicXML (.mxl, .xml) files, not standard MIDI.")

@@ -103,7 +103,7 @@ def time_stretch_audio(input_path, target_duration_ms):
         # Fallback to original
         return AudioSegment.from_file(input_path)
 
-def process_audio(input_path, output_path, normalize=True, fade_in_ms=0, fade_out_ms=0, vocal_track_path=None):
+def process_audio(input_path, output_path, normalize=True, fade_in_ms=0, fade_out_ms=0, vocal_track_path=None, stems=None):
     """
     Apply advanced audio processing such as normalization, fading, and optional vocal mixing using pydub.
 
@@ -127,10 +127,27 @@ def process_audio(input_path, output_path, normalize=True, fade_in_ms=0, fade_ou
             instrumental_duration = len(audio)
             vocals = time_stretch_audio(vocal_track_path, instrumental_duration)
 
-            # Slight duck on instrumental, boost on vocals
-            audio = audio - 3
-            vocals = vocals + 2
-            audio = audio.overlay(vocals, position=0)
+            if stems and 'drums' in stems and 'other' in stems and 'bass' in stems:
+                logger.info("Using smart stem separation for vocal ducking...")
+                # Duck ONLY the melodic elements ('other')
+                drums = AudioSegment.from_file(stems['drums'])
+                bass = AudioSegment.from_file(stems['bass'])
+                other = AudioSegment.from_file(stems['other'])
+
+                # Apply ducking to melody and bass
+                other = other - 6 # Duck melodies heavily
+                bass = bass - 2   # Duck bass slightly to leave room for voice frequency
+                vocals = vocals + 2 # Boost vocals
+
+                # Re-mix
+                re_mixed = drums.overlay(bass).overlay(other).overlay(vocals, position=0)
+                audio = re_mixed
+            else:
+                logger.info("Performing standard instrumental ducking...")
+                # Slight duck on total instrumental, boost on vocals
+                audio = audio - 3
+                vocals = vocals + 2
+                audio = audio.overlay(vocals, position=0)
 
         if normalize:
             logger.info("Normalizing audio volume...")

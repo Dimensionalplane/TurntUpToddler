@@ -4,7 +4,6 @@ This list tracks immediate, actionable tasks, bug fixes, and minor feature reque
 
 ## High Priority
 - [ ] **Live DJ Radio Stream Research:** Investigate FFmpeg's `icecast` or HLS streaming capabilities. The goal is to pipe the output of `video_uploader.py` directly to a continuous RTMP/HLS stream endpoint for a 24/7 internet radio station feature.
-- [ ] **Stem Separation Integration:** Research and implement a lightweight wrapper around `spleeter` or `demucs` in `hymn_remaker/src/remaker.py`. The goal is to separate the generated Deep House track into 'Drums' and 'Other' stems, allowing the `tts_generator` to exclusively duck the melodic stems during vocal playback, preserving the impact of the beat.
 
 ## Medium Priority
 - [ ] **Advanced Subtitle Parsing:** The current `MusicXMLParser` aggressively strips hyphens from extracted lyrics. Implement a smarter parsing algorithm that preserves syllables and leverages the actual note timings in the `.mxl` file to output a valid `.srt` or `.ass` file with precise, note-by-note synchronization, bypassing the need for GPT to guess timings.
@@ -12,4 +11,4 @@ This list tracks immediate, actionable tasks, bug fixes, and minor feature reque
 
 ## Low Priority / Polish
 - [ ] **Audio-Reactive Visualizer:** Research FFmpeg's `avectorscope` or `showwaves` filters. Add a Streamlit toggle to overlay a waveform visualizer on top of the DALL-E generated album art.
-- [ ] **UI Loading States:** Add Streamlit `st.spinner` or progress bars to the DALL-E and ElevenLabs API calls to improve user experience during long network requests in the interactive UI wizard.
+- [ ] **UI Loading States:** Add Streamlit `st.spinner` or progress bars to the DALL-E, Demucs, and ElevenLabs API calls to improve user experience during long processing stages in the interactive UI wizard.

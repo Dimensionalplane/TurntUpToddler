@@ -21,6 +21,7 @@ from src.video_uploader import VideoProducer
 from src.tts_generator import TTSGenerator
 from src.musicxml_parser import MusicXMLParser
 from src.omr_processor import OMRProcessor
+from src.stem_separator import StemSeparator
 from src.utils import process_audio
 
 # Load environment variables
@@ -65,6 +66,7 @@ def main():
         video_producer = VideoProducer()
         mxl_parser = MusicXMLParser()
         omr_processor = OMRProcessor()
+        stem_separator = StemSeparator()
     except Exception as e:
         logger.error(f"Failed to initialize pipeline: {e}")
         sys.exit(1)
@@ -150,7 +152,7 @@ def main():
 
 def process_single_midi(
     midi_path, output_dir, style, skip_render, skip_remake, upload,
-    renderer, remaker, content_gen, video_producer, mxl_parser=None, omr_processor=None, tts_generator=None,
+    renderer, remaker, content_gen, video_producer, mxl_parser=None, omr_processor=None, tts_generator=None, stem_separator=None,
     normalize_audio=True, fade_in_ms=0, fade_out_ms=0, generate_vocals=False,
     voice_id=settings.DEFAULT_ELEVENLABS_VOICE_ID, model=settings.DEFAULT_ELEVENLABS_MODEL, video_format=settings.DEFAULT_VIDEO_FORMAT, create_shorts=False, status_callback=None,
     sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True,
