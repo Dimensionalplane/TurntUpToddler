@@ -387,7 +387,14 @@ with tab2:
                         st.text_input("Extracted Composer", value=metadata.get("composer", "Unknown"))
 
                         if metadata.get("lyrics"):
-                            edited_lyrics = st.text_area("Extracted Lyrics", value=metadata.get("lyrics"), height=200)
+                            st.success("✅ Precise note-by-note synchronization extracted!")
+
+                            # Display raw string for simple text editing
+                            raw_text = metadata.get("raw_lyrics_text", "")
+                            edited_lyrics = st.text_area("Extracted Lyrics (Raw Text)", value=raw_text, height=200)
+
+                            with st.expander("View Internal Subtitle Timings (JSON)"):
+                                st.json(metadata.get("lyrics"))
 
                             if st.button("Save Edited Lyrics to .txt 💾"):
                                 out_txt_path = os.path.join(settings.OUTPUT_DIR, f"{editor_file.name}_lyrics.txt")

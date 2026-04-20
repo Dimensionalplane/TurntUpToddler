@@ -3,17 +3,17 @@
 All notable changes to this project will be documented in this file.
 The format is based on Keep a Changelog.
 
-## [1.13.0] - Current
+## [1.14.0] - Current
 ### Added
-- **24/7 Live DJ Radio Stream**: Created the `RadioStreamer` module (`hymn_remaker/src/radio_streamer.py`). This class spawns a background thread that continuously grabs generated `.mp4` videos from the `output/` directory, randomly shuffles them, and streams them in real-time to a live RTMP endpoint (such as YouTube Live or Twitch) using FFmpeg `-re -f flv`.
-- Added the `--stream-rtmp <URL>` flag to `main.py` allowing users to boot up a headless, completely autonomous 24/7 internet radio station daemon alongside the normal rendering pipeline.
+- **Advanced Subtitle Parsing**: Rewrote the logic in `hymn_remaker/src/musicxml_parser.py` using `music21`. Instead of aggressively stripping hyphens and extracting a flat string for OpenAI to consume, the parser now reads the internal `metronomeMarkBoundaries` and raw note `offsets`. It calculates absolute timestamps (in seconds) for every note and groups syllables (`begin`, `middle`, `end`) together. This returns a structured list of exact start/end dictionary timings.
+- **Pipeline Integration**: `main.py` and `app.py` were updated to recognize the new structured exact lyric arrays. If accurate `.mxl` timing data is present, the pipeline now completely skips the GPT prompt to generate/guess lyrics and passes the native sheet music timings directly to the TTS generator and FFmpeg subtitle burner, drastically improving audio-visual sync precision.
+- **UI Expansion**: The "Hymn Editor" tab in `app.py` now displays the internally parsed JSON list of subtitle exact timings alongside the flat lyric text for debugging and editing.
+
+## [1.13.0] - Previous
+### Added
+- **24/7 Live DJ Radio Stream**: Created the `RadioStreamer` module to push generated `.mp4` chunks to RTMP live streaming endpoints using FFmpeg.
+- **Audio-Reactive Visualizer**: Added support for an FFmpeg-powered dynamic waveform overlay during the video assembly phase (`video_uploader.py`).
 
 ## [1.12.0] - Previous
 ### Added
-- **Audio-Reactive Visualizer**: Added support for an FFmpeg-powered dynamic waveform overlay during the video assembly phase (`video_uploader.py`). Users can now toggle `--visualizer` via the CLI or check the "Audio-Reactive Visualizer" box in the Streamlit UI to dynamically trace the audio waveform over the generated DALL-E 3 album art.
-- The visualizer logic intelligently adapts its bounds (`scale` and `pad` ratios) depending on whether the user selected a Standard 16:9 or Vertical 9:16 output format.
-
-## [1.11.0] - Previous
-### Added
-- **AI Stem Separation**: Integrated Facebook's `demucs` library (`src/stem_separator.py`) into the pipeline. After Replicate generates the Deep House instrumental, the system now autonomously isolates the `drums`, `bass`, `vocals`, and `other` (melody) tracks.
-- **Smart Audio Ducking**: Rewrote `process_audio` in `src/utils.py` to utilize the new AI stems, ducking melodic tracks during singing but keeping the drum stem untouched.
+- **Audio-Reactive Visualizer**: Added support for an FFmpeg-powered dynamic waveform overlay during the video assembly phase (`video_uploader.py`). Users can now toggle `--visualizer` via the CLI or Streamlit UI.

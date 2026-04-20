@@ -286,12 +286,15 @@ def process_single_midi(
                 metadata = content_gen.generate_metadata(name_no_ext, style=style)
 
             # Use extracted lyrics if available, otherwise generate
-            if pre_extracted_metadata and pre_extracted_metadata.get("lyrics"):
-                update_status("Formatting extracted MusicXML lyrics...", 75)
-                title_context = pre_extracted_metadata.get("title") or name_no_ext
-                lyrics = content_gen.generate_lyrics(title_context)
+            extracted_lyrics = pre_extracted_metadata.get("lyrics") if pre_extracted_metadata else None
+
+            if extracted_lyrics and isinstance(extracted_lyrics, list) and len(extracted_lyrics) > 0 and 'start' in extracted_lyrics[0]:
+                update_status("Using exact note-timed lyrics extracted from MusicXML...", 75)
+                lyrics = extracted_lyrics
             else:
-                lyrics = content_gen.generate_lyrics(metadata.get("title", name_no_ext))
+                update_status("Generating AI lyrics and timings via OpenAI...", 75)
+                title_context = metadata.get("title") or name_no_ext
+                lyrics = content_gen.generate_lyrics(title_context)
 
             art_prompt = f"Abstract album art for {metadata.get('title', name_no_ext)}, {style} style, high quality, 4k"
 
