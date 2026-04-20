@@ -22,6 +22,7 @@ from src.tts_generator import TTSGenerator
 from src.musicxml_parser import MusicXMLParser
 from src.omr_processor import OMRProcessor
 from src.stem_separator import StemSeparator
+from src.radio_streamer import RadioStreamer
 from src.utils import process_audio
 
 # Load environment variables
@@ -97,7 +98,8 @@ def main():
                     voice_id=args.voice_id,
                     model=args.model,
                     video_format=args.video_format,
-                    create_shorts=args.create_shorts
+                    create_shorts=args.create_shorts,
+                    enable_visualizer=args.visualizer
                 ): midi_path for midi_path in midi_file_list
             }
 
@@ -116,9 +118,16 @@ def main():
     else:
         logger.warning(f"No initial MIDI files found in {args.input_dir}")
 
+    # Radio Streaming Mode
+    streamer = None
+    if args.stream_rtmp:
+        logger.info(f"Initializing Live DJ Radio Stream to {args.stream_rtmp}...")
+        streamer = RadioStreamer(args.stream_rtmp, input_dir=args.output_dir)
+        streamer.start()
+
     # Daemon Mode Logic
     if args.daemon:
-        logger.info(f"Starting Daemon Mode. Monitoring {args.input_dir} for new MIDI files...")
+        logger.info(f"Starting Daemon Mode. Monitoring {args.input_dir} for new files...")
 
         class MidiHandler(FileSystemEventHandler):
             def on_created(self, event):
@@ -145,6 +154,8 @@ def main():
         except KeyboardInterrupt:
             logger.info("Stopping Daemon Mode...")
             observer.stop()
+            if streamer:
+                streamer.stop()
         observer.join()
     else:
         if not initial_midi_files:
@@ -155,7 +166,7 @@ def process_single_midi(
     renderer, remaker, content_gen, video_producer, mxl_parser=None, omr_processor=None, tts_generator=None, stem_separator=None,
     normalize_audio=True, fade_in_ms=0, fade_out_ms=0, generate_vocals=False,
     voice_id=settings.DEFAULT_ELEVENLABS_VOICE_ID, model=settings.DEFAULT_ELEVENLABS_MODEL, video_format=settings.DEFAULT_VIDEO_FORMAT, create_shorts=False, status_callback=None,
-    sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True,
+    sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True, enable_visualizer=False,
     interactive_callback=None
 ):
     base_audio_path = remake_audio_path = metadata_path = vocal_track_path = None
@@ -340,7 +351,7 @@ def process_single_midi(
         # 4. Create Video (with subtitles if lyrics exist)
         update_status(f"Step 4/4: Creating Video with Subtitles ({filename})...", 85)
         video_path = os.path.join(output_dir, f"{name_no_ext}.mp4")
-        video_producer.create_video(remake_audio_path, art_url, video_path, lyrics=lyrics, video_format=video_format, sub_font_size=sub_font_size, sub_primary_color=sub_primary_color, sub_outline_color=sub_outline_color, sub_back_color=sub_back_color, sub_box=sub_box)
+        video_producer.create_video(remake_audio_path, art_url, video_path, lyrics=lyrics, video_format=video_format, sub_font_size=sub_font_size, sub_primary_color=sub_primary_color, sub_outline_color=sub_outline_color, sub_back_color=sub_back_color, sub_box=sub_box, enable_visualizer=enable_visualizer)
 
         # 4.5 Create Shorts
         if create_shorts:

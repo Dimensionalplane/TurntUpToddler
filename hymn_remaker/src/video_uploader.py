@@ -66,7 +66,7 @@ class VideoProducer:
             logger.error(f"Failed to create SRT: {e}")
             return False
 
-    def create_video(self, audio_path, image_url, output_path, lyrics=None, video_format="Standard 16:9", sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True):
+    def create_video(self, audio_path, image_url, output_path, lyrics=None, video_format="Standard 16:9", sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True, enable_visualizer=False):
         """
         Create an MP4 video from an audio file, image URL, and optional lyrics using ffmpeg.
 
@@ -117,15 +117,26 @@ class VideoProducer:
                 # Determine base filters depending on format
                 base_vf = ""
                 if video_format == "Vertical 9:16 (TikTok/Reels)":
-                    # Scale the image to fit horizontally, pad vertically, and blur the background
-                    base_vf = "[0:v]scale=1080:-1,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black[v]"
+                    # Scale the image to fit horizontally, pad vertically
+                    base_vf = "[0:v]scale=1080:-1,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black[v_base]"
                 else:
                     # Standard 16:9, just scale/pad to 1920x1080
-                    base_vf = "[0:v]scale=-1:1080,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:black[v]"
+                    base_vf = "[0:v]scale=-1:1080,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:black[v_base]"
 
-                # Build filter complex
-                filters = []
-                filters.append(base_vf)
+                filters = [base_vf]
+
+                # Add Audio-Reactive Visualizer
+                if enable_visualizer:
+                    # Generate a waveform from the audio input [1:a]
+                    # showwaves=s=1920x200:mode=line:colors=white
+                    # Then overlay it on the base video [v_base]
+                    w, h = ("1080", "150") if video_format == "Vertical 9:16 (TikTok/Reels)" else ("1920", "200")
+                    y_pos = "(H-h)/2" # Center vertically
+                    vis_filter = f"[1:a]showwaves=s={w}x{h}:mode=cline:colors=white@0.5[wave];[v_base][wave]overlay=x=0:y={y_pos}[v]"
+                    filters.append(vis_filter)
+                else:
+                    # Just pass the base video through
+                    filters.append("[v_base]copy[v]")
 
                 if subtitles_enabled:
                     safe_srt_path = temp_srt_path.replace('\\', '/').replace(':', '\\:')

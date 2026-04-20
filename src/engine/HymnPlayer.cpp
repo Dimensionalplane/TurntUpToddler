@@ -11,7 +11,7 @@ HymnPlayer::HymnPlayer(const std::string& soundfontPath) : playing(false), sound
 
     // CRITICAL: Configure for fast offline rendering (sample timer) instead of real-time system clock
     fluid_settings_setstr(settings, "player.timing-source", "sample");
-    fluid_settings_setint(settings, "synth.sample-rate", 44100);
+    fluid_settings_setnum(settings, "synth.sample-rate", 44100.0);
 
     // Initialize synthesizer
     synth = new_fluid_synth(settings);

@@ -3,12 +3,11 @@
 This list tracks immediate, actionable tasks, bug fixes, and minor feature requests necessary to push the project toward its roadmap goals.
 
 ## High Priority
-- [ ] **Live DJ Radio Stream Research:** Investigate FFmpeg's `icecast` or HLS streaming capabilities. The goal is to pipe the output of `video_uploader.py` directly to a continuous RTMP/HLS stream endpoint for a 24/7 internet radio station feature.
+- [ ] **Advanced Subtitle Parsing:** The current `MusicXMLParser` aggressively strips hyphens from extracted lyrics to create a flat string for OpenAI to consume. Implement a smarter parsing algorithm that preserves the original syllable breaks and leverages the actual `.mxl` note timings to output a valid `.srt` or `.ass` file with precise, note-by-note synchronization, entirely bypassing the need for GPT to guess subtitle timings.
 
 ## Medium Priority
-- [ ] **Advanced Subtitle Parsing:** The current `MusicXMLParser` aggressively strips hyphens from extracted lyrics. Implement a smarter parsing algorithm that preserves syllables and leverages the actual note timings in the `.mxl` file to output a valid `.srt` or `.ass` file with precise, note-by-note synchronization, bypassing the need for GPT to guess timings.
 - [ ] **Oemer Docker Optimization:** `oemer` relies on ONNX Runtime and OpenCV, significantly increasing the Docker image footprint. Investigate creating a highly optimized, trimmed base image (e.g., via `alpine` or `distroless`) for the runtime stage to reduce final container size.
+- [ ] **Expanded Visualizer Options:** Currently, the FFmpeg filter uses `showwaves=mode=cline`. Expose more parameters to the Streamlit UI to allow the user to select between different modes (e.g., `p2p`, `line`, `cline`) or try `avectorscope` for Lissajous curves.
 
 ## Low Priority / Polish
-- [ ] **Audio-Reactive Visualizer:** Research FFmpeg's `avectorscope` or `showwaves` filters. Add a Streamlit toggle to overlay a waveform visualizer on top of the DALL-E generated album art.
-- [ ] **UI Loading States:** Add Streamlit `st.spinner` or progress bars to the DALL-E, Demucs, and ElevenLabs API calls to improve user experience during long processing stages in the interactive UI wizard.
+- [ ] **Live Stream Status UI:** The `--stream-rtmp` flag currently operates in the background of the CLI `main.py` daemon. Create a dedicated module in `app.py`'s sidebar that displays the status of the RTMP stream, currently playing song, and allows the user to manually "Skip Track" on the broadcast thread.
