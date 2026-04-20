@@ -20,6 +20,7 @@ from src.content_generator import ContentGenerator
 from src.video_uploader import VideoProducer
 from src.tts_generator import TTSGenerator
 from src.musicxml_parser import MusicXMLParser
+from src.omr_processor import OMRProcessor
 from src.utils import process_audio
 
 # Load environment variables
@@ -194,6 +195,13 @@ def process_single_midi(
         # 1. Render MIDI to Audio (WAV)
         update_status(f"Step 1/4: Rendering MIDI ({filename})...", 20)
         base_audio_path = os.path.join(output_dir, f"{name_no_ext}_base.wav")
+
+        # Extract precise BPM to prevent AI tempo drift
+        target_bpm = 120.0
+        if os.path.exists(target_midi_path):
+            target_bpm = renderer.get_midi_bpm(target_midi_path)
+            update_status(f"Extracted dynamic tempo: {target_bpm:.1f} BPM", 25)
+
         if not skip_render or not os.path.exists(base_audio_path):
             renderer.render(target_midi_path, base_audio_path)
         else:
@@ -204,8 +212,11 @@ def process_single_midi(
         remake_audio_path = os.path.join(output_dir, f"{name_no_ext}_remake.wav")
 
         if not skip_remake or not os.path.exists(remake_audio_path):
+            # Enforce exact tempo in the style prompt
+            tempo_enforced_style = f"{style}. The track must be exactly {target_bpm:.1f} BPM. Keep this exact tempo."
+
             # Call Replicate
-            remake_url = remaker.remake(base_audio_path, style)
+            remake_url = remaker.remake(base_audio_path, tempo_enforced_style)
 
             # Download the remake
             update_status(f"Downloading remake from {remake_url}...", 50)

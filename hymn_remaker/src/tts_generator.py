@@ -3,6 +3,7 @@ import logging
 import uuid
 from elevenlabs.client import ElevenLabs
 from pydub import AudioSegment
+import numpy as np
 from .utils import retry_request
 
 logging.basicConfig(level=logging.INFO)
@@ -22,6 +23,18 @@ class TTSGenerator:
 
         if self.api_key:
             self.client = ElevenLabs(api_key=self.api_key)
+
+    def _pitch_shift(self, sound, semitones):
+        # A simple pitch-shift hack in pydub involves changing the frame rate,
+        # then overriding it back to the original without resampling.
+        # This changes pitch AND speed. Since we time-stretch later in the pipeline anyway,
+        # or since it's just a harmony, a slight speed change is acceptable for a quick chorus effect.
+        # For a true pitch-shift without time-stretch, we'd need librosa/pyrubberband.
+        # Given we want to keep dependencies light, we'll use the frame rate trick.
+        new_sample_rate = int(sound.frame_rate * (2.0 ** (semitones / 12.0)))
+        shifted_sound = sound._spawn(sound.raw_data, overrides={'frame_rate': new_sample_rate})
+        shifted_sound = shifted_sound.set_frame_rate(sound.frame_rate)
+        return shifted_sound
 
     @retry_request(max_retries=3, delay=2, backoff=2)
     def generate_vocals(self, lyrics, output_path, voice_id="21m00Tcm4TlvDq8ikWAM", model="eleven_multilingual_v2", **kwargs):
@@ -51,33 +64,67 @@ class TTSGenerator:
 
         combined_audio = AudioSegment.silent(duration=int(max_time_sec * 1000) + 5000) # add 5s padding
 
+        # Parse voice_ids (can be a comma-separated string)
+        voice_ids = [vid.strip() for vid in voice_id.split(',')]
+        primary_voice = voice_ids[0]
+        harmony_voices = voice_ids[1:] if len(voice_ids) > 1 else []
+
         for i, line in enumerate(lyrics):
             text = line.get('text', '').strip()
             if not text:
                 continue
 
             start_ms = int(float(line.get('start', i * 5)) * 1000)
-            logger.info(f"Generating TTS for line {i+1}: '{text}' at {start_ms}ms")
+            logger.info(f"Generating primary TTS for line {i+1}: '{text}' at {start_ms}ms using {primary_voice}")
 
-            # Generate the audio clip
+            # Generate the audio clip for primary voice
             audio_generator = self.client.generate(
                 text=text,
-                voice=voice_id,
+                voice=primary_voice,
                 model=model
             )
-
-            # Reconstruct the audio data from the generator
             audio_data = b"".join(audio_generator)
 
-            # Save temporary file because pydub reads files best
-            temp_filename = f"temp_tts_{uuid.uuid4().hex}.mp3"
+            temp_filename = f"temp_tts_primary_{uuid.uuid4().hex}.mp3"
             try:
                 with open(temp_filename, "wb") as f:
                     f.write(audio_data)
-
                 line_audio = AudioSegment.from_file(temp_filename)
 
-                # Overlay this line onto the combined track at the correct start time
+                # Create harmonies if secondary voices are provided
+                if harmony_voices:
+                    # We will create a perfect 5th (+7 semitones) or a major 3rd (+4)
+                    semitone_shifts = [4, 7, -5, -12] # Up 3rd, Up 5th, Down 4th, Down Octave
+
+                    for v_idx, h_voice in enumerate(harmony_voices):
+                        logger.info(f"Generating harmony TTS for line {i+1} using {h_voice}")
+                        h_generator = self.client.generate(text=text, voice=h_voice, model=model)
+                        h_data = b"".join(h_generator)
+
+                        h_temp = f"temp_tts_harm_{uuid.uuid4().hex}.mp3"
+                        with open(h_temp, "wb") as hf:
+                            hf.write(h_data)
+
+                        h_audio = AudioSegment.from_file(h_temp)
+
+                        # Apply pitch shift to create the chord
+                        shift_amount = semitone_shifts[v_idx % len(semitone_shifts)]
+                        h_audio = self._pitch_shift(h_audio, shift_amount)
+
+                        # Lower the volume of harmonies so they don't overpower the melody
+                        h_audio = h_audio - 6
+
+                        # Pan harmonies slightly left and right
+                        pan_amount = -0.5 if v_idx % 2 == 0 else 0.5
+                        h_audio = h_audio.pan(pan_amount)
+
+                        # Mix the harmony directly into the primary line audio block
+                        line_audio = line_audio.overlay(h_audio)
+
+                        if os.path.exists(h_temp):
+                            os.remove(h_temp)
+
+                # Overlay the final mixed (or single) line onto the master timeline
                 combined_audio = combined_audio.overlay(line_audio, position=start_ms)
 
             finally:

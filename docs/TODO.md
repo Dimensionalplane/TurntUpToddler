@@ -3,12 +3,11 @@
 This list tracks immediate, actionable tasks, bug fixes, and minor feature requests necessary to push the project toward its roadmap goals.
 
 ## High Priority
-- [ ] **Multi-Voice Harmonization Function:** Update `hymn_remaker/src/tts_generator.py` to optionally accept a list of `voice_ids` (e.g., Soprano, Alto, Tenor). Generate separate audio tracks for each voice, pitch-shift the harmony tracks (using `pydub` or `librosa`), and pan them (left/right) before mixing them down into a single master vocal track.
-- [ ] **Dynamic Tempo Extraction:** In `hymn_remaker/src/musicxml_parser.py` and `midi_renderer.py`, extract the global BPM/Tempo from the `.mid` or `.mxl` file using `mido`. Pass this exact BPM string into the `MusicRemaker` (Replicate) prompt (e.g., `"... at exactly 120 BPM"`) to prevent the AI from generating mismatched tempos.
+- [ ] **Live DJ Radio Stream Research:** Investigate FFmpeg's `icecast` or HLS streaming capabilities. The goal is to pipe the output of `video_uploader.py` directly to a continuous RTMP/HLS stream endpoint for a 24/7 internet radio station feature.
+- [ ] **Stem Separation Integration:** Research and implement a lightweight wrapper around `spleeter` or `demucs` in `hymn_remaker/src/remaker.py`. The goal is to separate the generated Deep House track into 'Drums' and 'Other' stems, allowing the `tts_generator` to exclusively duck the melodic stems during vocal playback, preserving the impact of the beat.
 
 ## Medium Priority
 - [ ] **Advanced Subtitle Parsing:** The current `MusicXMLParser` aggressively strips hyphens from extracted lyrics. Implement a smarter parsing algorithm that preserves syllables and leverages the actual note timings in the `.mxl` file to output a valid `.srt` or `.ass` file with precise, note-by-note synchronization, bypassing the need for GPT to guess timings.
-- [ ] **Live DJ Radio Stream Research:** Investigate FFmpeg's `icecast` or HLS streaming capabilities. The goal is to pipe the output of `video_uploader.py` directly to a continuous RTMP/HLS stream endpoint for a 24/7 internet radio station feature.
 - [ ] **Oemer Docker Optimization:** `oemer` relies on ONNX Runtime and OpenCV, significantly increasing the Docker image footprint. Investigate creating a highly optimized, trimmed base image (e.g., via `alpine` or `distroless`) for the runtime stage to reduce final container size.
 
 ## Low Priority / Polish

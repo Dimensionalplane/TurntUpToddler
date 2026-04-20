@@ -24,9 +24,12 @@ This document outlines the high-level trajectory of the Hymn Remaker project, mo
 - [x] **TTS Alignment Smoothing:** Implemented FFmpeg `atempo` time-stretching to synchronize the ElevenLabs TTS audio duration with the generated instrumental beat.
 - [x] **Interactive UI Review Mode:** Implemented a mid-pipeline Streamlit pause, allowing users to manually edit generated metadata, lyrics, and DALL-E prompts before final rendering.
 
-## Phase 4: Creative Expansion, Live Features & OMR (Current Focus)
+## Phase 4: Creative Expansion, Live Features & OMR (Completed)
 - [x] **OMR (Optical Music Recognition):** Integrated `oemer` to allow users to scan physical sheet music PDFs and PNGs, automatically converting them into MusicXML files for downstream processing.
-- [ ] **Multi-Voice Harmonization:** Utilize multiple ElevenLabs voice models simultaneously. Pitch-shift parallel vocal tracks to create 3-part or 4-part harmonies, mixing them before overlaying onto the instrumental.
-- [ ] **Dynamic Tempo Matching:** Analyze the BPM of the original MIDI file using `mido` or `librosa`, and feed that precise BPM into the Replicate MusicGen prompt to ensure output remixes strictly adhere to the source tempo.
+- [x] **Multi-Voice Harmonization:** Utilize multiple ElevenLabs voice models simultaneously. Pitch-shift parallel vocal tracks to create 3-part or 4-part harmonies, mixing them before overlaying onto the instrumental.
+- [x] **Dynamic Tempo Matching:** Analyze the BPM of the original MIDI file using `mido` or `librosa`, and feed that precise BPM into the Replicate MusicGen prompt to ensure output remixes strictly adhere to the source tempo.
+
+## Phase 5: Distribution & Infinite Streaming (Next)
 - [ ] **Live DJ Mode / Infinite Radio:** Build a continuously running web stream (e.g., Icecast/HLS) that dynamically queues and remixes hymns in real-time, functioning as a 24/7 internet radio station.
 - [ ] **Dynamic Visualizers:** Replace static DALL-E cover art with dynamic, audio-reactive visualizers generated via FFmpeg complex filters or native OpenGL shaders.
+- [ ] **Stem Separation:** Utilize an AI stem separator (e.g., `spleeter`) post-MusicGen to isolate the drum and bass tracks. This will allow the TTS vocals to precisely duck *only* the melodic instruments without reducing the energy of the driving house beat.

@@ -53,6 +53,21 @@ class MidiRenderer:
             logger.warning(f"Failed to calculate MIDI duration: {e}. Defaulting to 120 seconds.")
             return 120.0
 
+    def get_midi_bpm(self, midi_path):
+        """
+        Extract the initial BPM from a MIDI file.
+        """
+        try:
+            mid = mido.MidiFile(midi_path)
+            for track in mid.tracks:
+                for msg in track:
+                    if msg.type == 'set_tempo':
+                        return mido.tempo2bpm(msg.tempo)
+            return 120.0 # Default if no tempo found
+        except Exception as e:
+            logger.warning(f"Failed to extract BPM from MIDI: {e}. Defaulting to 120 BPM.")
+            return 120.0
+
     def render(self, midi_path, output_path):
         """
         Render a MIDI file to audio (WAV/MP3/FLAC depending on extension).
