@@ -1,16 +1,15 @@
 # Handoff Document
 
 ## Session Summary
-- **Advanced Subtitle Parsing**: Addressed the highest priority item from `TODO.md`. The `MusicXMLParser` (`src/musicxml_parser.py`) was deeply refactored using `music21`'s `.flatten().notes` and tempo mapping tools. Instead of flattening a score into a raw string and asking GPT to "guess" subtitle timestamps, the pipeline now calculates the exact start and end time (in seconds) of every individual syllable and recursively joins `begin` and `middle` syllables into whole words.
-- **Pipeline Integration**: Modified `main.py`'s Content Generation step. If the parser detects structured array dicts inside the `lyrics` metadata, it completely skips the GPT prompt phase and passes the native sheet music timings down the pipeline to the ElevenLabs TTS generator and FFmpeg SRT burner, ensuring millisecond-accurate lip-syncing relative to the FluidSynth instrumental track.
-- **UI Expansion**: Updated the `app.py` "Hymn Editor" tab to cleanly display the nested JSON object containing these precise offsets alongside the raw text for manual user validation.
-- **Documentation Update**: Extensively updated `ROADMAP.md`, `TODO.md`, `CHANGELOG.md`, and bumped the global `VERSION` to **1.14.0**. This officially marks the completion of the entirety of Phase 5 of the roadmap.
+- **Foundational Documentation Polish**: Executed the user's directive to codify the immense progress made stabilizing the Omni-Workspace. I performed a comprehensive audit and rewrite of `VISION.md`, `ROADMAP.md`, `CHANGELOG.md`, and `TODO.md`.
+- **Roadmap Structuring**: The roadmap has been completely mapped out into 6 Phases. Phases 1-5 (Core Automation, Scale & Robustness, Advanced Native Inputs, OMR/Harmonies, Distribution & RTMP Streaming) are now fully marked as `[x]` (completed) based on the git history and implemented features (e.g., `pybind11` C++ audio, `demucs` stem ducking, `oemer` sheet music scanning, `ffmpeg` audio visualizers, and `music21` exact subtitle parsing).
+- **Version Bump**: Updated the global `VERSION` file to **1.15.0** to signify the completion of Phase 5 and the stabilization of the workspace architecture.
 
 ## State of the Project
-- The project's generative core is completely finished, highly polished, fully containerized, and extremely documented.
-- All functional roadmap phases (Phase 1 through 5) are 100% complete.
-- The pipeline now natively synchronizes lyrics to notes directly from the input `.mxl` source without relying on AI hallucination for timestamps, resulting in vastly improved karaoke-style SRT burns on the final MP4.
+- The project is an incredibly dense, multi-faceted generative AI pipeline. It gracefully translates inputs (ranging from physical sheet music PDFs to raw `.mxl` notation) into fully rendered Deep House tracks, extracting mathematically exact lyric timestamps to generate hyper-realistic, multi-voice harmonized subtitles. It overlays dynamic audio waveforms on AI-generated album art, creates 15-second TikTok shorts, and runs a 24/7 background RTMP streamer, all completely autonomously and containerized.
+- The project's documentation is now perfectly aligned with the source code's capabilities, providing a singular source of truth for the Omni-Workspace.
 
 ## Next Steps for the Next Agent
-- **Docker Optimization**: The addition of `oemer` (ONNX Runtime, OpenCV) and `demucs` (PyTorch) has severely bloated the multi-stage Docker build. The top priority in `TODO.md` is investigating a minimal base image (like Alpine or Distroless) and pre-compiled libraries for the runtime stage to radically shrink the final container size and reduce deployment friction.
-- **Stream Control UI**: Create a dedicated control panel in `app.py`'s sidebar that interacts with the `RadioStreamer` thread to display the currently broadcasting RTMP song and allow the user to manually trigger a "Skip Track" event.
+- **Roadmap Phase 6:** The primary focus shifts from implementing generative features to **Cloud Native Polish & App Ecosystem**.
+- **Docker Footprint**: The `oemer` OMR library pulls in gigantic PyTorch, OpenCV, and ONNX Runtime dependencies. Investigate rewriting the multi-stage `Dockerfile` to dramatically shrink the final runtime image, perhaps splitting the ML inferencing into a secondary `docker-compose.yml` service.
+- **RTMP UI Controls**: The `hymn_remaker/app.py` UI lacks visibility into the `RadioStreamer` background thread running in `main.py`. The immediate next developer task in `TODO.md` is to expose the current streaming track to the Streamlit sidebar and implement a thread-safe "Skip Track" button.

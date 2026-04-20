@@ -1,6 +1,6 @@
 # Comprehensive Roadmap
 
-This document outlines the high-level trajectory of the Hymn Remaker project, moving from core automation to advanced analytical features and native performance optimizations.
+This document outlines the high-level trajectory of the Hymn Remaker project, tracking its evolution from a basic Python wrapper pipeline into a high-performance native C++ Audio/Visual/AI broadcasting engine.
 
 ## Phase 1: Core Automation Pipeline (Completed)
 - [x] Basic MIDI to Audio rendering using Python wrappers (`midi2audio`).
@@ -27,11 +27,15 @@ This document outlines the high-level trajectory of the Hymn Remaker project, mo
 
 ## Phase 4: Creative Expansion & OMR (Completed)
 - [x] **OMR (Optical Music Recognition):** Integrated `oemer` to allow users to scan physical sheet music PDFs and PNGs, automatically converting them into MusicXML files for downstream processing.
-- [x] **Multi-Voice Harmonization:** Utilize multiple ElevenLabs voice models simultaneously. Pitch-shift parallel vocal tracks to create 3-part or 4-part harmonies, mixing them before overlaying onto the instrumental.
-- [x] **Dynamic Tempo Matching:** Analyze the BPM of the original MIDI file using `mido` or `librosa`, and feed that precise BPM into the Replicate MusicGen prompt to ensure output remixes strictly adhere to the source tempo.
+- [x] **Multi-Voice Harmonization:** Utilize multiple ElevenLabs voice models simultaneously. Pitch-shift parallel vocal tracks using `pydub` (e.g., +4 and +7 semitones) to create 3-part or 4-part lush choral harmonies, mixing them before overlaying onto the instrumental.
+- [x] **Dynamic Tempo Matching:** Analyze the BPM of the original MIDI/MXL file natively using `mido`, feeding that precise integer directly into the Replicate MusicGen prompt to ensure output remixes strictly adhere to the source tempo.
 
 ## Phase 5: Distribution, Visuals & Infinite Streaming (Completed)
-- [x] **Stem Separation:** Utilize an AI stem separator (`demucs`) post-MusicGen to isolate the drum and bass tracks. This allows the TTS vocals to precisely duck *only* the melodic instruments without reducing the energy of the driving house beat.
+- [x] **Stem Separation:** Utilize an AI stem separator (`demucs`) post-MusicGen to isolate the drum and bass tracks. This allows the TTS vocals to precisely duck *only* the melodic instruments (`other`, `bass`) without reducing the energy of the driving house `drums` beat.
 - [x] **Dynamic Visualizers:** Replace static DALL-E cover art with dynamic, audio-reactive visualizers generated via FFmpeg complex filters (`showwaves`).
-- [x] **Live DJ Mode / Infinite Radio:** Build a continuously running background thread that dynamically queues, shuffles, and streams the `.mp4` video output folder to a live RTMP endpoint (e.g., YouTube Live) operating as a 24/7 internet radio station.
-- [x] **Advanced Subtitle Parsing:** Extract the exact, note-by-note synchronization arrays natively from `.mxl` files (via `music21`), concatenating syllables and timing duration to completely bypass GPT timing hallucinations.
+- [x] **Live DJ Mode / Infinite Radio:** Build a continuously running background thread (`src/radio_streamer.py`) that dynamically queues, shuffles, and streams the `.mp4` video output folder to a live RTMP endpoint (e.g., YouTube Live) operating as a 24/7 internet radio station.
+- [x] **Advanced Subtitle Parsing:** Extract the exact, note-by-note synchronization arrays natively from `.mxl` files (via `music21`), concatenating syllables (`begin`, `middle`, `end`) and timing durations to completely bypass GPT timing hallucinations, mapping exact `.srt` files directly to the sheet music.
+
+## Phase 6: Cloud Native Polish & App Ecosystem (Current Focus)
+- [ ] **Distroless/Alpine Docker Image:** The massive dependencies of PyTorch (`demucs`), OpenCV, and ONNX Runtime (`oemer`) bloat the `hymn_remaker:latest` container. A multi-stage Docker build separating the AI inference models from the Streamlit UI web container will drastically cut deployment size.
+- [ ] **Interactive Radio Controls:** Expose the `RadioStreamer` background thread to the Streamlit UI's sidebar, allowing users to "Skip Track", view the current playing song, or manually kill the RTMP broadcast.

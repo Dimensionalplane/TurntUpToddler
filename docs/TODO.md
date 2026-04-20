@@ -1,12 +1,14 @@
 # TODO
 
-This list tracks immediate, actionable tasks, bug fixes, and minor feature requests necessary to push the project toward its roadmap goals.
+This list tracks immediate, actionable tasks, bug fixes, and minor feature requests necessary to push the project toward its Roadmap Phase 6 goals.
 
 ## High Priority
-- [ ] **Docker Alpine / Distroless Base:** The addition of `oemer` and its dependencies (ONNX Runtime, OpenCV) significantly bloated the multi-stage Docker build. Investigate shrinking the final runtime stage container by using a minimal base image (like Alpine) and pre-compiled OpenCV binaries.
+- [ ] **Docker Alpine / Distroless Base:** The addition of `oemer` and its heavy ML dependencies (ONNX Runtime, OpenCV) significantly bloated the multi-stage Docker build. Investigate shrinking the final runtime stage container by using a minimal base image (like Alpine or Distroless) and pre-compiled OpenCV binaries, moving the heavy ML inference to an external microservice if necessary.
+- [ ] **Live Stream Status UI:** The `--stream-rtmp` flag currently operates seamlessly in the background of the CLI `main.py` daemon. Create a dedicated module in `app.py`'s sidebar that displays the status of the RTMP stream (fetching the currently broadcasting track from the `RadioStreamer` thread) and allows the user to manually "Skip Track" or "Kill Stream" using Python thread-safe `Event` flags.
 
 ## Medium Priority
-- [ ] **Live Stream Status UI:** The `--stream-rtmp` flag currently operates seamlessly in the background of the CLI `main.py` daemon. Create a dedicated module in `app.py`'s sidebar that displays the status of the RTMP stream, currently playing song, and allows the user to manually "Skip Track" on the broadcast thread using thread-safe events.
+- [ ] **Multi-Voice Spatial Expansion:** The current Multi-Voice Harmonization algorithm linearly shifts pitch by `+4` and `+7` semitones. Research using `librosa` instead of `pydub`'s crude framerate-stretching to apply high-fidelity pitch-shifting (e.g. `pyrubberband`) without altering the audio speed, ensuring clearer, crisper harmonies.
+- [ ] **Expanded Visualizer Options:** Currently, the FFmpeg filter uses `showwaves=mode=cline`. Expose more parameters to the Streamlit UI to allow the user to select between different modes (e.g., `p2p`, `line`, `cline`) or try `avectorscope` for Lissajous curves.
 
 ## Low Priority / Polish
-- [ ] **Expanded Visualizer Options:** Currently, the FFmpeg filter uses `showwaves=mode=cline`. Expose more parameters to the Streamlit UI to allow the user to select between different modes (e.g., `p2p`, `line`, `cline`) or try `avectorscope` for Lissajous curves.
+- [ ] **UI Loading States:** Add Streamlit `st.spinner` or progress bars to the DALL-E, Demucs, and ElevenLabs API calls to improve user experience during long processing stages in the interactive UI wizard.

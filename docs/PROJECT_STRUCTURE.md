@@ -1,14 +1,15 @@
-# Project Structure & External Libraries
+# Project Structure & Submodules
 
-This document provides a comprehensive overview of the Hymn Remaker directory layout, the purpose of each component, and the external libraries and APIs utilized.
+This document provides a comprehensive overview of the Hymn Remaker directory layout, the purpose of each component, and the external libraries, APIs, and submodules utilized within the Omni-Workspace.
 
 ## Directory Layout
 
 ```text
 hymnmania/
-├── VERSION                     # Global version source of truth (e.g., 1.7.2).
+├── VERSION                     # Global version source of truth (e.g., 1.15.0).
 ├── Makefile                    # Build script for the native C++ HymnPlayer engine.
-├── requirements.txt            # Python dependencies.
+├── Dockerfile                  # Multi-stage container build targeting Pybind11.
+├── docker-compose.yml          # Orchestrates UI, Daemon, and Streamer services.
 ├── docs/                       # Comprehensive Omni-Workspace documentation suite.
 │   ├── AGENTS.md               # Overview of AI agent roles and workflows.
 │   ├── UNIVERSAL_LLM_INSTRUCTIONS.md # Core instructions that all models must obey.
@@ -21,19 +22,27 @@ hymnmania/
 │   ├── DEPLOY.md               # Instructions for system prep, Docker, and API keys.
 │   ├── CHANGELOG.md            # Version history following "Keep a Changelog".
 │   ├── HANDOFF.md              # State summary passed between AI sessions.
+│   ├── SUBMODULE_DASHBOARD.md  # Dashboard of conceptual submodules and APIs.
 │   ├── VERSION.md              # Mirrored version file for documentation links.
 │   └── PROJECT_STRUCTURE.md    # This file.
 ├── hymn_remaker/               # Primary Python application package.
 │   ├── main.py                 # The core orchestrator and daemon loop.
-│   ├── app.py                  # The Streamlit Web UI entry point.
-│   ├── input/                  # Directory monitored by watchdog for incoming MIDI/MXL files.
-│   ├── output/                 # Destination for final .mp4 videos and Shorts.
+│   ├── app.py                  # The Streamlit Web UI and Hymn Editor Tab.
+│   ├── settings.py             # Centralized constants, fallback paths, and API defaults.
+│   ├── requirements.txt        # Hard-pinned Python dependencies.
+│   ├── input/                  # Monitored by watchdog for incoming MIDI/MXL/PDF/PNG files.
+│   ├── output/                 # Destination for final .mp4 videos, stems, and Shorts.
 │   └── tests/                  # Pytest suite for the Python pipeline.
 │       └── test_*.py           # Mocks and unit tests for pipeline components.
 ├── src/                        # Cross-language source files and utilities.
 │   ├── engine/                 # Native C++ Audio Engine.
 │   │   ├── HymnPlayer.h        # Header defining the FluidSynth wrapper class.
+│   │   ├── HymnPlayerBinding.cpp # Pybind11 bridge exposing C++ to Python.
 │   │   └── HymnPlayer.cpp      # Implementation of native audio loading and rendering.
+│   ├── musicxml_parser.py      # Parses .mxl/.xml natively to extract exact lyric timestamps.
+│   ├── omr_processor.py        # Utilizes ONNX/OpenCV (oemer) to translate physical sheet music.
+│   ├── stem_separator.py       # Utilizes Facebook's Demucs to isolate drums/bass/vocals/melody.
+│   ├── radio_streamer.py       # Background FFmpeg RTMP Live streamer daemon.
 │   └── video_uploader.py       # Python module for FFmpeg assembly and YouTube OAuth.
 ├── tests/                      # Native C++ tests.
 │   └── HymnPlayerTests.cpp     # Unit tests for the C++ engine (builds to `run_tests`).
@@ -41,23 +50,17 @@ hymnmania/
     └── art/                    # Stores DALL-E generated images (hashed by prompt).
 ```
 
-## External Libraries & System Dependencies
+## System Submodules & Dependencies (Native)
+While this repository does not use Git `.gitmodules`, its architecture is heavily reliant on deeply integrated system-level submodules and frameworks:
+*   **FluidSynth** (`libfluidsynth-dev`): Required for the C++ `HymnPlayer` engine to parse MIDI data and render audio buffers natively using SoundFonts (`.sf2`).
+*   **FFmpeg**: The multimedia backbone. It handles audio mixing, `atempo` vocal time-stretching, `scale`/`pad` aspect ratio conversions, `showwaves` audio-reactive visualizers, SRT subtitle burning, and RTMP live streaming.
+*   **Pybind11**: Acts as the compilation bridge linking the `HymnPlayer.cpp` logic to the `hymn_remaker/main.py` Python orchestrator.
 
-The project relies on a mix of native system libraries, Python packages, and cloud APIs.
-
-### System Libraries (Native)
-*   **FluidSynth** (`libfluidsynth-dev`): Required for the C++ `HymnPlayer` engine to parse MIDI data and render audio buffers using SoundFonts.
-*   **FFmpeg**: An absolute prerequisite for the Python pipeline. Utilized extensively in `video_uploader.py` for audio mixing, video scaling (16:9 vs 9:16), hardcoding subtitles, and muxing.
-
-### Python Libraries (Internal)
-*   `pydub`: Used heavily for audio manipulation, specifically for mixing the generated instrumental with the TTS vocal track and applying "ducking" (lowering instrumental volume when vocals play).
-*   `midi2audio`: A lightweight Python wrapper around the `fluidsynth` command-line tool. (Targeted for replacement by the native `HymnPlayer` via Pybind11).
-*   `streamlit`: Powers the interactive web dashboard (`app.py`), allowing users to configure ElevenLabs voices, video formats, and monitor daemon progress.
-*   `watchdog`: Provides the file-system monitoring capabilities required for the `--daemon` mode in `main.py`.
-*   `pytest` & `pytest-mock`: Used exclusively in the `hymn_remaker/tests/` directory to ensure pipeline orchestrator reliability without triggering expensive API calls.
-
-### Cloud APIs
-*   **OpenAI (`gpt-4-turbo`, `dall-e-3`)**: Used to generate SEO-optimized titles, descriptions, contextual lyrics based on the hymn's mood, and unique cover art.
-*   **Replicate (`musicgen-melody`)**: Used to transform the raw FluidSynth audio render into a stylized Deep House track.
-*   **ElevenLabs**: Used to generate hyper-realistic, emotive vocal tracks from the GPT-generated lyrics.
-*   **YouTube Data API v3**: Used within `video_uploader.py` to automatically publish completed videos to the user's channel.
+## External Intelligence Submodules (APIs & Libraries)
+*   **music21**: Extracts mathematically perfect timestamps from MusicXML (`.mxl`) note offsets, completely bypassing AI hallucinations for SRT generation.
+*   **oemer**: An ONNX-backed Optical Music Recognition (OMR) library that translates `.pdf`, `.jpg`, and `.png` physical sheet music scans into raw `.mxl` files.
+*   **demucs**: Facebook's PyTorch-backed source separation library. It splits the generated house tracks into four stems (`drums`, `bass`, `vocals`, `other`), allowing the pipeline to duck the melody volume during singing while keeping the drum beat intact.
+*   **OpenAI (`gpt-4-turbo`, `dall-e-3`)**: Used to generate SEO-optimized titles, descriptions, contextual lyrics, and MD5-cached cover art.
+*   **Replicate (`musicgen-melody`)**: Transforms the raw FluidSynth audio render into a stylized Deep House track perfectly locked to the `.mxl`'s native BPM.
+*   **ElevenLabs**: Generates hyper-realistic vocal tracks. The pipeline dynamically shifts the pitch (`+4`, `+7` semitones) of secondary voices to construct 3-part spatial harmonies.
+*   **YouTube Data API v3**: Automatically publishes completed videos to the user's channel via OAuth2.
