@@ -32,7 +32,7 @@ This document outlines the high-level trajectory of the Hymn Remaker project, tr
 
 ## Phase 5: Distribution, Visuals & Infinite Streaming (Completed)
 - [x] **Stem Separation:** Utilize an AI stem separator (`demucs`) post-MusicGen to isolate the drum and bass tracks. This allows the TTS vocals to precisely duck *only* the melodic instruments (`other`, `bass`) without reducing the energy of the driving house `drums` beat.
-- [x] **Dynamic Visualizers:** Replace static DALL-E cover art with dynamic, audio-reactive visualizers generated via FFmpeg complex filters (`showwaves`).
+- [x] **Dynamic Visualizers:** Replace static DALL-E cover art with dynamic, audio-reactive visualizers generated via FFmpeg complex filters. Options include `showwaves` (`cline`, `line`, `p2p`) and `avectorscope` Lissajous curves.
 - [x] **Live DJ Mode / Infinite Radio:** Build a continuously running background thread (`src/radio_streamer.py`) that dynamically queues, shuffles, and streams the `.mp4` video output folder to a live RTMP endpoint (e.g., YouTube Live) operating as a 24/7 internet radio station.
 - [x] **Advanced Subtitle Parsing:** Extract the exact, note-by-note synchronization arrays natively from `.mxl` files (via `music21`), concatenating syllables (`begin`, `middle`, `end`) and timing durations to completely bypass GPT timing hallucinations, mapping exact `.srt` files directly to the sheet music.
 

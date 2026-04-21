@@ -99,7 +99,8 @@ def main():
                     model=args.model,
                     video_format=args.video_format,
                     create_shorts=args.create_shorts,
-                    enable_visualizer=args.visualizer
+                    enable_visualizer=args.visualizer,
+                    visualizer_mode=args.visualizer_mode
                 ): midi_path for midi_path in midi_file_list
             }
 
@@ -166,7 +167,7 @@ def process_single_midi(
     renderer, remaker, content_gen, video_producer, mxl_parser=None, omr_processor=None, tts_generator=None, stem_separator=None,
     normalize_audio=True, fade_in_ms=0, fade_out_ms=0, generate_vocals=False,
     voice_id=settings.DEFAULT_ELEVENLABS_VOICE_ID, model=settings.DEFAULT_ELEVENLABS_MODEL, video_format=settings.DEFAULT_VIDEO_FORMAT, create_shorts=False, status_callback=None,
-    sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True, enable_visualizer=False,
+    sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True, enable_visualizer=False, visualizer_mode="cline",
     interactive_callback=None
 ):
     base_audio_path = remake_audio_path = metadata_path = vocal_track_path = None
@@ -366,7 +367,7 @@ def process_single_midi(
         # 4. Create Video (with subtitles if lyrics exist)
         update_status(f"Step 4/4: Creating Video with Subtitles ({filename})...", 85)
         video_path = os.path.join(output_dir, f"{name_no_ext}.mp4")
-        video_producer.create_video(remake_audio_path, art_url, video_path, lyrics=lyrics, video_format=video_format, sub_font_size=sub_font_size, sub_primary_color=sub_primary_color, sub_outline_color=sub_outline_color, sub_back_color=sub_back_color, sub_box=sub_box, enable_visualizer=enable_visualizer)
+        video_producer.create_video(remake_audio_path, art_url, video_path, lyrics=lyrics, video_format=video_format, sub_font_size=sub_font_size, sub_primary_color=sub_primary_color, sub_outline_color=sub_outline_color, sub_back_color=sub_back_color, sub_box=sub_box, enable_visualizer=enable_visualizer, visualizer_mode=visualizer_mode)
 
         # 4.5 Create Shorts
         if create_shorts:

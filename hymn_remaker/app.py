@@ -148,6 +148,9 @@ interactive_mode = st.sidebar.checkbox("Interactive Review Mode", value=False, h
 
 video_format = st.sidebar.selectbox("Video Format", ["Standard 16:9", "Vertical 9:16 (TikTok/Reels)"], index=0, help="Output video aspect ratio.")
 enable_visualizer = st.sidebar.checkbox("Audio-Reactive Visualizer", value=False, help="Overlay a dynamic audio waveform on the generated video.")
+visualizer_mode = "cline"
+if enable_visualizer:
+    visualizer_mode = st.sidebar.selectbox("Visualizer Mode", ["cline", "line", "p2p", "avectorscope"], index=0, help="Select the type of audio-reactive visualizer. 'avectorscope' renders Lissajous curves.")
 generate_vocals = st.sidebar.checkbox("Generate Vocals (ElevenLabs)", value=False, help="Automatically generate singing/spoken word vocals for the lyrics and mix them into the final track.")
 create_shorts = st.sidebar.checkbox("Create 15s Shorts", value=False, help="Extract 15-second clips from the final video into the output/shorts directory.")
 

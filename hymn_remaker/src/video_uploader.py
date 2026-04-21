@@ -66,7 +66,7 @@ class VideoProducer:
             logger.error(f"Failed to create SRT: {e}")
             return False
 
-    def create_video(self, audio_path, image_url, output_path, lyrics=None, video_format="Standard 16:9", sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True, enable_visualizer=False):
+    def create_video(self, audio_path, image_url, output_path, lyrics=None, video_format="Standard 16:9", sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True, enable_visualizer=False, visualizer_mode="cline"):
         """
         Create an MP4 video from an audio file, image URL, and optional lyrics using ffmpeg.
 
@@ -127,12 +127,14 @@ class VideoProducer:
 
                 # Add Audio-Reactive Visualizer
                 if enable_visualizer:
-                    # Generate a waveform from the audio input [1:a]
-                    # showwaves=s=1920x200:mode=line:colors=white
-                    # Then overlay it on the base video [v_base]
                     w, h = ("1080", "150") if video_format == "Vertical 9:16 (TikTok/Reels)" else ("1920", "200")
                     y_pos = "(H-h)/2" # Center vertically
-                    vis_filter = f"[1:a]showwaves=s={w}x{h}:mode=cline:colors=white@0.5[wave];[v_base][wave]overlay=x=0:y={y_pos}[v]"
+
+                    if visualizer_mode == "avectorscope":
+                        vis_filter = f"[1:a]avectorscope=s={h}x{h}:draw=line:color=white[wave];[v_base][wave]overlay=x=(W-w)/2:y={y_pos}[v]"
+                    else:
+                        vis_filter = f"[1:a]showwaves=s={w}x{h}:mode={visualizer_mode}:colors=white@0.5[wave];[v_base][wave]overlay=x=0:y={y_pos}[v]"
+
                     filters.append(vis_filter)
                 else:
                     # Just pass the base video through

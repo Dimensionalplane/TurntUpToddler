@@ -1,14 +1,13 @@
 # Handoff Document
 
 ## Session Summary
-- **Live Stream Status UI**: Implemented the highest priority roadmap task by wrapping the `RadioStreamer` class (`src/radio_streamer.py`) with thread-safe `threading.Event()` hooks for `skip_track`.
-- **Streamlit Integration**: Embedded the radio controls directly into the `app.py` Streamlit sidebar. Users can now input their RTMP URL, click "Start Radio", and the background daemon will continuously stream `.mp4` chunks via FFmpeg `-re` directly from the web server. The UI actively queries the daemon thread to display the "Now Playing" track and offers a "Skip Track" button that gracefully terminates the current FFmpeg subprocess and advances the playlist.
-- **Test Coverage**: Added `tests/test_radio_streamer.py` using `unittest.mock` to validate that the FFmpeg subprocess `terminate()` calls are successfully triggered via the UI skip event without killing the main thread loop.
-- **Documentation Update**: Extensively updated `ROADMAP.md`, `TODO.md`, `CHANGELOG.md`, and bumped the global `VERSION` to **1.16.0**.
+- **Expanded Visualizer Options**: Addressed a key visual polish item from the roadmap. Rewrote the `video_uploader.py` logic to conditionally construct complex FFmpeg filters based on a `visualizer_mode` argument. The pipeline now supports `showwaves` variants (`cline`, `line`, `p2p`) and `avectorscope` for Lissajous curves.
+- **Streamlit & CLI Integration**: Surfaced the `--visualizer-mode` string argument to the `main.py` CLI and created an interactive `selectbox` in the Streamlit UI that dynamically appears when the `Audio-Reactive Visualizer` checkbox is toggled.
+- **Testing**: Added `test_create_video_with_visualizer` to `tests/test_video_uploader.py` to assert the proper formatting and injection of the `avectorscope` and `showwaves` filters into the FFmpeg command list.
+- **Documentation Update**: Extensively updated `ROADMAP.md`, `TODO.md`, `CHANGELOG.md`, and bumped the global `VERSION` to **1.17.0**.
 
 ## State of the Project
-- The project is functionally massive and extremely resilient. It acts as an entire AI record label in a box, capable of composing, producing, mastering, visualizing, rendering, publishing, and broadcasting music 24/7.
-- Codebase is containerized, documented (`PROJECT_STRUCTURE.md`), and adheres perfectly to the Omni-Workspace specifications.
+- The project is exceptionally robust, with deep parameterization available both on the command line and within the Streamlit web dashboard. Every major pipeline feature (rendering, separation, generation, subtitling, visualization, broadcasting) is functional, containerized, and documented.
 
 ## Next Steps for the Next Agent
-- **Roadmap Phase 6 (Docker Optimization):** The addition of `oemer` (PyTorch, OpenCV) has significantly bloated the final `docker build` image size. The most impactful engineering task remaining is heavily optimizing the multi-stage Docker build. Research swapping the `python:3.12-slim` runtime image to an `alpine` or `distroless` equivalent, and possibly compile the heavy ML dependencies in a separate layer or split the application into a UI container and a backend inference microservice via `docker-compose`.
+- **Roadmap Phase 6 (Docker Optimization):** The addition of heavy machine-learning libraries (`oemer` pulling PyTorch, OpenCV, ONNX; `demucs` pulling PyTorch) has drastically bloated the final `docker build` image size. The most impactful engineering task remaining is heavily optimizing the multi-stage Docker build. Investigate shrinking the final runtime stage container by using a minimal base image (like Alpine or Distroless) and pre-compiled OpenCV binaries, moving the heavy ML inference to an external microservice if necessary.
