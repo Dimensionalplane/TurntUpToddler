@@ -109,6 +109,39 @@ with st.sidebar.expander("Subtitle Style Settings", expanded=False):
     sub_back_color = st.color_picker("Background Box Color", value="#000000", help="Background box color (if enabled).")
     sub_box = st.checkbox("Show Background Box", value=True, help="Draw a semi-transparent box behind subtitle text for readability.")
 
+st.sidebar.markdown("### Live DJ Radio Stream")
+# Check if streamer is running in the background daemon (we'll check for an instance in session state or global)
+# Since the streamer is typically started via CLI `--stream-rtmp`, we can also provide a way to start it via UI.
+
+stream_url = st.sidebar.text_input("RTMP URL (e.g., YouTube Live)", help="Enter your RTMP endpoint to broadcast 24/7 internet radio.")
+col_str1, col_str2 = st.sidebar.columns(2)
+
+if "radio_streamer" not in st.session_state:
+    st.session_state.radio_streamer = None
+
+if col_str1.button("Start Radio 📻"):
+    if not stream_url:
+        st.sidebar.error("RTMP URL required.")
+    elif st.session_state.radio_streamer and st.session_state.radio_streamer.is_streaming:
+        st.sidebar.warning("Radio is already streaming!")
+    else:
+        from hymn_remaker.src.radio_streamer import RadioStreamer
+        st.session_state.radio_streamer = RadioStreamer(stream_url, input_dir=output_dir)
+        st.session_state.radio_streamer.start()
+        st.sidebar.success("Radio broadcast started.")
+
+if col_str2.button("Stop Radio ⏹️"):
+    if st.session_state.radio_streamer:
+        st.session_state.radio_streamer.stop()
+        st.session_state.radio_streamer = None
+        st.sidebar.info("Radio broadcast stopped.")
+
+if st.session_state.radio_streamer and st.session_state.radio_streamer.is_streaming:
+    curr_track = st.session_state.radio_streamer.current_track
+    st.sidebar.info(f"**Now Playing:** {curr_track if curr_track else 'Waiting for tracks...'}")
+    if st.sidebar.button("Skip Track ⏭️"):
+        st.session_state.radio_streamer.skip_track()
+
 st.sidebar.markdown("### Pipeline Options")
 
 interactive_mode = st.sidebar.checkbox("Interactive Review Mode", value=False, help="Pause the pipeline after metadata/lyrics generation to manually edit the lyrics, title, and art prompt before rendering the final audio and video.")

@@ -341,6 +341,17 @@ def process_single_midi(
         # If vocals were generated, we need to mix them into the remake_audio_path now
         if vocal_track_path:
             update_status(f"Mixing Vocals into Instrumental ({filename})...", 82)
+
+            stems = None
+            if stem_separator:
+                update_status(f"Running AI Stem Separation for smart vocal ducking ({filename})...", 83)
+                stem_out_dir = os.path.join(output_dir, f"{name_no_ext}_stems")
+                try:
+                    stems = stem_separator.separate(remake_audio_path, stem_out_dir)
+                except Exception as e:
+                    logger.warning(f"Stem separation failed, falling back to basic ducking: {e}")
+
+            from .src.utils import process_audio
             # Re-process the audio to mix the vocals (process_audio handles mixing if vocal_track_path is provided)
             process_audio(
                 remake_audio_path,
@@ -348,7 +359,8 @@ def process_single_midi(
                 normalize=normalize_audio,
                 fade_in_ms=fade_in_ms,
                 fade_out_ms=fade_out_ms,
-                vocal_track_path=vocal_track_path
+                vocal_track_path=vocal_track_path,
+                stems=stems
             )
 
         # 4. Create Video (with subtitles if lyrics exist)

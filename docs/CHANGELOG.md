@@ -3,9 +3,14 @@
 All notable changes to this project will be documented in this file.
 The format is based on Keep a Changelog.
 
-## [1.15.0] - Current
+## [1.16.0] - Current
+### Added
+- **Interactive Radio UI**: Completed Phase 6 roadmap priority by integrating the `RadioStreamer` directly into the Streamlit Web UI. Users can now enter their RTMP/Icecast URL, start a background 24/7 radio broadcast daemon thread directly from the browser, view the currently streaming `.mp4` track, and utilize thread-safe `Event` hooks to "Skip Track" or "Stop Broadcast" manually without touching the CLI.
+- Added comprehensive unit tests in `test_radio_streamer.py` to validate `skip_track` and `stop` thread termination logic.
+
+## [1.15.0] - Previous
 ### Changed
-- **Documentation Suite Finalization**: Massively overhauled the core documentation structure (`ROADMAP.md`, `VISION.md`, `TODO.md`, `HANDOFF.md`) to reflect the completed state of the Omni-Workspace pipeline. The project has successfully grown from a basic Python wrapper to an advanced, multi-language, multi-AI containerized broadcasting station capable of translating physical sheet music into an automated, live-streaming 24/7 Deep House YouTube channel. All Phase 1 through Phase 5 features are now marked as `[x]` (completed) and the initial roadmap is fully mapped into actionable deployment instructions.
+- **Documentation Suite Finalization**: Massively overhauled the core documentation structure (`ROADMAP.md`, `VISION.md`, `TODO.md`, `HANDOFF.md`) to reflect the completed state of the Omni-Workspace pipeline. All Phase 1 through Phase 5 features are now marked as `[x]`.
 
 ## [1.14.0] - Previous
 ### Added
@@ -17,16 +22,3 @@ The format is based on Keep a Changelog.
 ### Added
 - **24/7 Live DJ Radio Stream**: Created the `RadioStreamer` module to push generated `.mp4` chunks to RTMP live streaming endpoints using FFmpeg.
 - **Audio-Reactive Visualizer**: Added support for an FFmpeg-powered dynamic waveform overlay during the video assembly phase (`video_uploader.py`).
-
-## [1.12.0] - Previous
-### Added
-- **Audio-Reactive Visualizer**: Added support for an FFmpeg-powered dynamic waveform overlay during the video assembly phase (`video_uploader.py`). Users can now toggle `--visualizer` via the CLI or Streamlit UI.
-
-## [1.11.0] - Previous
-### Added
-- **AI Stem Separation**: Integrated Facebook's `demucs` library into the pipeline to autonomously isolate `drums`, `bass`, `vocals`, and `other` tracks from the Replicate output.
-- **Smart Audio Ducking**: Re-engineered `process_audio` to strictly duck melodic/bass stems during TTS vocal playback, preserving the full punch of the house drum loop.
-
-### Fixed
-- Re-architected `app.py` to fix Streamlit `session_state` resets, adding a dedicated "Hymn Editor" tab to prevent execution blocks from overlapping.
-- Corrected the `fluid_settings` timer instantiation in the native C++ `HymnPlayer` engine to use the "sample" timer instead of the real-time system clock, unlocking the ability to render offline buffers substantially faster than real-time without skipping frames.

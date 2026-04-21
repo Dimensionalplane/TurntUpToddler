@@ -1,15 +1,14 @@
 # Handoff Document
 
 ## Session Summary
-- **Foundational Documentation Polish**: Executed the user's directive to codify the immense progress made stabilizing the Omni-Workspace. I performed a comprehensive audit and rewrite of `VISION.md`, `ROADMAP.md`, `CHANGELOG.md`, and `TODO.md`.
-- **Roadmap Structuring**: The roadmap has been completely mapped out into 6 Phases. Phases 1-5 (Core Automation, Scale & Robustness, Advanced Native Inputs, OMR/Harmonies, Distribution & RTMP Streaming) are now fully marked as `[x]` (completed) based on the git history and implemented features (e.g., `pybind11` C++ audio, `demucs` stem ducking, `oemer` sheet music scanning, `ffmpeg` audio visualizers, and `music21` exact subtitle parsing).
-- **Version Bump**: Updated the global `VERSION` file to **1.15.0** to signify the completion of Phase 5 and the stabilization of the workspace architecture.
+- **Live Stream Status UI**: Implemented the highest priority roadmap task by wrapping the `RadioStreamer` class (`src/radio_streamer.py`) with thread-safe `threading.Event()` hooks for `skip_track`.
+- **Streamlit Integration**: Embedded the radio controls directly into the `app.py` Streamlit sidebar. Users can now input their RTMP URL, click "Start Radio", and the background daemon will continuously stream `.mp4` chunks via FFmpeg `-re` directly from the web server. The UI actively queries the daemon thread to display the "Now Playing" track and offers a "Skip Track" button that gracefully terminates the current FFmpeg subprocess and advances the playlist.
+- **Test Coverage**: Added `tests/test_radio_streamer.py` using `unittest.mock` to validate that the FFmpeg subprocess `terminate()` calls are successfully triggered via the UI skip event without killing the main thread loop.
+- **Documentation Update**: Extensively updated `ROADMAP.md`, `TODO.md`, `CHANGELOG.md`, and bumped the global `VERSION` to **1.16.0**.
 
 ## State of the Project
-- The project is an incredibly dense, multi-faceted generative AI pipeline. It gracefully translates inputs (ranging from physical sheet music PDFs to raw `.mxl` notation) into fully rendered Deep House tracks, extracting mathematically exact lyric timestamps to generate hyper-realistic, multi-voice harmonized subtitles. It overlays dynamic audio waveforms on AI-generated album art, creates 15-second TikTok shorts, and runs a 24/7 background RTMP streamer, all completely autonomously and containerized.
-- The project's documentation is now perfectly aligned with the source code's capabilities, providing a singular source of truth for the Omni-Workspace.
+- The project is functionally massive and extremely resilient. It acts as an entire AI record label in a box, capable of composing, producing, mastering, visualizing, rendering, publishing, and broadcasting music 24/7.
+- Codebase is containerized, documented (`PROJECT_STRUCTURE.md`), and adheres perfectly to the Omni-Workspace specifications.
 
 ## Next Steps for the Next Agent
-- **Roadmap Phase 6:** The primary focus shifts from implementing generative features to **Cloud Native Polish & App Ecosystem**.
-- **Docker Footprint**: The `oemer` OMR library pulls in gigantic PyTorch, OpenCV, and ONNX Runtime dependencies. Investigate rewriting the multi-stage `Dockerfile` to dramatically shrink the final runtime image, perhaps splitting the ML inferencing into a secondary `docker-compose.yml` service.
-- **RTMP UI Controls**: The `hymn_remaker/app.py` UI lacks visibility into the `RadioStreamer` background thread running in `main.py`. The immediate next developer task in `TODO.md` is to expose the current streaming track to the Streamlit sidebar and implement a thread-safe "Skip Track" button.
+- **Roadmap Phase 6 (Docker Optimization):** The addition of `oemer` (PyTorch, OpenCV) has significantly bloated the final `docker build` image size. The most impactful engineering task remaining is heavily optimizing the multi-stage Docker build. Research swapping the `python:3.12-slim` runtime image to an `alpine` or `distroless` equivalent, and possibly compile the heavy ML dependencies in a separate layer or split the application into a UI container and a backend inference microservice via `docker-compose`.

@@ -37,5 +37,5 @@ This document outlines the high-level trajectory of the Hymn Remaker project, tr
 - [x] **Advanced Subtitle Parsing:** Extract the exact, note-by-note synchronization arrays natively from `.mxl` files (via `music21`), concatenating syllables (`begin`, `middle`, `end`) and timing durations to completely bypass GPT timing hallucinations, mapping exact `.srt` files directly to the sheet music.
 
 ## Phase 6: Cloud Native Polish & App Ecosystem (Current Focus)
+- [x] **Interactive Radio Controls:** Expose the `RadioStreamer` background thread to the Streamlit UI's sidebar, allowing users to start broadcasts, view the current playing song, and manually "Skip Track" or "Kill Stream" via robust Python `Event` flags.
 - [ ] **Distroless/Alpine Docker Image:** The massive dependencies of PyTorch (`demucs`), OpenCV, and ONNX Runtime (`oemer`) bloat the `hymn_remaker:latest` container. A multi-stage Docker build separating the AI inference models from the Streamlit UI web container will drastically cut deployment size.
-- [ ] **Interactive Radio Controls:** Expose the `RadioStreamer` background thread to the Streamlit UI's sidebar, allowing users to "Skip Track", view the current playing song, or manually kill the RTMP broadcast.

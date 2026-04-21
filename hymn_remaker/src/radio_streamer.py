@@ -5,7 +5,7 @@ import glob
 import time
 import random
 from queue import Queue
-from threading import Thread
+from threading import Thread, Event
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +23,8 @@ class RadioStreamer:
         self.input_dir = input_dir
         self.is_streaming = False
         self.stream_thread = None
+        self.current_track = None
+        self.skip_event = Event()
 
     def _get_videos(self):
         """Retrieve a list of generated .mp4 files."""
@@ -68,12 +70,19 @@ class RadioStreamer:
                     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
                     # We wait for the stream to finish or be interrupted
+                    self.current_track = os.path.basename(video)
                     while process.poll() is None:
                         if not self.is_streaming:
                             logger.info("Interrupting stream...")
                             process.terminate()
                             break
+                        if self.skip_event.is_set():
+                            logger.info("Skipping track...")
+                            process.terminate()
+                            self.skip_event.clear()
+                            break
                         time.sleep(1)
+                    self.current_track = None
 
                 except Exception as e:
                     logger.error(f"Stream failed for {video}: {e}")
@@ -86,6 +95,10 @@ class RadioStreamer:
         if not self.is_streaming:
             self.stream_thread = Thread(target=self._stream_loop, daemon=True)
             self.stream_thread.start()
+
+    def skip_track(self):
+        """Skip the currently playing track."""
+        self.skip_event.set()
 
     def stop(self):
         """Stop the streaming thread."""
