@@ -66,8 +66,8 @@ class VideoProducer:
             logger.error(f"Failed to create SRT: {e}")
             return False
 
-    def create_video(self, audio_path, image_url, output_path, lyrics=None, video_format="Standard 16:9"):
-        """
+def create_video(self, audio_path, image_url, output_path, lyrics=None, video_format="Standard 16:9"):
+def create_video(self, audio_path, image_url, output_path, lyrics=None, video_format="Standard 16:9", sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True, enable_visualizer=False, visualizer_mode="cline"):        """
         Create an MP4 video from an audio file, image URL, and optional lyrics using ffmpeg.
 
         Args:
@@ -79,11 +79,10 @@ class VideoProducer:
         """
         logger.info(f"Creating video from {audio_path}...")
 
-        import uuid
+import uuid
         unique_id = uuid.uuid4().hex
         temp_image_path = f"temp_art_{unique_id}.png"
         temp_srt_path = f"{output_path}.srt"
-
         # 1. Download the image to a temporary file, or copy if local
         import uuid
         unique_id = uuid.uuid4().hex
@@ -122,7 +121,7 @@ class VideoProducer:
                 # Determine base filters depending on format
                 base_vf = ""
                 if video_format == "Vertical 9:16 (TikTok/Reels)":
-                    # Scale the image to fit horizontally, pad vertically, and blur the background
+# Scale the image to fit horizontally, pad vertically, and blur the background
                     base_vf = "[0:v]scale=1080:-1,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black[v]"
                 else:
                     # Standard 16:9, just scale/pad to 1920x1080
@@ -131,12 +130,46 @@ class VideoProducer:
                 # Build filter complex
                 filters = []
                 filters.append(base_vf)
+# Scale the image to fit horizontally, pad vertically
+                    base_vf = "[0:v]scale=1080:-1,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black[v_base]"
+                else:
+                    # Standard 16:9, just scale/pad to 1920x1080
+                    base_vf = "[0:v]scale=-1:1080,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:black[v_base]"
 
+                filters = [base_vf]
+
+                # Add Audio-Reactive Visualizer
+                if enable_visualizer:
+                    w, h = ("1080", "150") if video_format == "Vertical 9:16 (TikTok/Reels)" else ("1920", "200")
+                    y_pos = "(H-h)/2" # Center vertically
+
+                    if visualizer_mode == "avectorscope":
+                        vis_filter = f"[1:a]avectorscope=s={h}x{h}:draw=line:color=white[wave];[v_base][wave]overlay=x=(W-w)/2:y={y_pos}[v]"
+                    else:
+                        vis_filter = f"[1:a]showwaves=s={w}x{h}:mode={visualizer_mode}:colors=white@0.5[wave];[v_base][wave]overlay=x=0:y={y_pos}[v]"
+
+                    filters.append(vis_filter)
+                else:
+                    # Just pass the base video through
+                    filters.append("[v_base]copy[v]")
                 if subtitles_enabled:
                     safe_srt_path = temp_srt_path.replace('\\', '/').replace(':', '\\:')
                     # Add subtitle filter on top of the mapped [v] stream
-                    filters.append(f"[v]subtitles='{safe_srt_path}'[v_sub]")
-                    ffmpeg_cmd.extend(["-filter_complex", ";".join(filters), "-map", "[v_sub]", "-map", "1:a"])
+filters.append(f"[v]subtitles='{safe_srt_path}'[v_sub]")
+# Convert hex colors (#RRGGBB) to ASS format (&HBBGGRR&)
+                    def to_ass_color(hex_str):
+                        h = hex_str.lstrip('#')
+                        if len(h) == 6:
+                            return f"&H00{h[4:6]}{h[2:4]}{h[0:2]}&"
+                        return "&H00FFFFFF&"
+
+                    p_color = to_ass_color(sub_primary_color)
+                    o_color = to_ass_color(sub_outline_color)
+                    b_color = to_ass_color(sub_back_color)
+                    border_style = "3" if sub_box else "1" # 3 = Opaque box, 1 = Outline
+
+                    force_style = f"FontSize={sub_font_size},PrimaryColour={p_color},OutlineColour={o_color},BackColour={b_color},BorderStyle={border_style}"
+                    filters.append(f"[v]subtitles='{safe_srt_path}':force_style='{force_style}'[v_sub]")                    ffmpeg_cmd.extend(["-filter_complex", ";".join(filters), "-map", "[v_sub]", "-map", "1:a"])
                 else:
                     ffmpeg_cmd.extend(["-filter_complex", ";".join(filters), "-map", "[v]", "-map", "1:a"])
 
@@ -182,7 +215,7 @@ class VideoProducer:
                     run_ffmpeg(False)
                     logger.info(f"Video created at {output_path} (without subtitles fallback)")
                 else:
-                    raise
+                    raise RuntimeError("FFmpeg failed to create video after all retries.")
 
         except Exception as e:
             logger.error(f"Failed to create video: {e}")

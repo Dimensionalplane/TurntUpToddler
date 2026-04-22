@@ -33,3 +33,5 @@ build/
 # Generated files
 hymn_remaker/output/
 temp_art.png
+*.so
+tests/run_tests

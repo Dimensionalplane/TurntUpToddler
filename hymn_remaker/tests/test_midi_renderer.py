@@ -23,7 +23,8 @@ class TestMidiRenderer(unittest.TestCase):
         if os.path.exists(self.output_dir):
             shutil.rmtree(self.output_dir)
 
-    @patch('hymn_remaker.src.midi_renderer.FluidSynth')
+    @patch('hymn_remaker.src.midi_renderer.NATIVE_ENGINE_AVAILABLE', False)
+    @patch('hymn_remaker.src.midi_renderer.FluidSynth', create=True)
     def test_render_calls_midi_to_audio(self, MockFluidSynth):
         # Setup mock
         mock_fs_instance = MockFluidSynth.return_value
@@ -39,7 +40,7 @@ class TestMidiRenderer(unittest.TestCase):
         # We don't need to patch here as it should fail before calling FluidSynth
         # But MidiRenderer constructor calls FluidSynth so we still need to patch it or let it run (if fluidsynth installed)
         # To be safe/fast, patch it.
-        with patch('hymn_remaker.src.midi_renderer.FluidSynth'):
+        with patch('hymn_remaker.src.midi_renderer.NATIVE_ENGINE_AVAILABLE', False), patch('hymn_remaker.src.midi_renderer.FluidSynth', create=True):
             renderer = MidiRenderer()
             with self.assertRaises(FileNotFoundError):
                 renderer.render("non_existent.mid", "output.wav")

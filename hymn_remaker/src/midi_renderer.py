@@ -1,6 +1,22 @@
 import os
-from midi2audio import FluidSynth
+import sys
 import logging
+import soundfile as sf
+import numpy as np
+import mido
+import math
+import time
+from hymn_remaker import settings
+
+# Ensure the root directory is in sys.path so we can import hymn_player_ext
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+try:
+    import hymn_player_ext
+    NATIVE_ENGINE_AVAILABLE = True
+except ImportError as e:
+    logging.warning(f"Native HymnPlayer engine not found. Falling back to midi2audio. ({e})")
+    NATIVE_ENGINE_AVAILABLE = False
+    from midi2audio import FluidSynth
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -18,12 +34,7 @@ class MidiRenderer:
             self.soundfont_path = soundfont_path
         else:
             # Try to find a default soundfont
-            default_paths = [
-                '/usr/share/sounds/sf2/FluidR3_GM.sf2',
-                '/usr/share/sounds/sf2/default-GM.sf2',
-                '/usr/share/soundfonts/default.sf2'
-            ]
-            for path in default_paths:
+            for path in settings.DEFAULT_SOUNDFONT_PATHS:
                 if os.path.exists(path):
                     self.soundfont_path = path
                     break
@@ -31,7 +42,31 @@ class MidiRenderer:
                 raise FileNotFoundError("No default soundfont found. Please provide a path to a valid .sf2 file.")
 
         logger.info(f"Using SoundFont: {self.soundfont_path}")
-        self.fs = FluidSynth(self.soundfont_path)
+        if not NATIVE_ENGINE_AVAILABLE:
+            self.fs = FluidSynth(self.soundfont_path)
+
+    def _get_midi_duration(self, midi_path):
+        try:
+            mid = mido.MidiFile(midi_path)
+            return mid.length
+        except Exception as e:
+            logger.warning(f"Failed to calculate MIDI duration: {e}. Defaulting to 120 seconds.")
+            return 120.0
+
+    def get_midi_bpm(self, midi_path):
+        """
+        Extract the initial BPM from a MIDI file.
+        """
+        try:
+            mid = mido.MidiFile(midi_path)
+            for track in mid.tracks:
+                for msg in track:
+                    if msg.type == 'set_tempo':
+                        return mido.tempo2bpm(msg.tempo)
+            return 120.0 # Default if no tempo found
+        except Exception as e:
+            logger.warning(f"Failed to extract BPM from MIDI: {e}. Defaulting to 120 BPM.")
+            return 120.0
 
     def render(self, midi_path, output_path):
         """
@@ -47,14 +82,59 @@ class MidiRenderer:
         logger.info(f"Rendering {midi_path} to {output_path}...")
 
         try:
-            # midi2audio mainly supports play_midi (to speakers) or midi_to_audio (to file)
-            # The output format is determined by the file extension if midi2audio supports it,
-            # but usually it renders to WAV and then converts if needed.
-            # midi2audio uses 'flac' by default if not specified in method name, but let's check.
-            # Actually midi2audio has `midi_to_audio(midi_file, audio_file)`
+            if NATIVE_ENGINE_AVAILABLE:
+                logger.info("Using Native C++ Engine for rendering.")
+                # Instantiate player locally per thread to ensure thread-safety
+                player = hymn_player_ext.HymnPlayer(self.soundfont_path)
 
-            self.fs.midi_to_audio(midi_path, output_path)
-            logger.info("Rendering complete.")
+                # Load the MIDI file
+                success = player.load(midi_path)
+                if not success:
+                    raise RuntimeError("Failed to load MIDI file into native engine.")
+
+                # Calculate duration to know how many frames to render
+                duration_sec = self._get_midi_duration(midi_path)
+
+                sample_rate = settings.SAMPLE_RATE
+                total_frames = math.ceil((duration_sec + settings.REVERB_TAIL_SECONDS) * sample_rate)
+
+                player.play()
+
+                # Render in chunks
+                chunk_size = settings.SAMPLE_RATE # 1 second chunks
+                frames_rendered = 0
+                all_audio = []
+
+                while frames_rendered < total_frames and player.is_playing():
+                    audio_chunk = player.render_audio(chunk_size)
+                    all_audio.append(audio_chunk)
+                    frames_rendered += chunk_size
+
+                player.stop()
+
+                if not all_audio:
+                    raise RuntimeError("Native engine rendered zero audio frames.")
+
+                # Concatenate all chunks and reshape
+                # audio_chunk is a 1D interleaved array of shape (N*2,)
+                final_audio = np.concatenate(all_audio)
+
+                # Reshape from interleaved 1D to (Frames, Channels)
+                final_audio = final_audio.reshape(-1, 2)
+
+                # sf.write expects float32 in range [-1.0, 1.0] by default,
+                # but depending on FluidSynth's output scale we might need to normalize.
+                # Usually it's roughly in standard bounds but can clip.
+                max_val = np.max(np.abs(final_audio))
+                if max_val > 1.0:
+                    final_audio = final_audio / max_val
+
+                sf.write(output_path, final_audio, sample_rate)
+                logger.info("Native rendering complete.")
+            else:
+                logger.info("Using fallback midi2audio for rendering.")
+                self.fs.midi_to_audio(midi_path, output_path)
+                logger.info("Fallback rendering complete.")
 
         except Exception as e:
             logger.error(f"Failed to render MIDI: {e}")

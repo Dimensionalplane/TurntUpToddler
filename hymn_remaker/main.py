@@ -9,6 +9,7 @@ import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from dotenv import load_dotenv
+from hymn_remaker import settings
 
 # Add the project root to sys.path so we can import from src
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -18,6 +19,10 @@ from src.remaker import MusicRemaker
 from src.content_generator import ContentGenerator
 from src.video_uploader import VideoProducer
 from src.tts_generator import TTSGenerator
+from src.musicxml_parser import MusicXMLParser
+from src.omr_processor import OMRProcessor
+from src.stem_separator import StemSeparator
+from src.radio_streamer import RadioStreamer
 from src.utils import process_audio
 
 # Load environment variables
@@ -60,6 +65,9 @@ def main():
         remaker = MusicRemaker()
         content_gen = ContentGenerator()
         video_producer = VideoProducer()
+        mxl_parser = MusicXMLParser()
+        omr_processor = OMRProcessor()
+        stem_separator = StemSeparator()
     except Exception as e:
         logger.error(f"Failed to initialize pipeline: {e}")
         sys.exit(1)
@@ -85,11 +93,18 @@ def main():
                     remaker,
                     content_gen,
                     video_producer,
-                    voice_id=args.voice_id,
+voice_id=args.voice_id,
                     model=args.model,
                     video_format=args.video_format,
                     create_shorts=args.create_shorts
-                ): midi_path for midi_path in midi_file_list
+mxl_parser,
+                    omr_processor,
+                    voice_id=args.voice_id,
+                    model=args.model,
+                    video_format=args.video_format,
+                    create_shorts=args.create_shorts,
+                    enable_visualizer=args.visualizer,
+                    visualizer_mode=args.visualizer_mode                ): midi_path for midi_path in midi_file_list
             }
 
             for future in concurrent.futures.as_completed(futures):
@@ -100,14 +115,14 @@ def main():
                     logger.error(f"Error processing {midi_path} through executor: {e}")
 
     # Process initial files
-    initial_midi_files = glob.glob(os.path.join(args.input_dir, "*.mid"))
-    if initial_midi_files:
+initial_midi_files = glob.glob(os.path.join(args.input_dir, "*.mid"))
+initial_midi_files = glob.glob(os.path.join(args.input_dir, "*.mid")) +                          glob.glob(os.path.join(args.input_dir, "*.mxl")) +                          glob.glob(os.path.join(args.input_dir, "*.xml"))    if initial_midi_files:
         logger.info(f"Found {len(initial_midi_files)} initial MIDI files to process.")
         run_pipeline(initial_midi_files)
     else:
         logger.warning(f"No initial MIDI files found in {args.input_dir}")
 
-    # Daemon Mode Logic
+# Daemon Mode Logic
     if args.daemon:
         logger.info(f"Starting Daemon Mode. Monitoring {args.input_dir} for new MIDI files...")
 
@@ -115,13 +130,29 @@ def main():
             def on_created(self, event):
                 if not event.is_directory and event.src_path.lower().endswith(".mid"):
                     logger.info(f"Detected new MIDI file: {event.src_path}")
-                    # Give the file a moment to finish copying/downloading
+# Radio Streaming Mode
+    streamer = None
+    if args.stream_rtmp:
+        logger.info(f"Initializing Live DJ Radio Stream to {args.stream_rtmp}...")
+        streamer = RadioStreamer(args.stream_rtmp, input_dir=args.output_dir)
+        streamer.start()
+
+    # Daemon Mode Logic
+    if args.daemon:
+        logger.info(f"Starting Daemon Mode. Monitoring {args.input_dir} for new files...")
+
+        class MidiHandler(FileSystemEventHandler):
+            def on_created(self, event):
+                valid_exts = (".mid", ".mxl", ".xml", ".png", ".jpg", ".pdf")
+                if not event.is_directory and any(event.src_path.lower().endswith(ext) for ext in valid_exts):
+                    logger.info(f"Detected new Input file: {event.src_path}")                    # Give the file a moment to finish copying/downloading
                     time.sleep(1)
                     run_pipeline([event.src_path])
 
             def on_moved(self, event):
-                if not event.is_directory and event.dest_path.lower().endswith(".mid"):
-                    logger.info(f"Detected moved MIDI file: {event.dest_path}")
+if not event.is_directory and event.dest_path.lower().endswith(".mid"):
+valid_exts = (".mid", ".mxl", ".xml", ".png", ".jpg", ".pdf")
+                if not event.is_directory and any(event.dest_path.lower().endswith(ext) for ext in valid_exts):                    logger.info(f"Detected moved MIDI file: {event.dest_path}")
                     time.sleep(1)
                     run_pipeline([event.dest_path])
 
@@ -134,17 +165,23 @@ def main():
         except KeyboardInterrupt:
             logger.info("Stopping Daemon Mode...")
             observer.stop()
-        observer.join()
+
+if streamer:
+                streamer.stop()        observer.join()
     else:
         if not initial_midi_files:
             sys.exit(0)
 
 def process_single_midi(
     midi_path, output_dir, style, skip_render, skip_remake, upload,
-    renderer, remaker, content_gen, video_producer, tts_generator=None,
+renderer, remaker, content_gen, video_producer, tts_generator=None,
     normalize_audio=True, fade_in_ms=0, fade_out_ms=0, generate_vocals=False,
     voice_id="21m00Tcm4TlvDq8ikWAM", model="eleven_multilingual_v2", video_format="Standard 16:9", create_shorts=False, status_callback=None
-):
+renderer, remaker, content_gen, video_producer, mxl_parser=None, omr_processor=None, tts_generator=None, stem_separator=None,
+    normalize_audio=True, fade_in_ms=0, fade_out_ms=0, generate_vocals=False,
+    voice_id=settings.DEFAULT_ELEVENLABS_VOICE_ID, model=settings.DEFAULT_ELEVENLABS_MODEL, video_format=settings.DEFAULT_VIDEO_FORMAT, create_shorts=False, status_callback=None,
+    sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True, enable_visualizer=False, visualizer_mode="cline",
+    interactive_callback=None):
     base_audio_path = remake_audio_path = metadata_path = vocal_track_path = None
     try:
         filename = os.path.basename(midi_path)
@@ -157,11 +194,42 @@ def process_single_midi(
 
         update_status(f"Processing {filename}...", 10)
 
+        pre_extracted_metadata = {}
+        target_midi_path = midi_path
+
+        # -1. Check if input is an image/PDF (OMR)
+        if filename.lower().endswith('.png') or filename.lower().endswith('.jpg') or filename.lower().endswith('.pdf'):
+            update_status(f"Step 0/4: Running OMR on sheet music ({filename})...", 12)
+            if omr_processor and omr_processor.is_available():
+                target_mxl_path = omr_processor.process(midi_path, output_dir)
+                filename = os.path.basename(target_mxl_path)
+                midi_path = target_mxl_path
+                name_no_ext = os.path.splitext(filename)[0]
+            else:
+                logger.error("OMR processor is not available or oemer is not installed.")
+                raise RuntimeError("Cannot process image/PDF without an active OMR processor.")
+
+        # 0. Check if input is MusicXML and extract/convert
+        if filename.lower().endswith('.mxl') or filename.lower().endswith('.xml'):
+            update_status(f"Step 0/4: Parsing MusicXML and converting to MIDI ({filename})...", 15)
+            target_midi_path = os.path.join(output_dir, f"{name_no_ext}_converted.mid")
+            if mxl_parser:
+                pre_extracted_metadata = mxl_parser.process(midi_path, target_midi_path)
+            else:
+                logger.warning("MusicXML parser not available, skipping XML parsing.")
+
         # 1. Render MIDI to Audio (WAV)
         update_status(f"Step 1/4: Rendering MIDI ({filename})...", 20)
         base_audio_path = os.path.join(output_dir, f"{name_no_ext}_base.wav")
+
+        # Extract precise BPM to prevent AI tempo drift
+        target_bpm = 120.0
+        if os.path.exists(target_midi_path):
+            target_bpm = renderer.get_midi_bpm(target_midi_path)
+            update_status(f"Extracted dynamic tempo: {target_bpm:.1f} BPM", 25)
+
         if not skip_render or not os.path.exists(base_audio_path):
-            renderer.render(midi_path, base_audio_path)
+            renderer.render(target_midi_path, base_audio_path)
         else:
             update_status(f"Skipping render for {filename}, {base_audio_path} exists.", 30)
 
@@ -170,8 +238,11 @@ def process_single_midi(
         remake_audio_path = os.path.join(output_dir, f"{name_no_ext}_remake.wav")
 
         if not skip_remake or not os.path.exists(remake_audio_path):
+            # Enforce exact tempo in the style prompt
+            tempo_enforced_style = f"{style}. The track must be exactly {target_bpm:.1f} BPM. Keep this exact tempo."
+
             # Call Replicate
-            remake_url = remaker.remake(base_audio_path, style)
+            remake_url = remaker.remake(base_audio_path, tempo_enforced_style)
 
             # Download the remake
             update_status(f"Downloading remake from {remake_url}...", 50)
@@ -189,18 +260,85 @@ def process_single_midi(
 
         # 3. Generate Content (Metadata, Lyrics & Art)
         update_status(f"Step 3/4: Generating Lyrics, Art & Metadata ({filename})...", 70)
-        # We can do this in parallel, but sequential is safer for now
-        metadata = content_gen.generate_metadata(name_no_ext, style=style)
-        lyrics = content_gen.generate_lyrics(name_no_ext)
 
-        art_prompt = f"Abstract album art for {metadata.get('title', name_no_ext)}, {style} style, high quality, 4k"
-        art_url = content_gen.generate_art(art_prompt)
-
-        # Save metadata to file for reference
         metadata_path = os.path.join(output_dir, f"{name_no_ext}_metadata.json")
-        with open(metadata_path, "w") as f:
-            metadata["lyrics"] = lyrics # Add lyrics to saved metadata
-            json.dump(metadata, f, indent=4)
+
+        # Check if we already generated (and potentially edited) this data
+        if os.path.exists(metadata_path):
+            update_status(f"Loading existing metadata and lyrics from {metadata_path}...", 72)
+            with open(metadata_path, "r") as f:
+                metadata = json.load(f)
+            lyrics = metadata.get("lyrics", [])
+            art_prompt = metadata.get("art_prompt", f"Abstract album art for {metadata.get('title', name_no_ext)}, {style} style, high quality, 4k")
+
+            # If in interactive mode, we still need to yield back to UI to approve/edit
+            if interactive_callback:
+                update_status(f"Pausing for interactive review...", 76)
+                edited_data = interactive_callback({
+                    'metadata': metadata,
+                    'lyrics': lyrics,
+                    'art_prompt': art_prompt
+                })
+                if edited_data:
+                    metadata = edited_data.get('metadata', metadata)
+                    lyrics = edited_data.get('lyrics', lyrics)
+                    art_prompt = edited_data.get('art_prompt', art_prompt)
+
+                # Save edits
+                with open(metadata_path, "w") as f:
+                    metadata["lyrics"] = lyrics
+                    metadata["art_prompt"] = art_prompt
+                    json.dump(metadata, f, indent=4)
+                update_status(f"Resuming pipeline...", 78)
+        else:
+            # First time generation
+            # Incorporate pre-extracted MusicXML metadata
+            if pre_extracted_metadata and pre_extracted_metadata.get("title"):
+                metadata = content_gen.generate_metadata(pre_extracted_metadata["title"], style=style)
+            else:
+                metadata = content_gen.generate_metadata(name_no_ext, style=style)
+
+            # Use extracted lyrics if available, otherwise generate
+            extracted_lyrics = pre_extracted_metadata.get("lyrics") if pre_extracted_metadata else None
+
+            if extracted_lyrics and isinstance(extracted_lyrics, list) and len(extracted_lyrics) > 0 and 'start' in extracted_lyrics[0]:
+                update_status("Using exact note-timed lyrics extracted from MusicXML...", 75)
+                lyrics = extracted_lyrics
+            else:
+                update_status("Generating AI lyrics and timings via OpenAI...", 75)
+                title_context = metadata.get("title") or name_no_ext
+                lyrics = content_gen.generate_lyrics(title_context)
+
+            art_prompt = f"Abstract album art for {metadata.get('title', name_no_ext)}, {style} style, high quality, 4k"
+
+            # Save initial generation before review so it's cached for the Streamlit rerun
+            with open(metadata_path, "w") as f:
+                metadata["lyrics"] = lyrics
+                metadata["art_prompt"] = art_prompt
+                json.dump(metadata, f, indent=4)
+
+            # If in interactive mode, yield execution back to the UI to allow the user to edit metadata/lyrics/art_prompt
+            if interactive_callback:
+                update_status(f"Pausing for interactive review...", 76)
+                edited_data = interactive_callback({
+                    'metadata': metadata,
+                    'lyrics': lyrics,
+                    'art_prompt': art_prompt
+                })
+                if edited_data:
+                    metadata = edited_data.get('metadata', metadata)
+                    lyrics = edited_data.get('lyrics', lyrics)
+                    art_prompt = edited_data.get('art_prompt', art_prompt)
+
+                # Save edits
+                with open(metadata_path, "w") as f:
+                    metadata["lyrics"] = lyrics
+                    metadata["art_prompt"] = art_prompt
+                    json.dump(metadata, f, indent=4)
+                update_status(f"Resuming pipeline...", 78)
+
+        # Generate the actual image using the (potentially edited) prompt
+        art_url = content_gen.generate_art(art_prompt)
 
         # Optional: Generate Vocals via ElevenLabs
         vocal_track_path = None
@@ -216,6 +354,17 @@ def process_single_midi(
         # If vocals were generated, we need to mix them into the remake_audio_path now
         if vocal_track_path:
             update_status(f"Mixing Vocals into Instrumental ({filename})...", 82)
+
+            stems = None
+            if stem_separator:
+                update_status(f"Running AI Stem Separation for smart vocal ducking ({filename})...", 83)
+                stem_out_dir = os.path.join(output_dir, f"{name_no_ext}_stems")
+                try:
+                    stems = stem_separator.separate(remake_audio_path, stem_out_dir)
+                except Exception as e:
+                    logger.warning(f"Stem separation failed, falling back to basic ducking: {e}")
+
+            from .src.utils import process_audio
             # Re-process the audio to mix the vocals (process_audio handles mixing if vocal_track_path is provided)
             process_audio(
                 remake_audio_path,
@@ -223,14 +372,15 @@ def process_single_midi(
                 normalize=normalize_audio,
                 fade_in_ms=fade_in_ms,
                 fade_out_ms=fade_out_ms,
-                vocal_track_path=vocal_track_path
+                vocal_track_path=vocal_track_path,
+                stems=stems
             )
 
         # 4. Create Video (with subtitles if lyrics exist)
         update_status(f"Step 4/4: Creating Video with Subtitles ({filename})...", 85)
         video_path = os.path.join(output_dir, f"{name_no_ext}.mp4")
-        video_producer.create_video(remake_audio_path, art_url, video_path, lyrics=lyrics, video_format=video_format)
-
+video_producer.create_video(remake_audio_path, art_url, video_path, lyrics=lyrics, video_format=video_format)
+video_producer.create_video(remake_audio_path, art_url, video_path, lyrics=lyrics, video_format=video_format, sub_font_size=sub_font_size, sub_primary_color=sub_primary_color, sub_outline_color=sub_outline_color, sub_back_color=sub_back_color, sub_box=sub_box, enable_visualizer=enable_visualizer, visualizer_mode=visualizer_mode)
         # 4.5 Create Shorts
         if create_shorts:
             update_status(f"Extracting Short Clips ({filename})...", 90)
