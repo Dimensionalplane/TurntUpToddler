@@ -41,14 +41,6 @@ def mix_audio(instrumental_path, vocal_path, output_path, vocal_vol_boost=2, ins
         output_path (str): Path to save the mixed audio.
         vocal_vol_boost (int): dB boost to apply to the vocals before mixing.
         instrumental_vol_duck (int): dB reduction to apply to the instrumental before mixing.
-<<<<<<< HEAD
-=======
-
-    Design Note:
-        The instrumental audio is typically generated via an LLM (MusicGen) and can be quite loud and lack dynamic range.
-        Ducking the instrumental by -3dB and boosting the synthesized vocals by +2dB creates physical headroom in the waveform,
-        ensuring the lyrics are highly legible and not drowned out by dense house music synths.
->>>>>>> origin/feature/web-ui-and-parallelization-5540056130352860192
     """
     logger.info(f"Mixing vocals ({vocal_path}) onto instrumental ({instrumental_path})...")
 
@@ -92,14 +84,7 @@ def process_audio(input_path, output_path, normalize=True, fade_in_ms=0, fade_ou
         if vocal_track_path and os.path.exists(vocal_track_path):
             logger.info(f"Mixing vocal track from: {vocal_track_path}")
             vocals = AudioSegment.from_file(vocal_track_path)
-<<<<<<< HEAD
             # Slight duck on instrumental, boost on vocals
-=======
-
-            # [CRITICAL DUCKING LOGIC]
-            # When combining two loud sources (instrumental + vocals), their waves compound and can exceed 0dBFS causing digital clipping.
-            # We lower the instrumental specifically to give the vocals presence.
->>>>>>> origin/feature/web-ui-and-parallelization-5540056130352860192
             audio = audio - 3
             vocals = vocals + 2
             audio = audio.overlay(vocals, position=0)

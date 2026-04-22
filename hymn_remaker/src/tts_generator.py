@@ -24,11 +24,7 @@ class TTSGenerator:
             self.client = ElevenLabs(api_key=self.api_key)
 
     @retry_request(max_retries=3, delay=2, backoff=2)
-<<<<<<< HEAD
     def generate_vocals(self, lyrics, output_path, voice_id="21m00Tcm4TlvDq8ikWAM", model="eleven_multilingual_v2", **kwargs):
-=======
-    def generate_vocals(self, lyrics, output_path, voice_id="21m00Tcm4TlvDq8ikWAM", model="eleven_multilingual_v2", status_callback=None):
->>>>>>> origin/feature/web-ui-and-parallelization-5540056130352860192
         """
         Generate a single synchronized vocal track from a list of lyrics and timestamps.
 
@@ -37,10 +33,6 @@ class TTSGenerator:
             output_path (str): Path to save the combined vocal track.
             voice_id (str): ID of the voice to use (default is "Rachel").
             model (str): ElevenLabs model to use.
-<<<<<<< HEAD
-=======
-            status_callback (func): Optional callback taking a string and a float to report progress.
->>>>>>> origin/feature/web-ui-and-parallelization-5540056130352860192
 
         Returns:
             str: Path to the generated audio file.
@@ -59,29 +51,13 @@ class TTSGenerator:
 
         combined_audio = AudioSegment.silent(duration=int(max_time_sec * 1000) + 5000) # add 5s padding
 
-<<<<<<< HEAD
-=======
-        total_lines = len(lyrics)
-
->>>>>>> origin/feature/web-ui-and-parallelization-5540056130352860192
         for i, line in enumerate(lyrics):
             text = line.get('text', '').strip()
             if not text:
                 continue
 
             start_ms = int(float(line.get('start', i * 5)) * 1000)
-<<<<<<< HEAD
             logger.info(f"Generating TTS for line {i+1}: '{text}' at {start_ms}ms")
-=======
-
-            if status_callback:
-                # We scale the progress bar from 70% to 80% dynamically as lines are generated
-                # to provide extremely granular visual feedback to the user.
-                progress_step = 70 + int(((i + 1) / total_lines) * 10)
-                status_callback(f"Synthesizing Vocal Line {i+1}/{total_lines}: '{text}'", progress_step)
-            else:
-                logger.info(f"Generating TTS for line {i+1}: '{text}' at {start_ms}ms")
->>>>>>> origin/feature/web-ui-and-parallelization-5540056130352860192
 
             # Generate the audio clip
             audio_generator = self.client.generate(

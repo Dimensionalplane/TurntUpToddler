@@ -46,7 +46,6 @@ class TestTTSGenerator(unittest.TestCase):
 
         self.assertEqual(result, "dummy_output.wav")
         self.assertEqual(mock_client_instance.generate.call_count, 2)
-<<<<<<< HEAD
 
         # Verify the specific parameters were passed down
         mock_client_instance.generate.assert_any_call(
@@ -55,8 +54,6 @@ class TestTTSGenerator(unittest.TestCase):
             model='eleven_multilingual_v2'
         )
 
-=======
->>>>>>> origin/feature/web-ui-and-parallelization-5540056130352860192
         mock_silent.export.assert_called_once_with("dummy_output.wav", format="wav")
 
 if __name__ == '__main__':
