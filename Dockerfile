@@ -1,13 +1,14 @@
 # --- Stage 1: Build the C++ Pybind11 Engine ---
-FROM python:3.12-slim AS builder
+FROM python:3.12-alpine AS builder
 
 WORKDIR /build
 
 # Install compilation dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libfluidsynth-dev \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache \
+    build-base \
+    fluidsynth-dev \
+    python3-dev \
+    py3-pip
 
 # Install Pybind11
 COPY hymn_remaker/requirements.txt .
@@ -19,16 +20,20 @@ COPY src/engine/ src/engine/
 RUN make extension
 
 # --- Stage 2: Runtime Environment ---
-FROM python:3.12-slim
+FROM python:3.12-alpine
 
 WORKDIR /app
 
 # Install runtime system dependencies
-RUN apt-get update && apt-get install -y \
+RUN apk add --no-cache \
     ffmpeg \
     fluidsynth \
     fluid-soundfont-gm \
-    && rm -rf /var/lib/apt/lists/*
+    libstdc++ \
+    openblas-dev \
+    lapack-dev \
+    build-base \
+    linux-headers
 
 # Copy python dependencies and install
 COPY hymn_remaker/requirements.txt .

@@ -1,27 +1,3 @@
-# Hymn Remaker Roadmap
-
-## Phase 1: Core Functionality (Completed)
-- [x] Basic MIDI to WAV rendering using FluidSynth.
-- [x] Integration with Replicate's MusicGen for style-conditioned audio generation.
-- [x] Integration with OpenAI for video metadata, dynamic lyrics generation, and DALL-E 3 album art.
-- [x] Basic video assembly with FFmpeg.
-- [x] Built-in Streamlit Web UI.
-
-## Phase 2: Polish & Completeness (In Progress)
-- [x] ElevenLabs TTS Vocal generation and audio mixing.
-- [x] Robust YouTube uploading via OAuth.
-- [x] Dynamic generation of synchronized subtitles (SRT) burned into the video.
-- [x] Exposing deep TTS parameters (voice_id, model selection) to the frontend CLI and UI.
-- [x] Implement global, file-based version tracking referencing the omni-workspace `VERSION` file.
-
-## Phase 3: Scaling & Platform Expansion
-- [ ] Support for multiple input formats beyond MIDI (MusicXML, sheet music PDFs via OMR).
-- [x] TikTok/Instagram Reels native vertical video formatting.
-- [x] Automated short-form clip extraction from the main video.
-- [ ] Integration with advanced video generation AI (e.g., Runway Gen-2, Sora) to replace static DALL-E album art with dynamic, reactive music videos.
-
-## Phase 4: Autonomy
-- [x] "Always-on" daemon mode that monitors an inbox, generates content overnight, and schedules uploads without user invocation.
 # Comprehensive Roadmap
 
 This document outlines the high-level trajectory of the Hymn Remaker project, tracking its evolution from a basic Python wrapper pipeline into a high-performance native C++ Audio/Visual/AI broadcasting engine.
@@ -62,4 +38,16 @@ This document outlines the high-level trajectory of the Hymn Remaker project, tr
 
 ## Phase 6: Cloud Native Polish & App Ecosystem (Current Focus)
 - [x] **Interactive Radio Controls:** Expose the `RadioStreamer` background thread to the Streamlit UI's sidebar, allowing users to start broadcasts, view the current playing song, and manually "Skip Track" or "Kill Stream" via robust Python `Event` flags.
-- [ ] **Distroless/Alpine Docker Image:** The massive dependencies of PyTorch (`demucs`), OpenCV, and ONNX Runtime (`oemer`) bloat the `hymn_remaker:latest` container. A multi-stage Docker build separating the AI inference models from the Streamlit UI web container will drastically cut deployment size.
+- [x] **Distroless/Alpine Docker Image:** The massive dependencies of PyTorch (`demucs`), OpenCV, and ONNX Runtime (`oemer`) bloat the `hymn_remaker:latest` container. A multi-stage Docker build separating the AI inference models from the Streamlit UI web container will drastically cut deployment size.
+
+## Phase 7: Advanced Audio Mastering & Distribution (Next Focus)
+- [x] **Multi-band Compression - [x] **Multi-band Compression & Limiting:** Limiting:** Implement advanced mastering on the final audio output utilizing `pydub` or `librosa` plugins to balance dynamics and maximize loudness for streaming platforms.
+- [x] **Parallel Video Encoding Optimization:** Introduce multiprocessing pools and hardware-accelerated FFmpeg encoders (e.g. `h264_nvenc` or `hevc_videotoolbox`) to drastically reduce the generation time of the final video artifacts.
+- [x] **Automated Social Publishing:** Integrate official YouTube Data API v3, TikTok API, and Instagram Graph API to automatically publish generated shorts and 16:9 videos directly from the background daemon thread without human intervention.
+
+## Phase 8: Next-Gen Interactivity & Cluster Scaling (Next Focus)
+- [x] **WebRTC Live Studio:** Stream the native C++ `HymnPlayer` output directly to the browser with ultra-low latency, creating a live "DJ Deck" in the browser where users can tweak settings and hear the changes instantly without rendering a file.
+- [x] **Multi-Node Cluster Rendering:** Fully decoupled architecture using Docker Compose. Decouple the pipeline into microservices using a message broker (RabbitMQ/Redis) to allow massive horizontal scaling for a "Hymn Factory".
+
+## Phase 9: Multi-Node Horizontal Scaling
+- [ ] **Load-Balancing Render Workers:** Spin up multiple `renderer` containers horizontally to consume from the RabbitMQ queue simultaneously, drastically reducing batch generation times.

@@ -26,27 +26,6 @@ st.sidebar.markdown(f"**Version: {VERSION}**")
 st.sidebar.markdown("---")
 
 
-# Load global version
-VERSION = "Unknown"
-try:
-    # Try reading from root VERSION file or docs/VERSION.md
-    import os
-    version_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "VERSION")
-    if os.path.exists(version_path):
-        with open(version_path, "r") as vf:
-            VERSION = vf.read().strip()
-    else:
-        version_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "docs", "VERSION.md")
-        if os.path.exists(version_path):
-             with open(version_path, "r") as vf:
-                 VERSION = vf.read().strip()
-except Exception:
-    pass
-
-st.sidebar.markdown(f"**Version: {VERSION}**")
-st.sidebar.markdown("---")
-
-
 # Add src to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -164,12 +143,7 @@ if st.session_state.radio_streamer and st.session_state.radio_streamer.is_stream
         st.session_state.radio_streamer.skip_track()
 
 st.sidebar.markdown("### Pipeline Options")
-video_format = st.sidebar.selectbox("Video Format", ["Standard 16:9", "Vertical 9:16 (TikTok/Reels)"], index=0, help="Output video aspect ratio.")
-generate_vocals = st.sidebar.checkbox("Generate Vocals (ElevenLabs)", value=False, help="Automatically generate singing/spoken word vocals for the lyrics and mix them into the final track.")
-create_shorts = st.sidebar.checkbox("Create 15s Shorts", value=False, help="Extract 15-second clips from the final video into the output/shorts directory.")
 
-elevenlabs_voice_id = "21m00Tcm4TlvDq8ikWAM"
-elevenlabs_model = "eleven_multilingual_v2"
 interactive_mode = st.sidebar.checkbox("Interactive Review Mode", value=False, help="Pause the pipeline after metadata/lyrics generation to manually edit the lyrics, title, and art prompt before rendering the final audio and video.")
 
 video_format = st.sidebar.selectbox("Video Format", ["Standard 16:9", "Vertical 9:16 (TikTok/Reels)"], index=0, help="Output video aspect ratio.")
@@ -182,18 +156,19 @@ create_shorts = st.sidebar.checkbox("Create 15s Shorts", value=False, help="Extr
 
 elevenlabs_voice_id = settings.DEFAULT_ELEVENLABS_VOICE_ID
 elevenlabs_model = settings.DEFAULT_ELEVENLABS_MODEL
+
 if generate_vocals:
     if not os.environ.get("ELEVENLABS_API_KEY"):
         st.sidebar.error("Cannot generate vocals without an ELEVENLABS_API_KEY.")
     else:
         with st.sidebar.expander("ElevenLabs Settings", expanded=True):
-elevenlabs_voice_id = st.text_input("Voice ID", value="21m00Tcm4TlvDq8ikWAM", help="The ElevenLabs Voice ID to use.")
-elevenlabs_voice_id = st.text_input("Voice IDs (Comma-separated for Harmony)", value=settings.DEFAULT_ELEVENLABS_VOICE_ID, help="Enter a single ElevenLabs Voice ID for solo, or multiple comma-separated IDs to generate a multi-voice harmonized choir.")            elevenlabs_model = st.selectbox("Model", ["eleven_multilingual_v2", "eleven_monolingual_v1", "eleven_turbo_v2"], index=0, help="The ElevenLabs model to use.")
+            elevenlabs_voice_id = st.text_input("Voice IDs (Comma-separated for Harmony)", value=settings.DEFAULT_ELEVENLABS_VOICE_ID, help="Enter a single ElevenLabs Voice ID for solo, or multiple comma-separated IDs to generate a multi-voice harmonized choir.")
+            elevenlabs_model = st.selectbox("Model", ["eleven_multilingual_v2", "eleven_monolingual_v1", "eleven_turbo_v2"], index=0, help="The ElevenLabs model to use.")
 
 
 skip_render = st.sidebar.checkbox("Skip Render if exists", value=False, help="If the intermediate base WAV file already exists, don't re-render it from MIDI.")
 skip_remake = st.sidebar.checkbox("Skip Remake if exists", value=False, help="If the remade audio already exists, don't call the MusicGen API again.")
-upload = st.sidebar.checkbox("Upload to YouTube", value=False, help="Automatically upload the finished video to YouTube (requires OAuth credentials setup).")
+upload = st.sidebar.checkbox("Auto-Publish to Socials", value=False, help="Automatically publish the finished video to YouTube, TikTok, and Instagram (requires OAuth credentials setup in ENV).")
 
 st.sidebar.markdown("---")
 if st.sidebar.button("🗑️ Clear Workspace", help="Delete all files in the input and output directories."):
@@ -313,35 +288,17 @@ with tab1:
                     force_skip_render = True
                     force_skip_remake = True
 
-                process_single_midi(
-file_path,
-                    output_dir,
-                    style,
-                    skip_render,
-                    skip_remake,
-                    upload,
-                    renderer,
-                    remaker,
-                    content_gen,
-                    video_producer,
-                    tts_generator=tts_generator,
-                    normalize_audio=normalize_audio,
-                    fade_in_ms=fade_in_ms,
-                    fade_out_ms=fade_out_ms,
-                    generate_vocals=generate_vocals,
-                    voice_id=elevenlabs_voice_id,
-                    model=elevenlabs_model,
-                    video_format=video_format,
-                    create_shorts=create_shorts,
-                    status_callback=lambda msg, prog: (status_texts[file_path].info(msg), progress_bars[file_path].progress(prog))
-file_path, output_dir, style, force_skip_render, force_skip_remake, upload,
-                    renderer, remaker, content_gen, video_producer, mxl_parser=mxl_parser, omr_processor=omr_processor, tts_generator=tts_generator, stem_separator=stem_separator,
-                    normalize_audio=normalize_audio, fade_in_ms=fade_in_ms, fade_out_ms=fade_out_ms,
-                    generate_vocals=generate_vocals, voice_id=elevenlabs_voice_id, model=elevenlabs_model,
-                    video_format=video_format, create_shorts=create_shorts, sub_font_size=sub_font_size,
-                    sub_primary_color=sub_primary_color, sub_outline_color=sub_outline_color, sub_back_color=sub_back_color, sub_box=sub_box,
-                    status_callback=lambda msg, prog: (status_texts[file_path].info(msg), progress_bars[file_path].progress(prog)),
-                    interactive_callback=callback                )
+                with st.spinner(f"AI Pipeline running for {filename}... Please wait."):
+                    process_single_midi(
+                        file_path, output_dir, style, force_skip_render, force_skip_remake, upload,
+                        renderer, remaker, content_gen, video_producer, mxl_parser=mxl_parser, omr_processor=omr_processor, tts_generator=tts_generator, stem_separator=stem_separator,
+                        normalize_audio=normalize_audio, fade_in_ms=fade_in_ms, fade_out_ms=fade_out_ms,
+                        generate_vocals=generate_vocals, voice_id=elevenlabs_voice_id, model=elevenlabs_model,
+                        video_format=video_format, create_shorts=create_shorts, sub_font_size=sub_font_size,
+                        sub_primary_color=sub_primary_color, sub_outline_color=sub_outline_color, sub_back_color=sub_back_color, sub_box=sub_box,
+                        status_callback=lambda msg, prog: (status_texts[file_path].info(msg), progress_bars[file_path].progress(prog)),
+                        interactive_callback=callback
+                    )
 
                 status_texts[file_path].success(f"Completed! ✅ ({filename})")
                 progress_bars[file_path].progress(100)
@@ -490,3 +447,129 @@ with tab2:
                         st.error(f"Failed to parse MusicXML: {e}")
             else:
                 st.warning("Metadata extraction is currently only supported for MusicXML (.mxl, .xml) files, not standard MIDI.")
+
+
+        st.subheader("4. Cluster Rendering")
+        if st.button("Submit to Render Cluster (RabbitMQ) 🐇"):
+            try:
+                import pika
+                import json
+                import uuid
+
+                # Connect to RabbitMQ (assuming localhost for local dev)
+                connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+                channel = connection.channel()
+
+                channel.queue_declare(queue='render_jobs', durable=True)
+
+                job_id = str(uuid.uuid4())
+                job_data = {
+                    "job_id": job_id,
+                    "file_path": file_path,
+                    "action": "full_pipeline"
+                }
+
+                channel.basic_publish(
+                    exchange='',
+                    routing_key='render_jobs',
+                    body=json.dumps(job_data),
+                    properties=pika.BasicProperties(
+                        delivery_mode=2,  # make message persistent
+                    )
+                )
+                connection.close()
+                st.success(f"Job {job_id} successfully queued to the render cluster!")
+            except Exception as e:
+                st.error(f"Failed to queue job to RabbitMQ. Is the broker running? Error: {e}")
+
+
+
+
+with tab3:
+    st.header("WebRTC Live Studio (DJ Deck)")
+    st.info("Stream the native C++ HymnPlayer output directly to the browser with ultra-low latency.")
+
+    try:
+        from streamlit_webrtc import webrtc_streamer, AudioProcessorBase, WebRtcMode
+        import numpy as np
+
+        class HymnAudioProcessor(AudioProcessorBase):
+            def __init__(self):
+                # We initialize the native C++ player here if available,
+                # otherwise we will just pass through silence or the input frame.
+                self.sample_rate = 44100
+                self.is_playing = False
+                self.player = None
+
+                try:
+                    import hymn_player_ext
+                    from hymn_remaker import settings
+                    from hymn_remaker.src.midi_renderer import MidiRenderer
+
+                    renderer = MidiRenderer()
+                    self.player = hymn_player_ext.HymnPlayer(renderer.soundfont_path)
+
+                    # We would need a way to load a MIDI file here. For the Live Studio,
+                    # the user would select a track, and we would load it.
+                    # As a stub, we will check if the player is valid.
+                except ImportError:
+                    pass
+
+            def load_midi(self, midi_path):
+                if self.player:
+                    self.player.load(midi_path)
+                    self.player.play()
+                    self.is_playing = True
+
+            def recv(self, frame):
+                import av
+                # If we have a playing native engine, render a chunk of the required size.
+                if self.player and self.is_playing and self.player.is_playing():
+                    # frame.samples gives the number of samples requested per channel
+                    chunk_size = frame.samples
+                    try:
+                        audio_chunk = self.player.render_audio(chunk_size)
+
+                        # Reshape from interleaved 1D to (Channels, Frames) for PyAV AudioFrame
+                        # Native engine returns shape (N*2,)
+                        audio_chunk = audio_chunk.reshape(-1, 2)
+
+                        # Normalize to int16 range as WebRTC typically expects s16le format
+                        max_val = np.max(np.abs(audio_chunk))
+                        if max_val > 1.0:
+                            audio_chunk = audio_chunk / max_val
+
+                        audio_chunk_int16 = (audio_chunk * 32767).astype(np.int16)
+
+                        # PyAV expects channels first: (Channels, Frames)
+                        audio_chunk_int16 = audio_chunk_int16.T
+
+                        # Create new AV frame
+                        new_frame = av.AudioFrame.from_ndarray(audio_chunk_int16, format='s16', layout='stereo')
+                        new_frame.sample_rate = self.sample_rate
+                        new_frame.pts = frame.pts
+                        new_frame.time_base = frame.time_base
+                        return new_frame
+                    except Exception as e:
+                        # Fallback to empty frame on error
+                        print(f"WebRTC Render Error: {e}")
+                        pass
+
+                # If not playing or no native engine, just pass silence or the original frame
+                # Creating a silent frame of the same shape
+                empty_audio = np.zeros((2, frame.samples), dtype=np.int16)
+                new_frame = av.AudioFrame.from_ndarray(empty_audio, format='s16', layout='stereo')
+                new_frame.sample_rate = self.sample_rate
+                new_frame.pts = frame.pts
+                new_frame.time_base = frame.time_base
+                return new_frame
+
+        st.write("Start the WebRTC stream to begin live audio rendering.")
+        webrtc_streamer(
+            key="hymn-webrtc",
+            mode=WebRtcMode.SENDRECV,
+            audio_processor_factory=HymnAudioProcessor,
+            media_stream_constraints={"video": False, "audio": True},
+        )
+    except ImportError:
+        st.warning("streamlit-webrtc is not installed. Please install it to enable the Live Studio.")

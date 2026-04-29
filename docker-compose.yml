@@ -1,33 +1,63 @@
 version: '3.8'
 
 services:
-  streamlit_ui:
-    build: .
-    container_name: hymn_remaker_ui
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: hymn_rabbitmq
     ports:
-      - "8501:8501"
-    environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - REPLICATE_API_TOKEN=${REPLICATE_API_TOKEN}
-      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
-    volumes:
-      - ./hymn_remaker/input:/app/hymn_remaker/input
-      - ./hymn_remaker/output:/app/hymn_remaker/output
-      - ./.cache:/app/.cache
-      - ./client_secrets.json:/app/client_secrets.json
-    restart: unless-stopped
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - hymnmania_net
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
 
-  daemon:
-    build: .
-    container_name: hymn_remaker_daemon
-    command: ["python", "-m", "hymn_remaker.main", "--daemon"]
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hymn_web
+    ports:
+      - "8080:8501" # Map host 8080 to Streamlit 8501
     environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - REPLICATE_API_TOKEN=${REPLICATE_API_TOKEN}
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
       - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+      - REPLICATE_API_TOKEN=${REPLICATE_API_TOKEN}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     volumes:
       - ./hymn_remaker/input:/app/hymn_remaker/input
       - ./hymn_remaker/output:/app/hymn_remaker/output
-      - ./.cache:/app/.cache
-      - ./client_secrets.json:/app/client_secrets.json
-    restart: unless-stopped
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - hymnmania_net
+
+  renderer:
+    build:
+      context: ./services/renderer
+      dockerfile: Dockerfile
+    container_name: hymn_renderer
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - WORKER_MODE=daemon
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+      - REPLICATE_API_TOKEN=${REPLICATE_API_TOKEN}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      - ./hymn_remaker/input:/app/hymn_remaker/input
+      - ./hymn_remaker/output:/app/hymn_remaker/output
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - hymnmania_net
+
+networks:
+  hymnmania_net:
+    driver: bridge
