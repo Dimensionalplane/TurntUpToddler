@@ -4,8 +4,6 @@ import uuid
 from elevenlabs.client import ElevenLabs
 from pydub import AudioSegment
 import numpy as np
-import librosa
-import soundfile as sf
 from .utils import retry_request
 
 logging.basicConfig(level=logging.INFO)
@@ -27,38 +25,17 @@ class TTSGenerator:
             self.client = ElevenLabs(api_key=self.api_key)
 
     def _pitch_shift(self, sound, semitones):
-        """
-        High-fidelity pitch shift using librosa.
-        """
-        samples = np.array(sound.get_array_of_samples(), dtype=np.float32)
-
-        if sound.sample_width == 2:
-            samples = samples / 32768.0
-        elif sound.sample_width == 4:
-            samples = samples / 2147483648.0
-        elif sound.sample_width == 1:
-            samples = (samples - 128.0) / 128.0
-
-        is_stereo = sound.channels == 2
-        if is_stereo:
-            samples = samples.reshape((-1, 2)).T
-
-        shifted_samples = librosa.effects.pitch_shift(y=samples, sr=sound.frame_rate, n_steps=semitones)
-
-        if is_stereo:
-            shifted_samples = shifted_samples.T.flatten()
-
-        shifted_samples = np.clip(shifted_samples, -1.0, 1.0)
-
-        if sound.sample_width == 2:
-            shifted_samples = (shifted_samples * 32767.0).astype(np.int16)
-        elif sound.sample_width == 4:
-            shifted_samples = (shifted_samples * 2147483647.0).astype(np.int32)
-        elif sound.sample_width == 1:
-            shifted_samples = (shifted_samples * 127.0 + 128.0).astype(np.uint8)
-
-        shifted_sound = sound._spawn(shifted_samples.tobytes())
+        # A simple pitch-shift hack in pydub involves changing the frame rate,
+        # then overriding it back to the original without resampling.
+        # This changes pitch AND speed. Since we time-stretch later in the pipeline anyway,
+        # or since it's just a harmony, a slight speed change is acceptable for a quick chorus effect.
+        # For a true pitch-shift without time-stretch, we'd need librosa/pyrubberband.
+        # Given we want to keep dependencies light, we'll use the frame rate trick.
+        new_sample_rate = int(sound.frame_rate * (2.0 ** (semitones / 12.0)))
+        shifted_sound = sound._spawn(sound.raw_data, overrides={'frame_rate': new_sample_rate})
+        shifted_sound = shifted_sound.set_frame_rate(sound.frame_rate)
         return shifted_sound
+
     @retry_request(max_retries=3, delay=2, backoff=2)
     def generate_vocals(self, lyrics, output_path, voice_id="21m00Tcm4TlvDq8ikWAM", model="eleven_multilingual_v2", **kwargs):
         """

@@ -93,15 +93,18 @@ def main():
                     remaker,
                     content_gen,
                     video_producer,
-                    mxl_parser,
+voice_id=args.voice_id,
+                    model=args.model,
+                    video_format=args.video_format,
+                    create_shorts=args.create_shorts
+mxl_parser,
                     omr_processor,
                     voice_id=args.voice_id,
                     model=args.model,
                     video_format=args.video_format,
                     create_shorts=args.create_shorts,
                     enable_visualizer=args.visualizer,
-                    visualizer_mode=args.visualizer_mode
-                ): midi_path for midi_path in midi_file_list
+                    visualizer_mode=args.visualizer_mode                ): midi_path for midi_path in midi_file_list
             }
 
             for future in concurrent.futures.as_completed(futures):
@@ -112,14 +115,22 @@ def main():
                     logger.error(f"Error processing {midi_path} through executor: {e}")
 
     # Process initial files
-    initial_midi_files = glob.glob(os.path.join(args.input_dir, "*.mid")) +                          glob.glob(os.path.join(args.input_dir, "*.mxl")) +                          glob.glob(os.path.join(args.input_dir, "*.xml"))
-    if initial_midi_files:
+initial_midi_files = glob.glob(os.path.join(args.input_dir, "*.mid"))
+initial_midi_files = glob.glob(os.path.join(args.input_dir, "*.mid")) +                          glob.glob(os.path.join(args.input_dir, "*.mxl")) +                          glob.glob(os.path.join(args.input_dir, "*.xml"))    if initial_midi_files:
         logger.info(f"Found {len(initial_midi_files)} initial MIDI files to process.")
         run_pipeline(initial_midi_files)
     else:
         logger.warning(f"No initial MIDI files found in {args.input_dir}")
 
-    # Radio Streaming Mode
+# Daemon Mode Logic
+    if args.daemon:
+        logger.info(f"Starting Daemon Mode. Monitoring {args.input_dir} for new MIDI files...")
+
+        class MidiHandler(FileSystemEventHandler):
+            def on_created(self, event):
+                if not event.is_directory and event.src_path.lower().endswith(".mid"):
+                    logger.info(f"Detected new MIDI file: {event.src_path}")
+# Radio Streaming Mode
     streamer = None
     if args.stream_rtmp:
         logger.info(f"Initializing Live DJ Radio Stream to {args.stream_rtmp}...")
@@ -134,15 +145,14 @@ def main():
             def on_created(self, event):
                 valid_exts = (".mid", ".mxl", ".xml", ".png", ".jpg", ".pdf")
                 if not event.is_directory and any(event.src_path.lower().endswith(ext) for ext in valid_exts):
-                    logger.info(f"Detected new Input file: {event.src_path}")
-                    # Give the file a moment to finish copying/downloading
+                    logger.info(f"Detected new Input file: {event.src_path}")                    # Give the file a moment to finish copying/downloading
                     time.sleep(1)
                     run_pipeline([event.src_path])
 
             def on_moved(self, event):
-                valid_exts = (".mid", ".mxl", ".xml", ".png", ".jpg", ".pdf")
-                if not event.is_directory and any(event.dest_path.lower().endswith(ext) for ext in valid_exts):
-                    logger.info(f"Detected moved MIDI file: {event.dest_path}")
+if not event.is_directory and event.dest_path.lower().endswith(".mid"):
+valid_exts = (".mid", ".mxl", ".xml", ".png", ".jpg", ".pdf")
+                if not event.is_directory and any(event.dest_path.lower().endswith(ext) for ext in valid_exts):                    logger.info(f"Detected moved MIDI file: {event.dest_path}")
                     time.sleep(1)
                     run_pipeline([event.dest_path])
 
@@ -155,21 +165,23 @@ def main():
         except KeyboardInterrupt:
             logger.info("Stopping Daemon Mode...")
             observer.stop()
-            if streamer:
-                streamer.stop()
-        observer.join()
+
+if streamer:
+                streamer.stop()        observer.join()
     else:
         if not initial_midi_files:
             sys.exit(0)
 
 def process_single_midi(
     midi_path, output_dir, style, skip_render, skip_remake, upload,
-    renderer, remaker, content_gen, video_producer, mxl_parser=None, omr_processor=None, tts_generator=None, stem_separator=None,
+renderer, remaker, content_gen, video_producer, tts_generator=None,
+    normalize_audio=True, fade_in_ms=0, fade_out_ms=0, generate_vocals=False,
+    voice_id="21m00Tcm4TlvDq8ikWAM", model="eleven_multilingual_v2", video_format="Standard 16:9", create_shorts=False, status_callback=None
+renderer, remaker, content_gen, video_producer, mxl_parser=None, omr_processor=None, tts_generator=None, stem_separator=None,
     normalize_audio=True, fade_in_ms=0, fade_out_ms=0, generate_vocals=False,
     voice_id=settings.DEFAULT_ELEVENLABS_VOICE_ID, model=settings.DEFAULT_ELEVENLABS_MODEL, video_format=settings.DEFAULT_VIDEO_FORMAT, create_shorts=False, status_callback=None,
     sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True, enable_visualizer=False, visualizer_mode="cline",
-    interactive_callback=None
-):
+    interactive_callback=None):
     base_audio_path = remake_audio_path = metadata_path = vocal_track_path = None
     try:
         filename = os.path.basename(midi_path)
@@ -367,8 +379,8 @@ def process_single_midi(
         # 4. Create Video (with subtitles if lyrics exist)
         update_status(f"Step 4/4: Creating Video with Subtitles ({filename})...", 85)
         video_path = os.path.join(output_dir, f"{name_no_ext}.mp4")
-        video_producer.create_video(remake_audio_path, art_url, video_path, lyrics=lyrics, video_format=video_format, sub_font_size=sub_font_size, sub_primary_color=sub_primary_color, sub_outline_color=sub_outline_color, sub_back_color=sub_back_color, sub_box=sub_box, enable_visualizer=enable_visualizer, visualizer_mode=visualizer_mode)
-
+video_producer.create_video(remake_audio_path, art_url, video_path, lyrics=lyrics, video_format=video_format)
+video_producer.create_video(remake_audio_path, art_url, video_path, lyrics=lyrics, video_format=video_format, sub_font_size=sub_font_size, sub_primary_color=sub_primary_color, sub_outline_color=sub_outline_color, sub_back_color=sub_back_color, sub_box=sub_box, enable_visualizer=enable_visualizer, visualizer_mode=visualizer_mode)
         # 4.5 Create Shorts
         if create_shorts:
             update_status(f"Extracting Short Clips ({filename})...", 90)
@@ -378,39 +390,15 @@ def process_single_midi(
             except Exception as e:
                 logger.error(f"Failed to generate shorts: {e}")
 
-        # 5. Automated Social Publishing
+        # 5. Upload to YouTube (Optional)
         if upload:
-            update_status(f"Publishing {filename} to Social Platforms...", 95)
-
-            # YouTube (Long form or Shorts depending on format)
+            update_status(f"Uploading {filename} to YouTube...", 95)
             def upload_progress_cb(pct):
-                scaled_pct = int(95 + (pct * 0.03))
+                scaled_pct = int(95 + (pct * 0.05))
                 update_status(f"Uploading {filename} to YouTube... {pct}%", scaled_pct)
 
-            try:
-                video_id = video_producer.upload_to_youtube(video_path, metadata, progress_callback=upload_progress_cb)
-                update_status(f"YouTube upload successful: https://youtu.be/{video_id}", 98)
-            except Exception as e:
-                logger.error(f"YouTube upload failed: {e}")
-
-            # TikTok & Instagram Reels (Only upload if format is vertical OR if shorts were generated)
-            target_short_path = None
-            if video_format == "Vertical 9:16 (TikTok/Reels)":
-                target_short_path = video_path
-            elif create_shorts:
-                # Try to grab the first generated short
-                shorts_dir = os.path.join(output_dir, "shorts")
-                if os.path.exists(shorts_dir):
-                    import glob
-                    shorts = glob.glob(os.path.join(shorts_dir, f"{name_no_ext}_short_*.mp4"))
-                    if shorts:
-                        target_short_path = shorts[0]
-
-            if target_short_path:
-                video_producer.upload_to_tiktok(target_short_path, metadata)
-                video_producer.upload_to_instagram(target_short_path, metadata)
-
-            update_status(f"Social Publishing complete for {filename}", 100)
+            video_id = video_producer.upload_to_youtube(video_path, metadata, progress_callback=upload_progress_cb)
+            update_status(f"Video uploaded: https://youtu.be/{video_id}", 100)
         else:
             update_status(f"Finished processing {filename}", 100)
 

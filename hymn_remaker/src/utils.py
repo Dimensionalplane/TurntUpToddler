@@ -149,22 +149,12 @@ def process_audio(input_path, output_path, normalize=True, fade_in_ms=0, fade_ou
                 vocals = vocals + 2
                 audio = audio.overlay(vocals, position=0)
 
-
         if normalize:
-            logger.info("Applying multi-band compression/limiting and normalization...")
+            logger.info("Normalizing audio volume...")
+            # Pydub normalization: brings max amplitude to 0dBFS
+            # We can use pydub.effects.normalize
             from pydub.effects import normalize as pydub_normalize
-            from pydub.effects import compress_dynamic_range
-
-            # Apply a light compressor to glue the mix together
-            # Threshold: -15dBFS, Ratio: 2.0, Attack: 5ms, Release: 50ms
-            audio = compress_dynamic_range(audio, threshold=-15.0, ratio=2.0, attack=5.0, release=50.0)
-
-            # Apply a heavier compressor/limiter near the top to catch peaks and maximize loudness
-            audio = compress_dynamic_range(audio, threshold=-5.0, ratio=4.0, attack=2.0, release=20.0)
-
-            # Final normalization to ensure peak amplitude is right at 0dBFS
             audio = pydub_normalize(audio)
-
 
         if fade_in_ms > 0:
             logger.info(f"Applying fade-in of {fade_in_ms}ms...")

@@ -77,13 +77,13 @@ class VideoProducer:
             lyrics (list): Optional list of synced lyrics dicts.
             video_format (str): The aspect ratio of the output video.
         """
-        logger.info(f"Creating video from {audio_path} and {image_url}...")
+        logger.info(f"Creating video from {audio_path}...")
 
-        # 1. Download the image to a temporary file, or copy if local
         import uuid
         unique_id = uuid.uuid4().hex
         temp_image_path = f"temp_art_{unique_id}.png"
         temp_srt_path = f"{output_path}.srt"
+        # 1. Download the image to a temporary file, or copy if local
         try:
             if image_url.startswith('http://') or image_url.startswith('https://'):
                 response = requests.get(image_url)
@@ -117,13 +117,15 @@ class VideoProducer:
                 # Determine base filters depending on format
                 base_vf = ""
                 if video_format == "Vertical 9:16 (TikTok/Reels)":
-                    # Scale the image to fit horizontally, pad vertically
-                    base_vf = "[0:v]scale=1080:-1,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black[v_base]"
+# Scale the image to fit horizontally, pad vertically, and blur the background
+                    base_vf = "[0:v]scale=1080:-1,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black[v]"
                 else:
                     # Standard 16:9, just scale/pad to 1920x1080
-                    base_vf = "[0:v]scale=-1:1080,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:black[v_base]"
+                    base_vf = "[0:v]scale=-1:1080,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:black[v]"
 
+                # Build filter complex
                 filters = [base_vf]
+
 
                 # Add Audio-Reactive Visualizer
                 if enable_visualizer:
@@ -139,12 +141,10 @@ class VideoProducer:
                 else:
                     # Just pass the base video through
                     filters.append("[v_base]copy[v]")
-
                 if subtitles_enabled:
                     safe_srt_path = temp_srt_path.replace('\\', '/').replace(':', '\\:')
                     # Add subtitle filter on top of the mapped [v] stream
-
-                    # Convert hex colors (#RRGGBB) to ASS format (&HBBGGRR&)
+# Convert hex colors (#RRGGBB) to ASS format (&HBBGGRR&)
                     def to_ass_color(hex_str):
                         h = hex_str.lstrip('#')
                         if len(h) == 6:
@@ -158,7 +158,6 @@ class VideoProducer:
 
                     force_style = f"FontSize={sub_font_size},PrimaryColour={p_color},OutlineColour={o_color},BackColour={b_color},BorderStyle={border_style}"
                     filters.append(f"[v]subtitles='{safe_srt_path}':force_style='{force_style}'[v_sub]")
-
                     ffmpeg_cmd.extend(["-filter_complex", ";".join(filters), "-map", "[v_sub]", "-map", "1:a"])
                 else:
                     ffmpeg_cmd.extend(["-filter_complex", ";".join(filters), "-map", "[v]", "-map", "1:a"])
@@ -378,48 +377,3 @@ if __name__ == "__main__":
 
     else:
         print(f"Test audio {test_audio} not found. Run step 2 first.")
-
-    def upload_to_tiktok(self, video_path, metadata):
-        """
-        Upload a vertical short video to TikTok using the TikTok Content Posting API.
-        Requires TIKTOK_ACCESS_TOKEN.
-        """
-        token = os.environ.get("TIKTOK_ACCESS_TOKEN")
-        if not token:
-            logger.warning("TIKTOK_ACCESS_TOKEN not set, skipping TikTok upload.")
-            return False
-
-        logger.info(f"Uploading {video_path} to TikTok...")
-        # Note: Full direct video upload requires a complex multi-step upload via TikTok API
-        # This is a representative stub for the final curl/post calls.
-        try:
-            # 1. Init upload
-            # 2. Upload video chunks
-            # 3. Commit upload
-            logger.info(f"Successfully published to TikTok! Title: {metadata.get('title')}")
-            return True
-        except Exception as e:
-            logger.error(f"Failed to publish to TikTok: {e}")
-            return False
-
-    def upload_to_instagram(self, video_path, metadata):
-        """
-        Upload a vertical short video to Instagram Reels via Instagram Graph API.
-        Requires IG_ACCESS_TOKEN and IG_USER_ID.
-        """
-        token = os.environ.get("IG_ACCESS_TOKEN")
-        user_id = os.environ.get("IG_USER_ID")
-
-        if not token or not user_id:
-            logger.warning("IG_ACCESS_TOKEN or IG_USER_ID not set, skipping Instagram Reels upload.")
-            return False
-
-        logger.info(f"Uploading {video_path} to Instagram Reels...")
-        # Note: Requires video to be hosted on a public URL first for the Graph API,
-        # or pushed via a multipart upload session.
-        try:
-            logger.info(f"Successfully published to Instagram! Title: {metadata.get('title')}")
-            return True
-        except Exception as e:
-            logger.error(f"Failed to publish to Instagram: {e}")
-            return False

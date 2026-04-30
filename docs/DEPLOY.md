@@ -1,3 +1,23 @@
+# Deployment Guide
+
+The standard deployment method is via Docker.
+
+## Prerequisites
+- Docker & Docker Compose
+- `.env` file populated with `OPENAI_API_KEY`, `REPLICATE_API_TOKEN`, `ELEVENLABS_API_KEY`, and `GOOGLE_CLIENT_SECRETS_FILE`.
+
+## Build and Run
+```bash
+cd hymn_remaker
+docker compose build
+docker compose up -d
+```
+
+## Updating (via version control)
+Update your local repository, then run:
+```bash
+docker compose up -d --build
+```
 # Deployment Instructions
 
 This document provides comprehensive instructions for deploying the Hymn Remaker pipeline across various environments.
@@ -78,9 +98,3 @@ For isolated, consistent deployments, a Docker setup is provided.
    ```bash
    docker-compose up -d
    ```
-
-## Cluster Deployment (Microservices)
-As of version 1.25.0, the pipeline is fully decoupled into microservices using Docker Compose.
-1. Copy `.env.example` to `.env` and fill in your API keys.
-2. Run `docker-compose up --build -d`.
-This will spin up the `web` container (Streamlit UI on port 8080), the `rabbitmq` broker (ports 5672 and 15672), and the heavy `renderer` daemon.
