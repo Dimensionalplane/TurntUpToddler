@@ -66,8 +66,8 @@ class VideoProducer:
             logger.error(f"Failed to create SRT: {e}")
             return False
 
-def create_video(self, audio_path, image_url, output_path, lyrics=None, video_format="Standard 16:9"):
-def create_video(self, audio_path, image_url, output_path, lyrics=None, video_format="Standard 16:9", sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True, enable_visualizer=False, visualizer_mode="cline"):        """
+    def create_video(self, audio_path, image_url, output_path, lyrics=None, video_format="Standard 16:9", sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True, enable_visualizer=False, visualizer_mode="cline"):
+        """
         Create an MP4 video from an audio file, image URL, and optional lyrics using ffmpeg.
 
         Args:
@@ -79,15 +79,11 @@ def create_video(self, audio_path, image_url, output_path, lyrics=None, video_fo
         """
         logger.info(f"Creating video from {audio_path}...")
 
-import uuid
-        unique_id = uuid.uuid4().hex
-        temp_image_path = f"temp_art_{unique_id}.png"
-        temp_srt_path = f"{output_path}.srt"
-        # 1. Download the image to a temporary file, or copy if local
         import uuid
         unique_id = uuid.uuid4().hex
         temp_image_path = f"temp_art_{unique_id}.png"
         temp_srt_path = f"{output_path}.srt"
+        # 1. Download the image to a temporary file, or copy if local
         try:
             if image_url.startswith('http://') or image_url.startswith('https://'):
                 response = requests.get(image_url)
@@ -128,15 +124,8 @@ import uuid
                     base_vf = "[0:v]scale=-1:1080,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:black[v]"
 
                 # Build filter complex
-                filters = []
-                filters.append(base_vf)
-# Scale the image to fit horizontally, pad vertically
-                    base_vf = "[0:v]scale=1080:-1,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black[v_base]"
-                else:
-                    # Standard 16:9, just scale/pad to 1920x1080
-                    base_vf = "[0:v]scale=-1:1080,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:black[v_base]"
-
                 filters = [base_vf]
+
 
                 # Add Audio-Reactive Visualizer
                 if enable_visualizer:
@@ -155,7 +144,6 @@ import uuid
                 if subtitles_enabled:
                     safe_srt_path = temp_srt_path.replace('\\', '/').replace(':', '\\:')
                     # Add subtitle filter on top of the mapped [v] stream
-filters.append(f"[v]subtitles='{safe_srt_path}'[v_sub]")
 # Convert hex colors (#RRGGBB) to ASS format (&HBBGGRR&)
                     def to_ass_color(hex_str):
                         h = hex_str.lstrip('#')
@@ -169,7 +157,8 @@ filters.append(f"[v]subtitles='{safe_srt_path}'[v_sub]")
                     border_style = "3" if sub_box else "1" # 3 = Opaque box, 1 = Outline
 
                     force_style = f"FontSize={sub_font_size},PrimaryColour={p_color},OutlineColour={o_color},BackColour={b_color},BorderStyle={border_style}"
-                    filters.append(f"[v]subtitles='{safe_srt_path}':force_style='{force_style}'[v_sub]")                    ffmpeg_cmd.extend(["-filter_complex", ";".join(filters), "-map", "[v_sub]", "-map", "1:a"])
+                    filters.append(f"[v]subtitles='{safe_srt_path}':force_style='{force_style}'[v_sub]")
+                    ffmpeg_cmd.extend(["-filter_complex", ";".join(filters), "-map", "[v_sub]", "-map", "1:a"])
                 else:
                     ffmpeg_cmd.extend(["-filter_complex", ";".join(filters), "-map", "[v]", "-map", "1:a"])
 

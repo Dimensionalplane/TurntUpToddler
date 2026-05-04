@@ -1,3 +1,9 @@
+import redis
+from streamlit_autorefresh import st_autorefresh
+import time
+import json
+import uuid
+import pika
 import streamlit as st
 import os
 import sys
@@ -490,3 +496,63 @@ with tab2:
                         st.error(f"Failed to parse MusicXML: {e}")
             else:
                 st.warning("Metadata extraction is currently only supported for MusicXML (.mxl, .xml) files, not standard MIDI.")
+
+st.subheader("4. Cluster Rendering")
+if "job_id" not in st.session_state:
+    st.session_state.job_id = None
+
+if st.button("Submit to Render Cluster (RabbitMQ) 🐇"):
+    try:
+        # Connect to Redis
+        r = redis.Redis(host='localhost', port=6379, db=0)
+
+        # Connect to RabbitMQ
+        connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+        channel = connection.channel()
+        channel.queue_declare(queue='render_jobs', durable=True)
+
+        job_id = str(uuid.uuid4())
+
+        # Initialize status in Redis
+        r.set(f"job:{job_id}:status", "queued")
+        st.session_state.job_id = job_id
+
+        job_data = {
+            "job_id": job_id,
+            "prompt": "stub prompt",
+            "target_bpm": 120,
+            "model_id": "stub_model"
+        }
+
+        channel.basic_publish(
+            exchange='',
+            routing_key='render_jobs',
+            body=json.dumps(job_data),
+            properties=pika.BasicProperties(
+                delivery_mode=2,
+            )
+        )
+        connection.close()
+        st.success(f"Job {job_id} successfully queued to the render cluster!")
+
+    except Exception as e:
+        st.error(f"Failed to submit job: {e}")
+
+# Polling Logic
+if st.session_state.job_id:
+    try:
+        r = redis.Redis(host='localhost', port=6379, db=0)
+        status = r.get(f"job:{st.session_state.job_id}:status")
+
+        if status:
+            status = status.decode("utf-8")
+            st.info(f"Current Job Status: {status}")
+
+            if status not in ["completed", "failed"]:
+                # Auto-refresh every 2 seconds if still processing
+                st_autorefresh(interval=2000, key="job_poll")
+            elif status == "completed":
+                st.success("Video Render Complete!")
+                st.balloons()
+    except Exception as e:
+        st.warning("Could not connect to Redis to check job status.")

@@ -13,3 +13,24 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - REPLICATE_API_TOKEN=${REPLICATE_API_TOKEN}
       - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  renderer:
+    build: .
+    command: python services/renderer/worker.py
+    volumes:
+      - ./input:/app/input
+      - ./output:/app/output
+    depends_on:
+      - rabbitmq
+      - redis
