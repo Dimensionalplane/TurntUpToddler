@@ -5,6 +5,13 @@ import streamlit as st
 import os
 import sys
 import concurrent.futures
+from dotenv import load_dotenv
+
+# Load .env file from project root
+_env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env')
+if os.path.exists(_env_path):
+    load_dotenv(_env_path)
+
 from hymn_remaker import settings
 
 # Load global version

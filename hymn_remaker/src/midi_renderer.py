@@ -6,20 +6,24 @@ import numpy as np
 import mido
 import math
 import time
+
 from hymn_remaker import settings
 
 # Ensure the root directory is in sys.path so we can import hymn_player_ext
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+
 try:
     import hymn_player_ext
     NATIVE_ENGINE_AVAILABLE = True
 except ImportError as e:
     logging.warning(f"Native HymnPlayer engine not found. Falling back to midi2audio. ({e})")
     NATIVE_ENGINE_AVAILABLE = False
-    from midi2audio import FluidSynth
+
+from midi2audio import FluidSynth
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 class MidiRenderer:
     def __init__(self, soundfont_path=None):
@@ -28,18 +32,27 @@ class MidiRenderer:
 
         Args:
             soundfont_path (str): Path to the .sf2 soundfont file.
-                                  Defaults to '/usr/share/sounds/sf2/FluidR3_GM.sf2' if not provided.
+                Defaults to searching SOUNDFONT_PATH env var, then
+                settings.DEFAULT_SOUNDFONT_PATHS, then bundled soundfonts.
         """
         if soundfont_path:
             self.soundfont_path = soundfont_path
         else:
-            # Try to find a default soundfont
-            for path in settings.DEFAULT_SOUNDFONT_PATHS:
-                if os.path.exists(path):
-                    self.soundfont_path = path
-                    break
+            # Check SOUNDFONT_PATH env var first
+            env_path = os.environ.get('SOUNDFONT_PATH')
+            if env_path and os.path.exists(env_path):
+                self.soundfont_path = env_path
             else:
-                raise FileNotFoundError("No default soundfont found. Please provide a path to a valid .sf2 file.")
+                # Try to find a default soundfont from settings
+                for path in settings.DEFAULT_SOUNDFONT_PATHS:
+                    if os.path.exists(path):
+                        self.soundfont_path = path
+                        break
+                else:
+                    raise FileNotFoundError(
+                        "No default soundfont found. Please provide a path to a valid .sf2 file. "
+                        "Download one to hymn_remaker/soundfonts/ or set SOUNDFONT_PATH env var."
+                    )
 
         logger.info(f"Using SoundFont: {self.soundfont_path}")
         if not NATIVE_ENGINE_AVAILABLE:
@@ -63,7 +76,7 @@ class MidiRenderer:
                 for msg in track:
                     if msg.type == 'set_tempo':
                         return mido.tempo2bpm(msg.tempo)
-            return 120.0 # Default if no tempo found
+            return 120.0  # Default if no tempo found
         except Exception as e:
             logger.warning(f"Failed to extract BPM from MIDI: {e}. Defaulting to 120 BPM.")
             return 120.0
@@ -94,14 +107,13 @@ class MidiRenderer:
 
                 # Calculate duration to know how many frames to render
                 duration_sec = self._get_midi_duration(midi_path)
-
                 sample_rate = settings.SAMPLE_RATE
                 total_frames = math.ceil((duration_sec + settings.REVERB_TAIL_SECONDS) * sample_rate)
 
                 player.play()
 
                 # Render in chunks
-                chunk_size = settings.SAMPLE_RATE # 1 second chunks
+                chunk_size = settings.SAMPLE_RATE  # 1 second chunks
                 frames_rendered = 0
                 all_audio = []
 
@@ -131,6 +143,7 @@ class MidiRenderer:
 
                 sf.write(output_path, final_audio, sample_rate)
                 logger.info("Native rendering complete.")
+
             else:
                 logger.info("Using fallback midi2audio for rendering.")
                 self.fs.midi_to_audio(midi_path, output_path)
@@ -139,6 +152,7 @@ class MidiRenderer:
         except Exception as e:
             logger.error(f"Failed to render MIDI: {e}")
             raise
+
 
 if __name__ == "__main__":
     # Test execution
