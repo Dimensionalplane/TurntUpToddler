@@ -4,16 +4,16 @@ from fastapi import FastAPI, File, UploadFile, Form, BackgroundTasks, HTTPExcept
 from fastapi.responses import JSONResponse
 import logging
 
-# Add the project root to sys.path so we can import from src
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-from main import process_single_midi
-from src.db import get_history, init_db
-from src.midi_renderer import MidiRenderer
-from src.remaker import MusicRemaker
-from src.content_generator import ContentGenerator
-from src.video_uploader import VideoProducer
-from src.tts_generator import TTSGenerator
+from hymn_remaker.main import process_single_midi
+from hymn_remaker.src.db import get_history, init_db
+from hymn_remaker.src.midi_renderer import MidiRenderer
+from hymn_remaker.src.remaker import MusicRemaker
+from hymn_remaker.src.content_generator import ContentGenerator
+from hymn_remaker.src.video_uploader import VideoProducer
+from hymn_remaker.src.tts_generator import TTSGenerator
+from hymn_remaker.src.musicxml_parser import MusicXMLParser
+from hymn_remaker.src.omr_processor import OMRProcessor
+from hymn_remaker.src.stem_separator import StemSeparator
 
 logger = logging.getLogger("HymnRemakerAPI")
 logging.basicConfig(level=logging.INFO)
@@ -37,26 +37,26 @@ def get_modules():
                 "remaker": MusicRemaker(),
                 "content_gen": ContentGenerator(),
                 "video_producer": VideoProducer(),
-                "tts_generator": TTSGenerator()
+                "tts_generator": TTSGenerator(),
+                "mxl_parser": MusicXMLParser(),
+                "omr_processor": OMRProcessor(),
+                "stem_separator": StemSeparator(),
             }
         except Exception as e:
             logger.error(f"Failed to initialize modules: {e}")
             raise HTTPException(status_code=500, detail="Failed to initialize AI modules. Check API keys.")
     return _modules
 
+
 @app.post("/api/v1/generate")
 async def generate_hymn(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     style: str = Form("Deep House, high quality, electronic"),
-    use_dynamic_prompt: bool = Form(True),
     generate_vocals: bool = Form(False),
-    use_visualizer: bool = Form(False),
     normalize_audio: bool = Form(True),
     fade_in_ms: int = Form(0),
     fade_out_ms: int = Form(0),
-    s3_bucket: str = Form(None),
-    webhook_url: str = Form(None),
 ):
     """
     Upload a MIDI file and asynchronously generate the hymn remake.
@@ -87,15 +87,14 @@ async def generate_hymn(
         remaker=mods["remaker"],
         content_gen=mods["content_gen"],
         video_producer=mods["video_producer"],
+        mxl_parser=mods["mxl_parser"],
+        omr_processor=mods["omr_processor"],
         tts_generator=mods["tts_generator"],
+        stem_separator=mods["stem_separator"],
         normalize_audio=normalize_audio,
         fade_in_ms=fade_in_ms,
         fade_out_ms=fade_out_ms,
         generate_vocals=generate_vocals,
-        use_visualizer=use_visualizer,
-        use_dynamic_prompt=use_dynamic_prompt,
-        s3_bucket=s3_bucket,
-        webhook_url=webhook_url,
         status_callback=lambda msg, prog: logger.info(f"Background Progress [{prog}%]: {msg}")
     )
 
@@ -104,17 +103,17 @@ async def generate_hymn(
         "message": f"File {file.filename} is being processed in the background.",
         "configuration": {
             "style": style,
-            "use_dynamic_prompt": use_dynamic_prompt,
             "generate_vocals": generate_vocals,
-            "use_visualizer": use_visualizer
         }
     })
+
 
 @app.get("/api/v1/history")
 def get_generation_history():
     """Retrieve all successfully generated hymns from the SQLite database."""
     history = get_history()
     return {"status": "success", "data": history}
+
 
 @app.get("/api/v1/system")
 def get_system_status():
@@ -139,7 +138,8 @@ def get_system_status():
         with open(req_path, "r") as f:
             reqs = f.read().splitlines()
         for req in reqs:
-            if not req.strip() or req.startswith('#'): continue
+            if not req.strip() or req.startswith('#'):
+                continue
             pkg_name = req.split('==')[0].split('>=')[0].split('<')[0].strip()
             try:
                 status["python_packages"][pkg_name] = importlib.metadata.version(pkg_name)
@@ -147,6 +147,7 @@ def get_system_status():
                 status["python_packages"][pkg_name] = "Not Installed"
 
     return {"status": "success", "data": status}
+
 
 if __name__ == "__main__":
     import uvicorn

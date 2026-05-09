@@ -16,5 +16,6 @@ mido
 music21
 pybind11
 oemer
-demucs==4.0.1redis==5.0.3
+demucs==4.0.1
+redis==5.0.3
 streamlit-autorefresh==1.0.1
