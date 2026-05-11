@@ -34,6 +34,7 @@ st.sidebar.markdown("---")
 
 from hymn_remaker.src.midi_renderer import MidiRenderer
 from hymn_remaker.src.remaker import MusicRemaker
+from hymn_remaker.src.suno_remaker import SunoRemaker
 from hymn_remaker.src.content_generator import ContentGenerator
 from hymn_remaker.src.video_uploader import VideoProducer
 from hymn_remaker.src.tts_generator import TTSGenerator
@@ -53,21 +54,22 @@ def load_modules():
     try:
         renderer = MidiRenderer()
         remaker = MusicRemaker()
+        suno_remaker = SunoRemaker()
         content_gen = ContentGenerator()
         video_producer = VideoProducer()
         tts_generator = TTSGenerator()
         mxl_parser = MusicXMLParser()
         omr_processor = OMRProcessor()
         stem_separator = StemSeparator()
-        return renderer, remaker, content_gen, video_producer, tts_generator, mxl_parser, omr_processor, stem_separator
+        return renderer, remaker, suno_remaker, content_gen, video_producer, tts_generator, mxl_parser, omr_processor, stem_separator
     except Exception as e:
         import traceback
         st.error(f"Failed to initialize modules: {e}")
         st.code(traceback.format_exc())
-        return None, None, None, None, None, None, None, None
+        return None, None, None, None, None, None, None, None, None
 
 
-renderer, remaker, content_gen, video_producer, tts_generator, mxl_parser, omr_processor, stem_separator = load_modules()
+renderer, remaker, suno_remaker, content_gen, video_producer, tts_generator, mxl_parser, omr_processor, stem_separator = load_modules()
 
 st.sidebar.header("Environment & API")
 missing_keys = []
@@ -164,6 +166,10 @@ if generate_vocals:
 
 skip_render = st.sidebar.checkbox("Skip Render if exists", value=False, help="If the intermediate base WAV file already exists, don't re-render it from MIDI.")
 skip_remake = st.sidebar.checkbox("Skip Remake if exists", value=False, help="If the remade audio already exists, don't call the MusicGen API again.")
+remake_priority = st.sidebar.selectbox("AI Remake Service", ["suno", "replicate"], index=0, help="Suno AI uses audio influence for better results. Replicate MusicGen is the fallback.")
+suno_session = st.sidebar.text_input("Suno Session Token", value=os.environ.get("SUNO_SESSION_TOKEN", ""), type="password", help="Paste your Suno session token from browser cookies.")
+if suno_session:
+    suno_remaker = SunoRemaker(session_token=suno_session)
 upload = st.sidebar.checkbox("Upload to YouTube", value=False, help="Automatically upload the finished video to YouTube (requires OAuth credentials setup).")
 
 interactive_mode = st.sidebar.checkbox("Interactive Review Mode", value=False, help="Pause the pipeline after metadata/lyrics generation to manually edit the lyrics, title, and art prompt before rendering the final audio and video.")
@@ -285,6 +291,8 @@ with tab1:
                         upload,
                         renderer,
                         remaker,
+                        suno_remaker,
+                        remake_priority,
                         content_gen,
                         video_producer,
                         mxl_parser=mxl_parser,

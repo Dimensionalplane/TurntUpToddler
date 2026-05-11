@@ -63,7 +63,7 @@ def main():
     try:
         renderer = MidiRenderer(soundfont_path=args.soundfont)
         remaker = MusicRemaker()
-    suno_remaker = SunoRemaker(session_token=args.suno_session)
+        suno_remaker = SunoRemaker(session_token=args.suno_session)
         content_gen = ContentGenerator()
         video_producer = VideoProducer()
         mxl_parser = MusicXMLParser()
@@ -91,6 +91,8 @@ def main():
                     args.upload,
                     renderer,
                     remaker,
+                    suno_remaker,
+                    args.remake_priority,
                     content_gen,
                     video_producer,
                     mxl_parser=mxl_parser,
