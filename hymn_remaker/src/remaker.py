@@ -41,12 +41,12 @@ class MusicRemaker:
         logger.info(f"Remaking {audio_path} with prompt: '{prompt}'...")
 
         # [MODEL HASH ABSTRACTION]
-        # Using meta/musicgen-melody which is good for conditioning on input melody.
+        # Using meta/musicgen which supports melody conditioning via input_audio.
         # We allow users to override the model hash via REPLICATE_MODEL in case Meta releases a newer version
         # without requiring a code update. Fallback to the known stable musicgen-melody hash.
         model = os.environ.get(
             "REPLICATE_MODEL",
-            "meta/musicgen:671ac904629c9798ddc38d7747750e2f54e63d179aa2e84786d1a2d6cc7809a6"
+            "meta/musicgen:671ac645ce5e552cc63a54a2bbff63fcf798043055d2dac5fc9e36a837eedcfb"
         )
 
         # Replicate expects a file object for input

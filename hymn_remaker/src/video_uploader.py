@@ -12,6 +12,7 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 
 logging.basicConfig(level=logging.INFO)
+from hymn_remaker import settings
 logger = logging.getLogger(__name__)
 
 # Scopes required for YouTube Data API
@@ -103,7 +104,7 @@ class VideoProducer:
 
             # 3. Use ffmpeg to combine image and audio (and burn subtitles if available)
             cmd = [
-                "ffmpeg",
+                settings.FFMPEG_BIN,
                 "-y", # Overwrite output
                 "-loop", "1",
                 "-i", temp_image_path,
@@ -118,10 +119,10 @@ class VideoProducer:
                 base_vf = ""
                 if video_format == "Vertical 9:16 (TikTok/Reels)":
 # Scale the image to fit horizontally, pad vertically, and blur the background
-                    base_vf = "[0:v]scale=1080:-1,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black[v]"
+                    base_vf = "[0:v]scale=1080:-1,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black[v_base]"
                 else:
                     # Standard 16:9, just scale/pad to 1920x1080
-                    base_vf = "[0:v]scale=-1:1080,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:black[v]"
+                    base_vf = "[0:v]scale=-1:1080,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:black[v_base]"
 
                 # Build filter complex
                 filters = [base_vf]
@@ -140,7 +141,7 @@ class VideoProducer:
                     filters.append(vis_filter)
                 else:
                     # Just pass the base video through
-                    filters.append("[v_base]copy[v]")
+                    filters.append("[v_base]null[v]")  # pass through without copy
                 if subtitles_enabled:
                     safe_srt_path = temp_srt_path.replace('\\', '/').replace(':', '\\:')
                     # Add subtitle filter on top of the mapped [v] stream
@@ -157,15 +158,14 @@ class VideoProducer:
                     border_style = "3" if sub_box else "1" # 3 = Opaque box, 1 = Outline
 
                     force_style = f"FontSize={sub_font_size},PrimaryColour={p_color},OutlineColour={o_color},BackColour={b_color},BorderStyle={border_style}"
-                    filters.append(f"[v]subtitles='{safe_srt_path}':force_style='{force_style}'[v_sub]")
+                    filters.append(f"[v]subtitles={safe_srt_path}:force_style='{force_style}'[v_sub]")
                     ffmpeg_cmd.extend(["-filter_complex", ";".join(filters), "-map", "[v_sub]", "-map", "1:a"])
                 else:
                     ffmpeg_cmd.extend(["-filter_complex", ";".join(filters), "-map", "[v]", "-map", "1:a"])
 
                 ffmpeg_cmd.extend([
                     "-c:v", "libx264",
-                    "-tune", "stillimage",
-                    "-c:a", "aac",
+                                        "-c:a", "aac",
                     "-b:a", "192k",
                     "-pix_fmt", "yuv420p",
                     "-shortest",
@@ -263,7 +263,7 @@ class VideoProducer:
         output_pattern = os.path.join(shorts_dir, f"{name_no_ext}_short_%03d.mp4")
 
         cmd = [
-            "ffmpeg",
+            settings.FFMPEG_BIN,
             "-y",
             "-i", video_path,
             "-f", "segment",

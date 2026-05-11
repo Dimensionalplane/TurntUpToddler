@@ -1,6 +1,7 @@
 import os
 import sys
 import logging
+import subprocess
 import soundfile as sf
 import numpy as np
 import mido
@@ -16,13 +17,37 @@ try:
     import hymn_player_ext
     NATIVE_ENGINE_AVAILABLE = True
 except ImportError as e:
-    logging.warning(f"Native HymnPlayer engine not found. Falling back to midi2audio. ({e})")
+    logging.warning(f"Native HymnPlayer engine not found. Falling back to FluidSynth CLI. ({e})")
     NATIVE_ENGINE_AVAILABLE = False
-
-from midi2audio import FluidSynth
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+def _find_fluidsynth_bin():
+    """Find the fluidsynth executable. Checks settings.FLUIDSYNTH_BIN first, then PATH."""
+    # 1. Check the bundled/local path from settings
+    local_bin = settings.FLUIDSYNTH_BIN
+    if os.path.isfile(local_bin):
+        return local_bin
+
+    # 2. Search system PATH
+    import shutil
+    system_bin = shutil.which("fluidsynth")
+    if system_bin:
+        return system_bin
+
+    # 3. Check common locations
+    candidates = [
+        "/usr/bin/fluidsynth",
+        "/usr/local/bin/fluidsynth",
+        "/opt/homebrew/bin/fluidsynth",
+    ]
+    for c in candidates:
+        if os.path.isfile(c):
+            return c
+
+    return None
 
 
 class MidiRenderer:
@@ -55,8 +80,13 @@ class MidiRenderer:
                     )
 
         logger.info(f"Using SoundFont: {self.soundfont_path}")
-        if not NATIVE_ENGINE_AVAILABLE:
-            self.fs = FluidSynth(self.soundfont_path)
+
+        # Find the fluidsynth binary for CLI fallback
+        self.fluidsynth_bin = _find_fluidsynth_bin()
+        if self.fluidsynth_bin:
+            logger.info(f"FluidSynth CLI: {self.fluidsynth_bin}")
+        else:
+            logger.warning("FluidSynth CLI binary not found. MIDI rendering will fail.")
 
     def _get_midi_duration(self, midi_path):
         try:
@@ -80,6 +110,48 @@ class MidiRenderer:
         except Exception as e:
             logger.warning(f"Failed to extract BPM from MIDI: {e}. Defaulting to 120 BPM.")
             return 120.0
+
+    def _render_fluidsynth_cli(self, midi_path, output_path):
+        """Render MIDI to audio using the FluidSynth CLI directly."""
+        if not self.fluidsynth_bin:
+            raise FileNotFoundError(
+                "FluidSynth binary not found. Install it or place fluidsynth.exe in hymn_remaker/bin/"
+            )
+
+        # FluidSynth v2.x requires options BEFORE soundfont/midi arguments.
+        # Also use absolute paths to avoid working-directory issues on Windows.
+        abs_soundfont = os.path.abspath(self.soundfont_path)
+        abs_midi = os.path.abspath(midi_path)
+        abs_output = os.path.abspath(output_path)
+
+        cmd = [
+            self.fluidsynth_bin,
+            '-F', abs_output,                  # output file (must come before -ni)
+            '-r', str(settings.SAMPLE_RATE),   # sample rate
+            '-ni',                              # no interactive shell, immediate rendering
+            abs_soundfont,                      # SoundFont file
+            abs_midi,                           # MIDI input
+        ]
+
+        logger.info(f"Running FluidSynth CLI: {' '.join(cmd)}")
+
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=300,  # 5 minute timeout
+        )
+
+        if result.returncode != 0:
+            logger.error(f"FluidSynth stderr: {result.stderr}")
+            raise RuntimeError(
+                f"FluidSynth CLI failed (exit code {result.returncode}): {result.stderr[:500]}"
+            )
+
+        if not os.path.exists(output_path):
+            raise RuntimeError(f"FluidSynth completed but output file not found: {output_path}")
+
+        logger.info(f"FluidSynth CLI rendering complete: {output_path}")
 
     def render(self, midi_path, output_path):
         """
@@ -128,15 +200,9 @@ class MidiRenderer:
                     raise RuntimeError("Native engine rendered zero audio frames.")
 
                 # Concatenate all chunks and reshape
-                # audio_chunk is a 1D interleaved array of shape (N*2,)
                 final_audio = np.concatenate(all_audio)
-
-                # Reshape from interleaved 1D to (Frames, Channels)
                 final_audio = final_audio.reshape(-1, 2)
 
-                # sf.write expects float32 in range [-1.0, 1.0] by default,
-                # but depending on FluidSynth's output scale we might need to normalize.
-                # Usually it's roughly in standard bounds but can clip.
                 max_val = np.max(np.abs(final_audio))
                 if max_val > 1.0:
                     final_audio = final_audio / max_val
@@ -145,9 +211,8 @@ class MidiRenderer:
                 logger.info("Native rendering complete.")
 
             else:
-                logger.info("Using fallback midi2audio for rendering.")
-                self.fs.midi_to_audio(midi_path, output_path)
-                logger.info("Fallback rendering complete.")
+                logger.info("Using FluidSynth CLI fallback for rendering.")
+                self._render_fluidsynth_cli(midi_path, output_path)
 
         except Exception as e:
             logger.error(f"Failed to render MIDI: {e}")
@@ -155,7 +220,6 @@ class MidiRenderer:
 
 
 if __name__ == "__main__":
-    # Test execution
     import sys
     if len(sys.argv) > 2:
         renderer = MidiRenderer()

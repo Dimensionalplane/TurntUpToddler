@@ -13,6 +13,7 @@ from hymn_remaker import settings
 
 from hymn_remaker.src.midi_renderer import MidiRenderer
 from hymn_remaker.src.remaker import MusicRemaker
+from hymn_remaker.src.suno_remaker import SunoRemaker
 from hymn_remaker.src.content_generator import ContentGenerator
 from hymn_remaker.src.video_uploader import VideoProducer
 from hymn_remaker.src.tts_generator import TTSGenerator
@@ -44,6 +45,9 @@ def main():
     parser.add_argument("--upload", action="store_true", help="Upload to YouTube after generation")
     parser.add_argument("--skip-render", action="store_true", help="Skip MIDI rendering if WAV exists")
     parser.add_argument("--skip-remake", action="store_true", help="Skip music generation if output audio exists")
+    parser.add_argument("--remake-priority", default=settings.REMAKE_PRIORITY, choices=["suno", "replicate"], help="AI service priority for Step 2 remake (default: suno)")
+    parser.add_argument("--suno-session", default=None, help="Suno AI session token (overrides SUNO_SESSION_TOKEN env var)")
+    parser.add_argument("--convert-mp3", action="store_true", help="Batch convert all base WAV files to MP3 and exit")
     parser.add_argument("--voice-id", default=settings.DEFAULT_ELEVENLABS_VOICE_ID, help="ElevenLabs Voice ID")
     parser.add_argument("--model", default=settings.DEFAULT_ELEVENLABS_MODEL, help="ElevenLabs Model")
     parser.add_argument("--video-format", default=settings.DEFAULT_VIDEO_FORMAT, choices=["Standard 16:9", "Vertical 9:16 (TikTok/Reels)"], help="Output video format")
@@ -59,6 +63,7 @@ def main():
     try:
         renderer = MidiRenderer(soundfont_path=args.soundfont)
         remaker = MusicRemaker()
+    suno_remaker = SunoRemaker(session_token=args.suno_session)
         content_gen = ContentGenerator()
         video_producer = VideoProducer()
         mxl_parser = MusicXMLParser()
@@ -107,6 +112,13 @@ def main():
                     future.result()
                 except Exception as e:
                     logger.error(f"Error processing {midi_path} through executor: {e}")
+
+    # Batch MP3 conversion mode
+    if args.convert_mp3:
+        logger.info("Batch converting base WAV files to MP3...")
+        converted, failed = suno_remaker.batch_wav_to_mp3(args.output_dir, bitrate=settings.DEFAULT_MP3_BITRATE)
+        logger.info(f"MP3 conversion complete: {converted} converted, {failed} failed")
+        sys.exit(0 if failed == 0 else 1)
 
     initial_midi_files = glob.glob(os.path.join(args.input_dir, "*.mid")) + glob.glob(os.path.join(args.input_dir, "*.mxl")) + glob.glob(os.path.join(args.input_dir, "*.xml"))
     if initial_midi_files:
@@ -165,8 +177,10 @@ def process_single_midi(
     upload,
     renderer,
     remaker,
-    content_gen,
-    video_producer,
+    suno_remaker=None,
+    remake_priority="suno",
+    content_gen=None,
+    video_producer=None,
     mxl_parser=None,
     omr_processor=None,
     tts_generator=None,
@@ -239,23 +253,77 @@ def process_single_midi(
         else:
             update_status(f"Skipping render for {filename}, {base_audio_path} exists.", 30)
 
-        # 2. Generate Remake (MusicGen)
-        update_status(f"Step 2/4: Remaking Audio via Replicate ({filename})...", 40)
+          # 2. Generate Remake (Suno AI -> Replicate MusicGen -> Base Audio Fallback)
         remake_audio_path = os.path.join(output_dir, f"{name_no_ext}_remake.wav")
         if not skip_remake or not os.path.exists(remake_audio_path):
-            tempo_enforced_style = f"{style}. The track must be exactly {target_bpm:.1f} BPM. Keep this exact tempo."
-            remake_url = remaker.remake(base_audio_path, tempo_enforced_style)
-            update_status(f"Downloading remake from {remake_url}...", 50)
-            response = requests.get(remake_url)
-            response.raise_for_status()
-            with open(remake_audio_path, "wb") as f:
-                f.write(response.content)
-            update_status(f"Applying advanced audio processing to {filename}...", 60)
-            process_audio(remake_audio_path, remake_audio_path, normalize=normalize_audio, fade_in_ms=fade_in_ms, fade_out_ms=fade_out_ms)
+            remake_success = False
+
+            # --- Priority 1: Suno AI (audio influence -> Deep House) ---
+            if remake_priority == "suno" and suno_remaker and suno_remaker.is_available():
+                update_status(f"Step 2/4: Remaking Audio via Suno AI ({filename})...", 40)
+                try:
+                    tempo_enforced_style = f"{style}, {target_bpm:.1f} BPM"
+                    suno_result = suno_remaker.remake(base_audio_path, tempo_enforced_style)
+                    if suno_result and os.path.exists(suno_result):
+                        # Suno returns the WAV path directly
+                        if suno_result != remake_audio_path:
+                            import shutil
+                            shutil.move(suno_result, remake_audio_path)
+                        update_status(f"Suno AI remake complete for {filename}", 55)
+                        process_audio(remake_audio_path, remake_audio_path, normalize=normalize_audio, fade_in_ms=fade_in_ms, fade_out_ms=fade_out_ms)
+                        remake_success = True
+                        logger.info(f"Suno AI remake succeeded for {filename}")
+                except Exception as suno_err:
+                    err_msg = str(suno_err)
+                    logger.warning(f"Suno AI failed for {filename}: {err_msg}")
+                    if "credits" in err_msg.lower() or "402" in err_msg:
+                        update_status(f"Suno credits exhausted for {filename}, trying fallback...", 42)
+                    elif "invalid" in err_msg.lower() or "expired" in err_msg.lower() or "401" in err_msg:
+                        update_status(f"Suno session token invalid/expired, trying Replicate fallback...", 42)
+                    else:
+                        update_status(f"Suno AI error for {filename}, trying fallback...", 42)
+
+            # --- Priority 2: Replicate MusicGen ---
+            if not remake_success and remake_priority == "replicate":
+                update_status(f"Step 2/4: Remaking Audio via Replicate MusicGen ({filename})...", 40)
+            elif not remake_success:
+                update_status(f"Step 2/4: Trying Replicate MusicGen fallback ({filename})...", 43)
+
+            if not remake_success:
+                try:
+                    tempo_enforced_style = f"{style}. The track must be exactly {target_bpm:.1f} BPM. Keep this exact tempo."
+                    remake_url = remaker.remake(base_audio_path, tempo_enforced_style)
+                    update_status(f"Downloading remake from {remake_url}...", 50)
+                    response = requests.get(remake_url)
+                    response.raise_for_status()
+                    with open(remake_audio_path, "wb") as f:
+                        f.write(response.content)
+                    update_status(f"Applying advanced audio processing to {filename}...", 60)
+                    process_audio(remake_audio_path, remake_audio_path, normalize=normalize_audio, fade_in_ms=fade_in_ms, fade_out_ms=fade_out_ms)
+                    remake_success = True
+                    logger.info(f"Replicate MusicGen remake succeeded for {filename}")
+                except Exception as remake_err:
+                    err_msg = str(remake_err)
+                    if "Insufficient credit" in err_msg or "402" in err_msg:
+                        update_status(f"Replicate credits insufficient for {filename}", 45)
+                        logger.warning(f"Replicate credit error for {filename}.")
+                    else:
+                        update_status(f"Remake generation failed for {filename}: {err_msg[:100]}", 45)
+                        logger.warning(f"Remake failed for {filename}: {err_msg}")
+
+            # --- Priority 3: Base Audio Fallback ---
+            if not remake_success:
+                update_status(f"Using base audio as fallback for {filename}", 55)
+                logger.warning(f"All AI remakers failed for {filename}. Copying base audio as fallback.")
+                import shutil
+                shutil.copy2(base_audio_path, remake_audio_path)
+                logger.info(f"Copied base audio to remake path: {remake_audio_path}")
+                update_status(f"Applying audio processing to fallback for {filename}...", 60)
+                process_audio(remake_audio_path, remake_audio_path, normalize=normalize_audio, fade_in_ms=fade_in_ms, fade_out_ms=fade_out_ms)
         else:
             update_status(f"Skipping remake for {filename}, {remake_audio_path} exists.", 60)
 
-        # 3. Generate Content (Metadata, Lyrics & Art)
+# 3. Generate Content (Metadata, Lyrics & Art)
         update_status(f"Step 3/4: Generating Lyrics, Art & Metadata ({filename})...", 70)
         metadata_path = os.path.join(output_dir, f"{name_no_ext}_metadata.json")
 
