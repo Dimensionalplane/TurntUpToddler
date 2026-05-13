@@ -36,7 +36,7 @@ Generate Payload Format (Simple mode):
   {
     "token": "<turnstile_token>",
     "gpt_description_prompt": "Deep house instrumental...",
-    "mv": "chirp-v3-5",
+    "mv": "chirp-auk-turbo",
     "prompt": "",
     "make_instrumental": true,
     "generation_type": "TEXT",
@@ -54,7 +54,7 @@ Generate Payload Format (Custom mode):
     "prompt": "lyrics text",
     "tags": "deep house, electronic",
     "negative_tags": "",
-    "mv": "chirp-v3-5",
+    "mv": "chirp-auk-turbo",
     "title": "Song Title",
     "make_instrumental": true,
     "generation_type": "TEXT",
@@ -99,7 +99,7 @@ TURNSTILE_SITEKEY_AUTH = "0x4AAAAAABtnpJo7aKMs9JLQ"
 TURNSTILE_SITEKEY_GENERAL = "0x4AAAAAABd64Cd9aq5C--VE"
 
 # Default model version (v3.5 is the highest free users can use)
-DEFAULT_MODEL_VERSION = "chirp-v3-5"
+DEFAULT_MODEL_VERSION = "chirp-auk-turbo"  # v4.5 - current Suno default
 
 # Polling settings
 POLL_INTERVAL = 5   # seconds between status checks
@@ -353,6 +353,124 @@ class SunoRemaker:
     # Generation via API
     # -------------------------------------------------------------------------
 
+    def _upload_audio(self, audio_path):
+        """Upload an audio file to Suno for use as influence content.
+
+        Follows Suno's upload flow:
+        1. POST /api/uploads/audio/ to get presigned S3 URL
+        2. Upload file to S3
+        3. POST /api/uploads/audio/{id} to confirm
+        4. Poll GET /api/uploads/audio/{id} until complete
+
+        Args:
+            audio_path (str): Path to the audio file (MP3 or WAV).
+
+        Returns:
+            dict: Upload info with 'id', 's3_id', 'title', or None on failure.
+        """
+        if not self.session_token:
+            logger.error("No session token for audio upload")
+            return None
+
+        if not os.path.exists(audio_path):
+            logger.error(f"Audio file not found: {audio_path}")
+            return None
+
+        ext = os.path.splitext(audio_path)[1].lstrip('.').lower()
+        if ext not in ('mp3', 'wav', 'm4a', 'ogg', 'flac'):
+            logger.warning(f"Unsupported audio format: {ext}")
+            ext = 'mp3'
+
+        headers = self._get_headers()
+        base = self.base_url
+
+        # Step 1: Request presigned upload URL
+        logger.info(f"Requesting audio upload URL for {os.path.basename(audio_path)}...")
+        try:
+            resp = requests.post(
+                f"{base}/api/uploads/audio/",
+                json={"extension": ext, "upload_type": "file_upload"},
+                headers=headers, timeout=15
+            )
+            if resp.status_code != 200:
+                logger.error(f"Upload URL request failed: {resp.status_code} {resp.text[:200]}")
+                return None
+
+            upload_info = resp.json()
+            upload_id = upload_info.get("id")
+            upload_url = upload_info.get("url", "")
+            fields = upload_info.get("fields", {})
+
+            if not upload_id:
+                logger.error("No upload ID returned")
+                return None
+
+            logger.info(f"Upload ID: {upload_id}")
+        except Exception as e:
+            logger.error(f"Upload URL request error: {e}")
+            return None
+
+        # Step 2: Upload file to S3
+        logger.info(f"Uploading to S3...")
+        try:
+            with open(audio_path, 'rb') as f:
+                file_data = f.read()
+
+            s3_files = {"file": (os.path.basename(audio_path), file_data, f"audio/{ext}")}
+            s3_data = dict(fields) if fields else {}
+            # Remove Content-Type from fields if present (we set it in files)
+            s3_data.pop("Content-Type", None)
+
+            s3_resp = requests.post(upload_url, data=s3_data, files=s3_files, timeout=60)
+            if s3_resp.status_code not in (200, 201, 204):
+                logger.warning(f"S3 upload returned {s3_resp.status_code}")
+        except Exception as e:
+            logger.error(f"S3 upload error: {e}")
+            return None
+
+        # Step 3: Confirm upload
+        logger.info("Confirming upload...")
+        try:
+            resp = requests.post(
+                f"{base}/api/uploads/audio/{upload_id}",
+                json={
+                    "upload_type": "file_upload",
+                    "upload_filename": os.path.basename(audio_path),
+                },
+                headers=headers, timeout=15
+            )
+            if resp.status_code != 200:
+                logger.warning(f"Upload confirm: {resp.status_code}")
+        except Exception as e:
+            logger.warning(f"Upload confirm error: {e}")
+
+        # Step 4: Poll until complete
+        logger.info("Waiting for audio processing...")
+        for i in range(30):
+            time.sleep(2)
+            try:
+                resp = requests.get(
+                    f"{base}/api/uploads/audio/{upload_id}",
+                    headers=headers, timeout=10
+                )
+                if resp.status_code == 200:
+                    info = resp.json()
+                    status = info.get("status", "")
+                    if status == "complete":
+                        logger.info(f"Audio upload complete! s3_id={info.get('s3_id', '?')}")
+                        return info
+                    elif status in ("failed", "error", "rejected"):
+                        logger.error(f"Audio upload failed: {status}")
+                        return None
+                    elif i % 5 == 4:
+                        logger.info(f"  Status: {status} ({(i+1)*2}s)")
+            except Exception as e:
+                if i % 5 == 4:
+                    logger.warning(f"  Poll error: {e}")
+
+        logger.error("Audio upload timed out")
+        return None
+
     def _generate_songs_api(self, prompt, turnstile_token=None, make_instrumental=True,
                             tags=None, title=None, generation_type="TEXT"):
         """Submit a song generation request to Suno via the v2-web API.
@@ -376,7 +494,7 @@ class SunoRemaker:
 
         # Build the generation payload (Simple mode format)
         payload = {
-            "token": turnstile_token or "",
+            "token": turnstile_token if turnstile_token else None,
             "gpt_description_prompt": prompt,
             "mv": self.model_version,
             "prompt": "",
@@ -461,124 +579,266 @@ class SunoRemaker:
     # Generation via Browser Automation (Playwright)
     # -------------------------------------------------------------------------
 
-    def _generate_songs_browser(self, prompt, make_instrumental=True, timeout=120):
-        """Generate songs using Playwright browser automation.
+    def _generate_songs_browser(self, prompt, make_instrumental=True, timeout=300,
+                                  audio_influence_path=None):
+        """Generate songs using Playwright browser automation with stealth.
 
-        Automates the Suno web UI to create a song. This is more reliable
-        than the API mode because the browser handles Turnstile automatically.
+        Automates the Suno web UI to create a song. Uses playwright-stealth
+        to bypass Cloudflare Turnstile bot detection.
+
+        KEY FINDINGS from reverse engineering:
+        - The endpoint is /api/generate/v2-web/ (not /v2/)
+        - Turnstile token can be null when using proper session cookies
+        - The description textarea has placeholder "Describe the sound you want"
+        - React state must be updated via __reactProps$ onChange handler
+        - Audio upload: POST /api/uploads/audio/ → S3 presigned URL → poll status
+        - Button shows "Out of Credits" when credits are exhausted
 
         Args:
             prompt (str): Text description for the song.
             make_instrumental (bool): Generate without vocals.
-            timeout (int): Max seconds to wait for generation to start.
+            timeout (int): Max seconds to wait for generation (default 300).
+            audio_influence_path (str): Path to MP3/WAV to upload as influence.
 
         Returns:
-            list: List of clip dictionaries from the feed after generation.
+            list: List of clip dictionaries with clip IDs.
 
         Raises:
-            RuntimeError: If browser automation fails.
+            RuntimeError: If browser automation fails or credits exhausted.
         """
         try:
             from playwright.sync_api import sync_playwright
         except ImportError:
             raise RuntimeError("Playwright not installed. Run: pip install playwright && python -m playwright install chromium")
 
+        try:
+            from playwright_stealth import Stealth
+            use_stealth = True
+        except ImportError:
+            logger.warning("playwright-stealth not installed. Turnstile may fail.")
+            use_stealth = False
+
         captured_clips = []
 
         with sync_playwright() as p:
-            browser = p.chromium.launch(
-                headless=False,
-                args=['--disable-blink-features=AutomationControlled', '--no-sandbox']
-            )
-            context = browser.new_context(
-                viewport={'width': 1280, 'height': 720},
-                user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-            )
+            # Apply stealth to bypass Turnstile bot detection
+            if use_stealth:
+                stealth = Stealth()
+                stealth.hook_playwright_context(p)
 
-            # Set auth cookies
+            browser = p.chromium.launch(headless=False, args=['--no-sandbox'])
+            context = browser.new_context(viewport={'width': 1280, 'height': 720})
+
+            # Set auth cookies on all relevant domains
             if self.session_token:
                 context.add_cookies([
-                    {'name': '__session', 'value': self.session_token, 'domain': '.suno.com', 'path': '/'},
+                    {'name': '__session', 'value': self.session_token,
+                     'domain': '.suno.com', 'path': '/'},
+                    {'name': '__session', 'value': self.session_token,
+                     'domain': 'auth.suno.com', 'path': '/'},
                 ])
             if self.client_token:
                 context.add_cookies([
-                    {'name': '__client', 'value': self.client_token, 'domain': '.suno.com', 'path': '/'},
+                    {'name': '__client', 'value': self.client_token,
+                     'domain': '.suno.com', 'path': '/'},
+                    {'name': '__client', 'value': self.client_token,
+                     'domain': 'auth.suno.com', 'path': '/'},
                 ])
 
             page = context.new_page()
-            page.add_init_script('Object.defineProperty(navigator, "webdriver", {get: () => undefined})')
 
-            # Track API responses to find the generated clip IDs
-            def handle_response(response):
-                if '/api/generate/v2' in response.url and response.status == 200:
-                    try:
-                        data = response.json()
-                        if isinstance(data, list):
-                            captured_clips.extend(data)
-                        elif isinstance(data, dict) and "clips" in data:
-                            captured_clips.extend(data["clips"])
-                        logger.info(f"Captured {len(captured_clips)} clip(s) from generate response")
-                    except Exception:
-                        pass
-
-            page.on('response', handle_response)
+            # Response filter for page.expect_response
+            def is_generate_response(response):
+                return '/api/generate/v2' in response.url and response.status == 200
 
             # Navigate to create page
-            logger.info("Opening Suno create page...")
-            page.goto('https://suno.com/create', timeout=30000, wait_until='domcontentloaded')
-            time.sleep(10)
+            logger.info("Opening Suno create page with stealth...")
+            page.goto('https://suno.com/create', timeout=30000,
+                      wait_until='domcontentloaded')
+            time.sleep(15)
 
-            # Fill the description
-            try:
-                textarea = page.locator('textarea:visible').first
-                textarea.click()
+            # ---- Dismiss overlays/modals ----
+            for _ in range(3):
+                page.keyboard.press('Escape')
                 time.sleep(0.5)
-                page.keyboard.press('Control+a')
-                time.sleep(0.3)
-                page.keyboard.type(prompt, delay=20)
-                logger.info(f"Typed prompt: {prompt[:60]}...")
-                time.sleep(2)
+            try:
+                close_btn = page.locator('[aria-label="Close"]')
+                if close_btn.count() > 0:
+                    close_btn.first.click(force=True)
+                    time.sleep(1)
+            except Exception:
+                pass
 
-                # Toggle Instrumental if needed
-                if make_instrumental:
-                    instr = page.locator('text=Instrumental').first
-                    if instr.is_visible(timeout=3000):
-                        instr.click()
+            # ---- Check for "Out of Credits" ----
+            create_btn = page.locator('button[aria-label*="Create"]').first
+            btn_text = create_btn.text_content() or ''
+            if 'out of credit' in btn_text.lower():
+                browser.close()
+                raise RuntimeError(
+                    "Suno account is out of credits. Wait for daily reset "
+                    "or upgrade the plan at suno.com."
+                )
+
+            # ---- Audio Influence Upload ----
+            if audio_influence_path and os.path.exists(audio_influence_path):
+                logger.info(f"Uploading audio influence: {audio_influence_path}")
+                try:
+                    # Click the "Audio" tab to reveal upload UI
+                    audio_tab = page.locator('text=Audio').first
+                    if audio_tab.is_visible(timeout=5000):
+                        audio_tab.click(force=True)
+                        logger.info("Clicked Audio tab")
+                        time.sleep(3)
+
+                    # Upload via file input
+                    file_input = page.locator('input[type="file"]').first
+                    file_input.set_input_files(audio_influence_path)
+                    logger.info(f"Uploaded audio: {os.path.basename(audio_influence_path)}")
+
+                    # Wait for upload to complete (processing → moderation → complete)
+                    logger.info("Waiting for audio upload to process...")
+                    for i in range(30):
+                        time.sleep(2)
+                        # Check upload status via JS
+                        status = page.evaluate('''() => {
+                            const el = document.querySelector('[data-upload-status]');
+                            return el ? el.getAttribute('data-upload-status') : null;
+                        }''')
+                        if status == 'complete':
+                            logger.info("Audio upload complete!")
+                            break
+                        if i % 5 == 4:
+                            logger.info(f"Upload still processing... ({(i+1)*2}s)")
+                    time.sleep(3)
+                except Exception as e:
+                    logger.warning(f"Audio influence upload failed: {e}")
+                    logger.info("Continuing without audio influence...")
+
+            # ---- Set Prompt via React Fiber ----
+            # CRITICAL: The description textarea has placeholder
+            # "Describe the sound you want" - we must target THIS one,
+            # not the lyrics textarea ("Write some lyrics or leave blank...").
+            # We use React's __reactProps$ to call onChange directly,
+            # which properly updates React's internal state.
+            logger.info(f"Setting prompt via React fiber: {prompt[:60]}...")
+            try:
+                result = page.evaluate(f'''() => {{
+                    const textareas = document.querySelectorAll('textarea');
+                    let descTextarea = null;
+                    for (const ta of textareas) {{
+                        const ph = (ta.placeholder || '').toLowerCase();
+                        if (ph.includes('describe') || ph.includes('sound you want')) {{
+                            descTextarea = ta;
+                            break;
+                        }}
+                    }}
+                    // Fallback: last textarea (typically the description)
+                    if (!descTextarea) {{
+                        descTextarea = textareas[textareas.length - 1];
+                    }}
+                    if (!descTextarea) return "no description textarea found";
+
+                    const prompt = {json.dumps(prompt)};
+                    const propsKey = Object.keys(descTextarea).find(k =>
+                        k.startsWith('__reactProps$')
+                    );
+                    if (propsKey) {{
+                        const props = descTextarea[propsKey];
+                        if (props && props.onChange) {{
+                            props.onChange({{
+                                target: {{ value: prompt }},
+                                currentTarget: {{ value: prompt }},
+                                persist: () => {{}},
+                            }});
+                            return "ok: " + descTextarea.placeholder;
+                        }}
+                    }}
+                    // Fallback: native setter + events
+                    const setter = Object.getOwnPropertyDescriptor(
+                        window.HTMLTextAreaElement.prototype, 'value'
+                    ).set;
+                    setter.call(descTextarea, prompt);
+                    descTextarea.dispatchEvent(new Event('input', {{ bubbles: true }}));
+                    descTextarea.dispatchEvent(new Event('change', {{ bubbles: true }}));
+                    return "fallback: " + descTextarea.placeholder;
+                }}''')
+                logger.info(f"React fiber result: {result}")
+                time.sleep(3)
+            except Exception as e:
+                logger.warning(f"React fiber approach failed: {e}")
+                # Fallback: use fill() on the visible textarea
+                try:
+                    textarea = page.locator('textarea:visible').last
+                    textarea.click(force=True)
+                    time.sleep(0.3)
+                    textarea.fill(prompt)
+                    logger.info("Used fill() as fallback")
+                    time.sleep(2)
+                except Exception as e2:
+                    logger.error(f"All prompt input methods failed: {e2}")
+
+            # ---- Toggle Instrumental ----
+            if make_instrumental:
+                try:
+                    instr = page.locator('button:has-text("Instrumental")').first
+                    if instr.is_visible(timeout=5000):
+                        instr.click(force=True)
                         logger.info("Clicked Instrumental toggle")
                         time.sleep(1)
+                except Exception as e:
+                    logger.debug(f"Instrumental toggle: {e}")
 
-                # Click Create
-                create_btn = page.locator('button[aria-label*="Create"]').first
-                if create_btn.is_visible(timeout=5000) and not create_btn.is_disabled():
-                    create_btn.click(timeout=15000)
-                    logger.info("Clicked Create button")
+            # ---- Click Create and Wait for Response ----
+            create_btn = page.locator('button[aria-label*="Create"]').first
+            if create_btn.is_disabled():
+                btn_text = create_btn.text_content() or ''
+                if 'out of credit' in btn_text.lower():
+                    browser.close()
+                    raise RuntimeError(
+                        "Suno account is out of credits. Wait for daily reset."
+                    )
                 else:
-                    # Try keyboard shortcut
-                    page.keyboard.press('Enter')
-                    logger.info("Pressed Enter as fallback")
+                    logger.warning(f"Create button disabled: {btn_text}")
 
-                # Wait for generation to start
-                logger.info(f"Waiting for generation to start (timeout: {timeout}s)...")
-                start = time.time()
-                while time.time() - start < timeout:
-                    if captured_clips:
-                        break
-                    time.sleep(2)
+            if not create_btn.is_disabled():
+                logger.info("Clicking Create button...")
+                try:
+                    with page.expect_response(is_generate_response, timeout=timeout * 1000) as resp_info:
+                        create_btn.click(force=True, timeout=10000)
+                        logger.info("Create button clicked! Waiting for generate response...")
 
-            except Exception as e:
-                logger.error(f"Browser automation error: {e}")
-                page.screenshot(path='suno_browser_error.png')
+                    response = resp_info.value
+                    logger.info(f"Generate response: {response.status}")
 
+                    try:
+                        data = response.json()
+                        clips = data if isinstance(data, list) else [data]
+                        for clip in clips:
+                            cid = clip.get('id')
+                            if cid:
+                                captured_clips.append(clip)
+                                logger.info(f"Clip captured: {cid} status={clip.get('status', '?')}")
+                    except Exception as e:
+                        logger.error(f"Error parsing generate response: {e}")
+
+                except Exception as e:
+                    logger.error(f"Generate response timeout or error: {e}")
+                    # Try to capture via event listeners as fallback
+                    logger.info("Trying event listener fallback...")
+            else:
+                logger.error("Create button is disabled, cannot generate")
+
+            # Keep browser open briefly for any pending requests
+            time.sleep(3)
             browser.close()
 
         if not captured_clips:
-            raise RuntimeError("Browser automation failed - no clips generated")
+            raise RuntimeError(
+                "Browser automation failed - no clips generated. "
+                "Possible causes: out of credits, Turnstile blocked, or prompt issue."
+            )
 
         return captured_clips
-
-    # -------------------------------------------------------------------------
-    # Polling and Download
-    # -------------------------------------------------------------------------
 
     def _poll_songs(self, clip_ids):
         """Poll Suno API until songs are complete.
@@ -808,11 +1068,22 @@ class SunoRemaker:
                 else:
                     raise
 
+        # Prepare audio influence path (prefer MP3, fall back to WAV)
+        audio_influence = None
+        mp3_path = wav_path.rsplit('_base.wav', 1)[0] + '_base.mp3'
+        if os.path.exists(mp3_path):
+            audio_influence = mp3_path
+            logger.info(f"Using MP3 as audio influence: {mp3_path}")
+        elif os.path.exists(wav_path):
+            audio_influence = wav_path
+            logger.info(f"Using WAV as audio influence: {wav_path}")
+
         # Fall back to browser mode
         if clips is None and mode in ("auto", "browser"):
             clips = self._generate_songs_browser(
                 prompt=full_prompt,
                 make_instrumental=make_instrumental,
+                audio_influence_path=audio_influence,
             )
 
         if not clips:
