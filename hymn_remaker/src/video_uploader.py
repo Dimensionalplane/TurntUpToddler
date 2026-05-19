@@ -117,28 +117,31 @@ class VideoProducer:
 
                 # Determine base filters depending on format
                 base_vf = ""
+                target_w, target_h = (1080, 1920) if video_format == "Vertical 9:16 (TikTok/Reels)" else (1920, 1080)
+                
                 if video_format == "Vertical 9:16 (TikTok/Reels)":
-# Scale the image to fit horizontally, pad vertically, and blur the background
-                    base_vf = "[0:v]scale=1080:-1,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black[v_base]"
+                    # Scale to 1080 width, then pad to 1080x1920, ensuring even dimensions
+                    base_vf = f"[0:v]scale=1080:trunc(1080/a/2)*2,pad={target_w}:{target_h}:(ow-iw)/2:(oh-ih)/2:black[v_base]"
                 else:
-                    # Standard 16:9, just scale/pad to 1920x1080
-                    base_vf = "[0:v]scale=-1:1080,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:black[v_base]"
+                    # Standard 16:9, scale to 1080 height, then pad to 1920x1080, ensuring even dimensions
+                    base_vf = f"[0:v]scale=trunc(1080*a/2)*2:1080,pad={target_w}:{target_h}:(ow-iw)/2:(oh-ih)/2:black[v_base]"
 
                 # Build filter complex
                 filters = [base_vf]
 
-
                 # Add Audio-Reactive Visualizer
                 if enable_visualizer:
-                    w, h = ("1080", "150") if video_format == "Vertical 9:16 (TikTok/Reels)" else ("1920", "200")
+                    w_viz, h_viz = (1080, 150) if video_format == "Vertical 9:16 (TikTok/Reels)" else (1920, 200)
                     y_pos = "(H-h)/2" # Center vertically
 
                     if visualizer_mode == "avectorscope":
-                        vis_filter = f"[1:a]avectorscope=s={h}x{h}:draw=line:color=white[wave];[v_base][wave]overlay=x=(W-w)/2:y={y_pos}[v]"
+                        vis_filter = f"[1:a]avectorscope=s={h_viz}x{h_viz}:draw=line:color=white[wave];[v_base][wave]overlay=x=(W-w)/2:y={y_pos}:format=yuv420[v_pre]"
                     else:
-                        vis_filter = f"[1:a]showwaves=s={w}x{h}:mode={visualizer_mode}:colors=white@0.5[wave];[v_base][wave]overlay=x=0:y={y_pos}[v]"
-
+                        vis_filter = f"[1:a]showwaves=s={w_viz}x{h_viz}:mode={visualizer_mode}:colors=white@0.5[wave];[v_base][wave]overlay=x=0:y={y_pos}:format=yuv420[v_pre]"
+                    
+                    # Ensure the overlay result is exactly the target size
                     filters.append(vis_filter)
+                    filters.append(f"[v_pre]scale={target_w}:{target_h}[v]")
                 else:
                     # Just pass the base video through
                     filters.append("[v_base]null[v]")  # pass through without copy
