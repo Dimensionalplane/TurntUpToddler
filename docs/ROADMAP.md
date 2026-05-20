@@ -51,7 +51,7 @@ This document outlines the high-level trajectory of the Hymn Remaker project, tr
 
 ## Phase 4: Creative Expansion & OMR (Completed)
 - [x] **OMR (Optical Music Recognition):** Integrated `oemer` to allow users to scan physical sheet music PDFs and PNGs, automatically converting them into MusicXML files for downstream processing.
-- [x] **Multi-Voice Harmonization:** Utilize multiple ElevenLabs voice models simultaneously. Pitch-shift parallel vocal tracks using `pydub` (e.g., +4 and +7 semitones) to create 3-part or 4-part lush choral harmonies, mixing them before overlaying onto the instrumental.
+- [x] **Multi-Voice Spatial Expansion:** Utilize multiple ElevenLabs voice models simultaneously. Use high-fidelity pitch-shifting (`pyrubberband`) on parallel vocal tracks (e.g., +4 and +7 semitones) to create clear, 3-part or 4-part lush choral harmonies without altering audio speed, mixing them before overlaying onto the instrumental.
 - [x] **Dynamic Tempo Matching:** Analyze the BPM of the original MIDI/MXL file natively using `mido`, feeding that precise integer directly into the Replicate MusicGen prompt to ensure output remixes strictly adhere to the source tempo.
 
 ## Phase 5: Distribution, Visuals & Infinite Streaming (Completed)
