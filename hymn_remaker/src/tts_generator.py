@@ -44,7 +44,11 @@ class TTSGenerator:
 
         # Clip to prevent audio wrap-around distortion and cast back
         shifted_samples = np.clip(shifted_samples, -1.0, 1.0)
-        shifted_samples = (shifted_samples * max_val).astype(sound.array_type)
+
+        # Derive numpy dtype from pydub sample_width (pydub has no .array_type)
+        _SAMPLE_WIDTH_TO_DTYPE = {1: np.int8, 2: np.int16, 3: np.int32, 4: np.int32}
+        dtype = _SAMPLE_WIDTH_TO_DTYPE.get(sound.sample_width, np.int16)
+        shifted_samples = (shifted_samples * max_val).astype(dtype)
 
         shifted_sound = sound._spawn(shifted_samples.tobytes())
         return shifted_sound

@@ -18,7 +18,7 @@ from hymn_remaker.src.stem_separator import StemSeparator
 logger = logging.getLogger("HymnRemakerAPI")
 logging.basicConfig(level=logging.INFO)
 
-app = FastAPI(title="Hymn Remaker API", version="1.6.0")
+app = FastAPI(title="Hymn Remaker API", version="1.26.0")
 
 # Ensure directories and DB exist
 os.makedirs("hymn_remaker/input", exist_ok=True)
