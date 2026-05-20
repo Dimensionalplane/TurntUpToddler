@@ -4,6 +4,7 @@ import uuid
 from elevenlabs.client import ElevenLabs
 from pydub import AudioSegment
 import numpy as np
+import pyrubberband as pyrb
 from .utils import retry_request
 
 logging.basicConfig(level=logging.INFO)
@@ -25,15 +26,27 @@ class TTSGenerator:
             self.client = ElevenLabs(api_key=self.api_key)
 
     def _pitch_shift(self, sound, semitones):
-        # A simple pitch-shift hack in pydub involves changing the frame rate,
-        # then overriding it back to the original without resampling.
-        # This changes pitch AND speed. Since we time-stretch later in the pipeline anyway,
-        # or since it's just a harmony, a slight speed change is acceptable for a quick chorus effect.
-        # For a true pitch-shift without time-stretch, we'd need librosa/pyrubberband.
-        # Given we want to keep dependencies light, we'll use the frame rate trick.
-        new_sample_rate = int(sound.frame_rate * (2.0 ** (semitones / 12.0)))
-        shifted_sound = sound._spawn(sound.raw_data, overrides={'frame_rate': new_sample_rate})
-        shifted_sound = shifted_sound.set_frame_rate(sound.frame_rate)
+        """
+        High fidelity pitch-shift using pyrubberband to prevent altering audio speed.
+        Converts the pydub AudioSegment to numpy, shifts, and converts back.
+        """
+        samples = np.array(sound.get_array_of_samples())
+        if sound.channels == 2:
+            samples = samples.reshape((-1, 2))
+
+        # Determine the maximum value for normalization based on sample width
+        max_val = 1 << (8 * sound.sample_width - 1)
+
+        # PyRubberband expects float32 arrays
+        samples = samples.astype(np.float32) / max_val
+
+        shifted_samples = pyrb.pitch_shift(samples, sound.frame_rate, semitones)
+
+        # Clip to prevent audio wrap-around distortion and cast back
+        shifted_samples = np.clip(shifted_samples, -1.0, 1.0)
+        shifted_samples = (shifted_samples * max_val).astype(sound.array_type)
+
+        shifted_sound = sound._spawn(shifted_samples.tobytes())
         return shifted_sound
 
     @retry_request(max_retries=3, delay=2, backoff=2)

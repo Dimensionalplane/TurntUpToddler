@@ -28,12 +28,12 @@ Before installing Python dependencies, ensure the host system has the necessary 
 ### Linux (Ubuntu/Debian)
 ```bash
 sudo apt-get update
-sudo apt-get install -y ffmpeg fluidsynth fluid-soundfont-gm libfluidsynth-dev build-essential
+sudo apt-get install -y ffmpeg fluidsynth fluid-soundfont-gm libfluidsynth-dev build-essential rubberband-cli
 ```
 
 ### macOS (Homebrew)
 ```bash
-brew install ffmpeg fluidsynth
+brew install ffmpeg fluidsynth rubberband
 ```
 
 ## Local Python Environment Setup

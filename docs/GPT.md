@@ -1,6 +1,6 @@
 # GPT Specific Instructions
 
-> **CRITICAL**: Before reading this, you MUST read and adhere to `docs/UNIVERSAL_LLM_INSTRUCTIONS.md`.
+> **CRITICAL**: Before reading this, you MUST read and adhere to `docs/AGENTS.md`.
 
 ## Strengths
 *   You are the primary code generation and testing engine.

@@ -22,3 +22,4 @@ Currently, this repository is focused primarily on the Hymn Remaker Pipeline. Wh
 - **ElevenLabs**: Used for synthesizing high-quality vocal tracks.
 - **FluidSynth**: A real-time software synthesizer used for rendering MIDI files to audio using SoundFonts.
 - **FFmpeg**: A multimedia framework used to combine audio and image assets into the final video output and handle subtitle formatting.
+- **Librosa & PyRubberband**: Used for high-fidelity audio pitch-shifting algorithms without altering temporal speed, enhancing ElevenLabs TTS harmonies.
