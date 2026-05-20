@@ -28,6 +28,8 @@ RUN apt-get update && apt-get install -y \
     ffmpeg \
     fluidsynth \
     fluid-soundfont-gm \
+    rubberband-cli \
+    rubberband-cli \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy python dependencies and install

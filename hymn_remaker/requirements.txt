@@ -20,3 +20,5 @@ demucs==4.0.1
 redis==5.0.3
 streamlit-autorefresh==1.0.1
 playwright-stealth
+librosa
+pyrubberband

@@ -17,6 +17,11 @@
 **Next Steps / Unfinished Items:**
 - The pipeline is stable and highly robust. The next logical step from Phase 3 of the Roadmap is implementing support for multiple input formats beyond MIDI (e.g., MusicXML, sheet music PDFs via OMR).
 - Further enhancements could include creating a daemon mode or cron job scheduler for headless overnight processing.
+## Session Summary (1.26.0)
+- **Multi-Voice Spatial Expansion**: Replaced the primitive `pydub` frame-rate pitch-shifting trick in `tts_generator.py` with `pyrubberband` and `librosa`. This provides high-fidelity, independent pitch shifting for parallel TTS vocal tracks without altering the audio speed, significantly enhancing the "choral" harmony effect for hymns.
+- **Dependency Updates**: Added `pyrubberband` and `librosa` to `requirements.txt`. Installed `rubberband-cli` natively via `Dockerfile` and documented it in `docs/DEPLOY.md`.
+- **Documentation Overhaul**: Validated universal agent instructions and explicitly pointed model-specific files to `AGENTS.md`. Updated `ROADMAP.md`, `VISION.md`, `TODO.md`, and bumped the version in `VERSION` to 1.26.0.
+
 ## Session Summary
 - **Expanded Visualizer Options**: Addressed a key visual polish item from the roadmap. Rewrote the `video_uploader.py` logic to conditionally construct complex FFmpeg filters based on a `visualizer_mode` argument. The pipeline now supports `showwaves` variants (`cline`, `line`, `p2p`) and `avectorscope` for Lissajous curves.
 - **Streamlit & CLI Integration**: Surfaced the `--visualizer-mode` string argument to the `main.py` CLI and created an interactive `selectbox` in the Streamlit UI that dynamically appears when the `Audio-Reactive Visualizer` checkbox is toggled.
