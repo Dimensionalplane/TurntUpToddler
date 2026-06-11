@@ -20,22 +20,39 @@ class ContentGenerator:
         else:
             self.client = None
 
-    def generate_metadata(self, hymn_name, style="Deep House"):
+    def generate_metadata(self, hymn_name, style="Deep House", kids_mode=False):
         """Generate title, description, and tags using GPT-4, with offline fallback."""
         if self.client:
             try:
-                prompt = (
-                    f"Generate metadata for a YouTube video featuring a {style} remake "
-                    f"of the hymn '{hymn_name}'. Provide the following in JSON format: "
-                    f"1. title: A catchy modern title. "
-                    f"2. description: A compelling description (max 1000 chars). "
-                    f"3. tags: A list of 10 relevant tags."
-                )
-                logger.info(f"Generating metadata for '{hymn_name}' via OpenAI...")
+                if kids_mode:
+                    system_content = (
+                        "You are a creative content developer for a popular children's entertainment and "
+                        "educational YouTube channel. All content must be completely kid-friendly, educational, "
+                        "positive, and safe, strictly complying with COPPA and YouTube's policy guidelines for "
+                        "Made for Kids content. Avoid any adult concepts, commercial placements, or inappropriate "
+                        "language. Respond in valid JSON."
+                    )
+                    prompt = (
+                        f"Generate metadata for a children's YouTube video featuring a music/nursery rhyme remake "
+                        f"of the song '{hymn_name}' in the style '{style}'. Provide the following in JSON format: "
+                        f"1. title: A catchy child-friendly title. "
+                        f"2. description: A brief, educational description suitable for children and parents (max 500 chars). "
+                        f"3. tags: A list of 10 relevant children tags (e.g. kids, nursery rhyme, learning songs)."
+                    )
+                else:
+                    system_content = "You are a creative content strategist for a music channel. You must respond in valid JSON."
+                    prompt = (
+                        f"Generate metadata for a YouTube video featuring a {style} remake "
+                        f"of the hymn '{hymn_name}'. Provide the following in JSON format: "
+                        f"1. title: A catchy modern title. "
+                        f"2. description: A compelling description (max 1000 chars). "
+                        f"3. tags: A list of 10 relevant tags."
+                    )
+                logger.info(f"Generating metadata for '{hymn_name}' via OpenAI (kids_mode={kids_mode})...")
                 response = self.client.chat.completions.create(
                     model="gpt-4-turbo",
                     messages=[
-                        {"role": "system", "content": "You are a creative content strategist for a music channel. You must respond in valid JSON."},
+                        {"role": "system", "content": system_content},
                         {"role": "user", "content": prompt}
                     ],
                     response_format={"type": "json_object"}
@@ -50,23 +67,33 @@ class ContentGenerator:
                     logger.warning("OpenAI quota exceeded. Using offline fallback for metadata.")
                 else:
                     logger.warning(f"OpenAI metadata generation failed: {err_msg[:100]}. Using offline fallback.")
-        return self._offline_metadata(hymn_name, style)
+        return self._offline_metadata(hymn_name, style, kids_mode=kids_mode)
 
-    def generate_lyrics(self, hymn_name):
+    def generate_lyrics(self, hymn_name, kids_mode=False):
         """Generate synced lyrics using GPT-4, with offline fallback."""
         if self.client:
             try:
-                prompt = (
-                    f"Provide the original public domain lyrics for the hymn '{hymn_name}'. "
-                    f"Output them in a JSON array where each element has: "
-                    f"'text': The line of lyrics, 'start': start time in seconds, "
-                    f"'end': end time in seconds. First line at ~5s."
-                )
-                logger.info(f"Generating synced lyrics for '{hymn_name}' via OpenAI...")
+                if kids_mode:
+                    system_content = "You are a children's nursery rhyme lyricist. Respond in valid JSON with a 'lyrics' key containing the synced lyrics array."
+                    prompt = (
+                        f"Provide the standard lyrics for the classic children's nursery rhyme or song '{hymn_name}'. "
+                        f"Output them in a JSON array where each element has: "
+                        f"'text': The line of lyrics, 'start': start time in seconds, "
+                        f"'end': end time in seconds. First line at ~5s."
+                    )
+                else:
+                    system_content = "You are a lyric synchronization expert. Respond in valid JSON with a 'lyrics' key."
+                    prompt = (
+                        f"Provide the original public domain lyrics for the hymn '{hymn_name}'. "
+                        f"Output them in a JSON array where each element has: "
+                        f"'text': The line of lyrics, 'start': start time in seconds, "
+                        f"'end': end time in seconds. First line at ~5s."
+                    )
+                logger.info(f"Generating synced lyrics for '{hymn_name}' via OpenAI (kids_mode={kids_mode})...")
                 response = self.client.chat.completions.create(
                     model="gpt-4-turbo",
                     messages=[
-                        {"role": "system", "content": "You are a lyric synchronization expert. Respond in valid JSON with a 'lyrics' key."},
+                        {"role": "system", "content": system_content},
                         {"role": "user", "content": prompt}
                     ],
                     response_format={"type": "json_object"}
@@ -124,9 +151,23 @@ class ContentGenerator:
                     logger.warning(f"DALL-E 3 art generation failed: {err_msg[:100]}. Using offline fallback.")
         return self._offline_art(prompt, cached_image_path)
 
-    def _offline_metadata(self, hymn_name, style="Deep House"):
+    def _offline_metadata(self, hymn_name, style="Deep House", kids_mode=False):
         """Generate sensible default metadata without API calls."""
         clean_name = hymn_name.replace("_", " ").replace("-", " ").title()
+        if kids_mode:
+            return {
+                "title": f"{clean_name} - Nursery Rhyme for Kids",
+                "description": (
+                    f"A beautiful and fun nursery rhyme video of '{clean_name}'. "
+                    f"Set to happy, playful toy instruments to delight and educate small children! "
+                    f"Safe for babies, toddlers, and preschool kids. Generated by Kids Remaker AI."
+                ),
+                "tags": [
+                    "nursery rhyme", "kids music", "children songs", "baby music",
+                    "learning", "toddler videos", clean_name.lower(),
+                    "kids cartoon", "education", "fun"
+                ]
+            }
         return {
             "title": f"{clean_name} ({style} Remix)",
             "description": (

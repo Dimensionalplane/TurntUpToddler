@@ -2,7 +2,7 @@ import unittest
 import os
 import shutil
 import sys
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 # Adjust path so we can import src
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
@@ -24,26 +24,38 @@ class TestMidiRenderer(unittest.TestCase):
             shutil.rmtree(self.output_dir)
 
     @patch('hymn_remaker.src.midi_renderer.NATIVE_ENGINE_AVAILABLE', False)
-    @patch('hymn_remaker.src.midi_renderer.FluidSynth', create=True)
-    def test_render_calls_midi_to_audio(self, MockFluidSynth):
-        # Setup mock
-        mock_fs_instance = MockFluidSynth.return_value
+    @patch('hymn_remaker.src.midi_renderer.subprocess.run')
+    def test_render_calls_midi_to_audio(self, mock_subprocess):
+        # Mock subprocess to return success (code 0)
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_subprocess.return_value = mock_result
 
-        renderer = MidiRenderer()
-        output_path = os.path.join(self.output_dir, "test.wav")
+        # Mock soundfont existence and constructor setup
+        with patch('os.path.exists', return_value=True):
+            renderer = MidiRenderer(soundfont_path="dummy.sf2")
+            renderer.fluidsynth_bin = "fake_fluidsynth"
+            
+            output_path = os.path.join(self.output_dir, "test.wav")
+            # Create a mock output file since the code asserts its existence after rendering
+            with open(output_path, "w") as f:
+                f.write("dummy audio content")
 
-        renderer.render(self.midi_path, output_path)
+            renderer.render(self.midi_path, output_path)
 
-        mock_fs_instance.midi_to_audio.assert_called_once_with(self.midi_path, output_path)
+        mock_subprocess.assert_called_once()
+        cmd = mock_subprocess.call_args[0][0]
+        self.assertEqual(cmd[0], "fake_fluidsynth")
+        self.assertIn("-ni", cmd)
 
     def test_render_missing_midi(self):
-        # We don't need to patch here as it should fail before calling FluidSynth
-        # But MidiRenderer constructor calls FluidSynth so we still need to patch it or let it run (if fluidsynth installed)
-        # To be safe/fast, patch it.
-        with patch('hymn_remaker.src.midi_renderer.NATIVE_ENGINE_AVAILABLE', False), patch('hymn_remaker.src.midi_renderer.FluidSynth', create=True):
-            renderer = MidiRenderer()
-            with self.assertRaises(FileNotFoundError):
-                renderer.render("non_existent.mid", "output.wav")
+        with patch('os.path.exists', return_value=True):
+            renderer = MidiRenderer(soundfont_path="dummy.sf2")
+        
+        # We pass a non-existent path to render, which should fail on the input midi check
+        with self.assertRaises(FileNotFoundError):
+            renderer.render("non_existent_midi.mid", "output.wav")
 
 if __name__ == '__main__':
     unittest.main()
+

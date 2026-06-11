@@ -42,6 +42,7 @@ from hymn_remaker.src.musicxml_parser import MusicXMLParser
 from hymn_remaker.src.omr_processor import OMRProcessor
 from hymn_remaker.src.stem_separator import StemSeparator
 from hymn_remaker.main import process_single_midi
+from hymn_remaker.src.children_song_finder import ChildrenSongFinder
 
 st.set_page_config(page_title="Hymn Remaker UI", page_icon="🎵", layout="wide")
 st.title("🎵 Hymn Remaker Pipeline")
@@ -173,6 +174,7 @@ if suno_session:
 upload = st.sidebar.checkbox("Upload to YouTube", value=False, help="Automatically upload the finished video to YouTube (requires OAuth credentials setup).")
 
 interactive_mode = st.sidebar.checkbox("Interactive Review Mode", value=False, help="Pause the pipeline after metadata/lyrics generation to manually edit the lyrics, title, and art prompt before rendering the final audio and video.")
+kids_mode = st.sidebar.checkbox("Kids Mode 👶", value=False, help="Enable Kids Mode: auto-downloads nursery rhymes if input is empty, sets child-friendly styling/art, and enables COPPA youtube upload.")
 
 st.sidebar.markdown("---")
 if st.sidebar.button("🗑️ Clear Workspace", help="Delete all files in the input and output directories."):
@@ -204,8 +206,8 @@ with tab1:
                 })
 
     if st.session_state.get("is_processing", False):
-        if not st.session_state.get("uploaded_files_data"):
-            st.warning("Please upload at least one MIDI file.")
+        if not st.session_state.get("uploaded_files_data") and not kids_mode:
+            st.warning("Please upload at least one MIDI file or enable Kids Mode.")
             st.session_state["is_processing"] = False
         elif renderer is None:
             st.error("Pipeline modules failed to load.")
@@ -214,13 +216,30 @@ with tab1:
             os.makedirs(output_dir, exist_ok=True)
 
             saved_files = []
-            for uf_data in st.session_state["uploaded_files_data"]:
-                file_path = os.path.join(settings.INPUT_DIR, uf_data["name"])
-                with open(file_path, "wb") as f:
-                    f.write(uf_data["data"])
-                saved_files.append(file_path)
+            if st.session_state.get("uploaded_files_data"):
+                for uf_data in st.session_state["uploaded_files_data"]:
+                    file_path = os.path.join(settings.INPUT_DIR, uf_data["name"])
+                    with open(file_path, "wb") as f:
+                        f.write(uf_data["data"])
+                    saved_files.append(file_path)
+                st.success(f"Saved {len(saved_files)} files to input directory.")
 
-            st.success(f"Saved {len(saved_files)} files to input directory.")
+            if kids_mode:
+                import glob
+                existing_inputs = (
+                    glob.glob(os.path.join(settings.INPUT_DIR, "*.mid")) +
+                    glob.glob(os.path.join(settings.INPUT_DIR, "*.midi")) +
+                    glob.glob(os.path.join(settings.INPUT_DIR, "*.mxl")) +
+                    glob.glob(os.path.join(settings.INPUT_DIR, "*.xml"))
+                )
+                if not existing_inputs:
+                    st.info("Kids Mode: Downloading curated nursery rhymes...")
+                    finder = ChildrenSongFinder()
+                    downloaded = finder.download_all(settings.INPUT_DIR)
+                    st.success(f"Downloaded {len(downloaded)} children's songs.")
+                    saved_files.extend(downloaded)
+                elif not saved_files:
+                    saved_files.extend(existing_inputs)
 
             progress_bars = {}
             status_texts = {}
@@ -315,7 +334,8 @@ with tab1:
                         enable_visualizer=enable_visualizer,
                         visualizer_mode=visualizer_mode,
                         status_callback=lambda msg, prog: (status_texts[file_path].info(msg), progress_bars[file_path].progress(prog)),
-                        interactive_callback=callback
+                        interactive_callback=callback,
+                        kids_mode=kids_mode
                     )
 
                     status_texts[file_path].success(f"Completed! ✅ ({filename})")

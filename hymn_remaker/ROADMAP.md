@@ -10,3 +10,5 @@
 - [x] Webhook Discord/Slack rich embed notifications.
 - [x] Dynamic prompt generation based on MIDI Tempo parsing.
 - [x] Add submodules dashboard tracking version compatibility.
+- [x] Kids Mode pipeline (automated nursery rhyme search, COPPA youtube uploader compliance, children storybook prompting).
+

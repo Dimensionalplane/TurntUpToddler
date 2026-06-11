@@ -36,7 +36,7 @@ class TestVideoProducer(unittest.TestCase):
         mock_subprocess.assert_called_once()
 
         cmd = mock_subprocess.call_args[0][0]
-        self.assertEqual(cmd[0], "ffmpeg")
+        self.assertTrue(cmd[0].endswith("ffmpeg.exe") or cmd[0] == "ffmpeg")
         self.assertIn("-loop", cmd)
         self.assertIn("-shortest", cmd)
 

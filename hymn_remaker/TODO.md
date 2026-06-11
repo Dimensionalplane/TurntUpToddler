@@ -3,6 +3,7 @@
 - [x] Provide robust error checking on the MIDI input parsing (reject invalid midi formats).
 - [x] Add `boto3` to offload final MP4s to AWS S3.
 - [x] Add Discord Webhook notifications on successful generations/uploads.
-- [ ] Implement `status_callback` deep into `tts_generator` for per-line progress updates.
-- [ ] Add Submodules Dashboard tracking version compatibility to `app.py`.
+- [x] Implement `status_callback` deep into `tts_generator` for per-line progress updates.
+- [x] Add Submodules Dashboard tracking version compatibility to `app.py`.
+- [x] Kids Mode with COPPA compliance and automated nursery rhyme downloads.
 - [ ] Port `app.py` UI to a Next.js frontend with FastAPI backend.

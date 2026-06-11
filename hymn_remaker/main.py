@@ -22,6 +22,7 @@ from hymn_remaker.src.omr_processor import OMRProcessor
 from hymn_remaker.src.stem_separator import StemSeparator
 from hymn_remaker.src.radio_streamer import RadioStreamer
 from hymn_remaker.src.utils import process_audio
+from hymn_remaker.src.children_song_finder import ChildrenSongFinder
 
 # Load environment variables
 load_dotenv()
@@ -56,6 +57,7 @@ def main():
     parser.add_argument("--stream-rtmp", default=None, help="RTMP URL for live DJ radio streaming")
     parser.add_argument("--visualizer", action="store_true", help="Enable audio-reactive visualizer overlay")
     parser.add_argument("--visualizer-mode", default="cline", choices=["cline", "line", "p2p", "avectorscope"], help="Visualizer mode type")
+    parser.add_argument("--kids-mode", action="store_true", help="Enable Kids Mode (auto-downloads nursery rhymes if input is empty, sets kid-friendly styling, and enables COPPA youtube upload)")
     args = parser.parse_args()
 
     os.makedirs(args.output_dir, exist_ok=True)
@@ -104,7 +106,8 @@ def main():
                     video_format=args.video_format,
                     create_shorts=args.create_shorts,
                     enable_visualizer=args.visualizer,
-                    visualizer_mode=args.visualizer_mode
+                    visualizer_mode=args.visualizer_mode,
+                    kids_mode=args.kids_mode
                 ): midi_path
                 for midi_path in midi_file_list
             }
@@ -122,12 +125,30 @@ def main():
         logger.info(f"MP3 conversion complete: {converted} converted, {failed} failed")
         sys.exit(0 if failed == 0 else 1)
 
-    initial_midi_files = glob.glob(os.path.join(args.input_dir, "*.mid")) + glob.glob(os.path.join(args.input_dir, "*.mxl")) + glob.glob(os.path.join(args.input_dir, "*.xml"))
+    if args.kids_mode:
+        existing_inputs = (
+            glob.glob(os.path.join(args.input_dir, "*.mid")) +
+            glob.glob(os.path.join(args.input_dir, "*.midi")) +
+            glob.glob(os.path.join(args.input_dir, "*.mxl")) +
+            glob.glob(os.path.join(args.input_dir, "*.xml"))
+        )
+        if not existing_inputs:
+            logger.info("Kids Mode is enabled and input directory is empty. Downloading curated nursery rhymes...")
+            finder = ChildrenSongFinder()
+            downloaded = finder.download_all(args.input_dir)
+            logger.info(f"Downloaded {len(downloaded)} children's songs.")
+
+    initial_midi_files = (
+        glob.glob(os.path.join(args.input_dir, "*.mid")) +
+        glob.glob(os.path.join(args.input_dir, "*.midi")) +
+        glob.glob(os.path.join(args.input_dir, "*.mxl")) +
+        glob.glob(os.path.join(args.input_dir, "*.xml"))
+    )
     if initial_midi_files:
-        logger.info(f"Found {len(initial_midi_files)} initial MIDI files to process.")
+        logger.info(f"Found {len(initial_midi_files)} initial files to process.")
         run_pipeline(initial_midi_files)
     else:
-        logger.warning(f"No initial MIDI files found in {args.input_dir}")
+        logger.warning(f"No files found to process in {args.input_dir}")
 
     streamer = None
     if args.stream_rtmp:
@@ -203,12 +224,22 @@ def process_single_midi(
     sub_box=True,
     enable_visualizer=False,
     visualizer_mode="cline",
-    interactive_callback=None):
+    interactive_callback=None,
+    kids_mode=False):
 
     base_audio_path = remake_audio_path = metadata_path = vocal_track_path = None
     try:
         filename = os.path.basename(midi_path)
         name_no_ext = os.path.splitext(filename)[0]
+
+        if kids_mode:
+            # Enforce children's styling
+            lower_name = filename.lower()
+            if any(word in lower_name for word in ["lullaby", "sleep", "bedtime", "night", "soothing"]):
+                style = "lullaby, bedtime music, soft harp, toy piano, calming, peaceful, sleep music, high quality"
+            else:
+                style = "nursery rhyme, playful, happy, glockenspiel, toy piano, acoustic guitar, kids music, upbeat, high quality"
+            logger.info(f"Kids Mode active. Auto-selected style preset: {style}")
 
         def update_status(msg, progress):
             logger.info(msg)
@@ -334,7 +365,12 @@ def process_single_midi(
             with open(metadata_path, "r") as f:
                 metadata = json.load(f)
             lyrics = metadata.get("lyrics", [])
-            art_prompt = metadata.get("art_prompt", f"Abstract album art for {metadata.get('title', name_no_ext)}, {style} style, high quality, 4k")
+            default_art_prompt = (
+                f"Cute cartoon illustration for children, vibrant colors, child-friendly storybook style, no text, high-quality vector art, depicting: {metadata.get('title', name_no_ext)}"
+                if kids_mode else
+                f"Abstract album art for {metadata.get('title', name_no_ext)}, {style} style, high quality, 4k"
+            )
+            art_prompt = metadata.get("art_prompt", default_art_prompt)
             if interactive_callback:
                 update_status(f"Pausing for interactive review...", 76)
                 edited_data = interactive_callback({
@@ -354,9 +390,9 @@ def process_single_midi(
         else:
             # First time generation
             if pre_extracted_metadata and pre_extracted_metadata.get("title"):
-                metadata = content_gen.generate_metadata(pre_extracted_metadata["title"], style=style)
+                metadata = content_gen.generate_metadata(pre_extracted_metadata["title"], style=style, kids_mode=kids_mode)
             else:
-                metadata = content_gen.generate_metadata(name_no_ext, style=style)
+                metadata = content_gen.generate_metadata(name_no_ext, style=style, kids_mode=kids_mode)
 
             extracted_lyrics = pre_extracted_metadata.get("lyrics") if pre_extracted_metadata else None
             if extracted_lyrics and isinstance(extracted_lyrics, list) and len(extracted_lyrics) > 0 and "start" in extracted_lyrics[0]:
@@ -365,9 +401,13 @@ def process_single_midi(
             else:
                 update_status("Generating AI lyrics and timings via OpenAI...", 75)
                 title_context = metadata.get("title") or name_no_ext
-                lyrics = content_gen.generate_lyrics(title_context)
+                lyrics = content_gen.generate_lyrics(title_context, kids_mode=kids_mode)
 
-            art_prompt = f"Abstract album art for {metadata.get('title', name_no_ext)}, {style} style, high quality, 4k"
+            art_prompt = (
+                f"Cute cartoon illustration for children, vibrant colors, child-friendly storybook style, no text, high-quality vector art, depicting: {metadata.get('title', name_no_ext)}"
+                if kids_mode else
+                f"Abstract album art for {metadata.get('title', name_no_ext)}, {style} style, high quality, 4k"
+            )
 
             with open(metadata_path, "w") as f:
                 metadata["lyrics"] = lyrics
@@ -453,7 +493,7 @@ def process_single_midi(
             def upload_progress_cb(pct):
                 scaled_pct = int(95 + (pct * 0.05))
                 update_status(f"Uploading {filename} to YouTube... {pct}%", scaled_pct)
-            video_id = video_producer.upload_to_youtube(video_path, metadata, progress_callback=upload_progress_cb)
+            video_id = video_producer.upload_to_youtube(video_path, metadata, progress_callback=upload_progress_cb, kids_mode=kids_mode)
             update_status(f"Video uploaded: https://youtu.be/{video_id}", 100)
         else:
             update_status(f"Finished processing {filename}", 100)

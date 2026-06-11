@@ -284,7 +284,7 @@ class VideoProducer:
             logger.error(f"FFmpeg shorts extraction failed: {error_msg}")
             raise e
 
-    def upload_to_youtube(self, video_path, metadata, progress_callback=None):
+    def upload_to_youtube(self, video_path, metadata, progress_callback=None, kids_mode=False):
         """
         Upload the video to YouTube.
 
@@ -292,11 +292,12 @@ class VideoProducer:
             video_path (str): Path to the video file.
             metadata (dict): Metadata dictionary (title, description, tags).
             progress_callback (callable): Optional callback function for upload progress (takes integer 0-100).
+            kids_mode (bool): If True, declare the video is Made for Kids (COPPA).
 
         Returns:
             str: ID of the uploaded video.
         """
-        logger.info(f"Uploading {video_path} to YouTube...")
+        logger.info(f"Uploading {video_path} to YouTube (kids_mode={kids_mode})...")
 
         if not self.youtube:
             self.youtube = self._get_authenticated_service()
@@ -309,7 +310,8 @@ class VideoProducer:
                 "categoryId": "10" # Music
             },
             "status": {
-                "privacyStatus": "private" # Default to private for safety
+                "privacyStatus": "private", # Default to private for safety
+                "selfDeclaredMadeForKids": kids_mode
             }
         }
 

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.0] - 2026-06-11
+### Added
+- **Kids Mode & COPPA Compliance**: Introduced a kids-centric automated pipeline to safely transform nursery rhymes into Youtube videos for small children.
+- **Nursery Rhyme Auto-Downloader**: Added `children_song_finder.py` to automatically download verified public domain nursery rhyme MIDI files if the input directory is empty.
+- **COPPA Status Declaration**: Updated the YouTube uploader to support kids mode and inject `"selfDeclaredMadeForKids": True` into the video upload status payload.
+- **Kid-Friendly LLM Content Generation**: Tailored GPT and DALL-E prompts to enforce positive, educational, safe storytelling metadata, and storybook vector art style.
+
 ## [1.5.0] - 2024-05-22
 ### Added
 - **System Dashboard Tab**: Added a third tab to the Streamlit UI called "⚙️ System Dashboard". It queries the OS to track versions of `ffmpeg`, `fluidsynth`, Python dependencies in `requirements.txt`, and displays a project directory map. This is incredibly useful for users deploying via Docker to ensure their system binaries are correctly hooked up.
