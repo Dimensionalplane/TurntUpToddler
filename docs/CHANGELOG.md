@@ -2,7 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.26.0] - Current
+## [1.26.1] - Current
+### Changed
+- **Submodule Renaming**: Renamed the submodule directory and all internal/external configurations from `hymnmania` to `TUT` to match the new naming scheme.
+- **Branch Merging**: Fast-forwarded and merged all development branches (including `origin/master`) into the `main` branch.
+- **Reference Updates**: Renamed all instances of `hymnmania` in docs and inventory manifests to `TUT`.
+
+## [1.26.0] - 2026-05-20
 ### Added
 - **Multi-Voice Spatial Expansion via PyRubberband**: Upgraded the ElevenLabs choral harmony algorithm. By replacing crude framerate shifting with high-fidelity `pyrubberband` pitch-shifting, parallel vocal tracks are now perfectly pitch-shifted (+4 and +7 semitones) without altering their temporal duration. This results in significantly clearer, crisper multi-part harmonies.
 

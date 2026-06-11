@@ -39,8 +39,8 @@ brew install ffmpeg fluidsynth rubberband
 ## Local Python Environment Setup
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/robertpelloni/hymnmania.git
-   cd hymnmania
+   git clone https://github.com/robertpelloni/TUT.git
+   cd TUT
    ```
 2. **Create a virtual environment (Recommended):**
    ```bash

@@ -1,22 +1,23 @@
 # Handoff Document
 
-**Date:** 2026-05-20
-**Version:** 1.26.0
+**Date:** 2026-06-11
+**Version:** 1.26.1
 **Current State:**
 - The repository documentation structure (`ROADMAP`, `VISION`, `TODO`, `CHANGELOG`, Omni-Workspace Agent guidelines) is 100% complete and populated.
 - Global version tracking is active and dynamically rendered in the Streamlit UI.
-- All "High Priority" and "Medium Priority" TODO items have been implemented, including:
-  - Exposing ElevenLabs `voice_id` and `model` configuration to the UI/CLI.
-  - Adding DALL-E 3 local image caching.
-  - Implementing robust FFmpeg subtitle sanitization and retries.
-  - Mapping YouTube upload chunk progress directly into the Streamlit UI.
-- All "Low Priority" items have been implemented, including:
-  - Unit tests specifically mocking the ElevenLabs API parameter assignments.
-  - Aggressive file cleanup in `process_single_midi` on step failures.
+- All instances of `hymnmania` have been renamed to `TUT` in the code, docs, and git configurations.
+- Submodule branches (including `origin/master`) have been successfully merged.
 
 **Next Steps / Unfinished Items:**
 - The pipeline is stable and highly robust. The next logical step from Phase 3 of the Roadmap is implementing support for multiple input formats beyond MIDI (e.g., MusicXML, sheet music PDFs via OMR).
 - Further enhancements could include creating a daemon mode or cron job scheduler for headless overnight processing.
+
+## Session Summary (1.26.1)
+- **Submodule Renaming & Git Internals Aligning**: Renamed the submodule directory and all internal/external configurations from `hymnmania` to `TUT` to match the filesystem. Updated parent repo configurations (`.gitmodules` and `.git/config`), submodule config files, and internal gitdir pointers.
+- **Git Merging**: Fast-forwarded and merged all development branches (including `origin/master`) into the `main` branch.
+- **Reference Updates**: Renamed all instances of `hymnmania` in docs (`DEPLOY.md`, `PROJECT_STRUCTURE.md`) and manifests (`SUBMODULE_INVENTORY.md`) to `TUT`.
+- **Version Bump**: Bumped global version to `1.26.1`.
+
 ## Session Summary (1.26.0)
 - **Multi-Voice Spatial Expansion**: Replaced the primitive `pydub` frame-rate pitch-shifting trick in `tts_generator.py` with `pyrubberband` and `librosa`. This provides high-fidelity, independent pitch shifting for parallel TTS vocal tracks without altering the audio speed, significantly enhancing the "choral" harmony effect for hymns.
 - **Dependency Updates**: Added `pyrubberband` and `librosa` to `requirements.txt`. Installed `rubberband-cli` natively via `Dockerfile` and documented it in `docs/DEPLOY.md`.

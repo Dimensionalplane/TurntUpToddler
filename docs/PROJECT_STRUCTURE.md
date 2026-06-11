@@ -34,7 +34,7 @@ This document provides a comprehensive overview of the Hymn Remaker directory la
 ## Directory Layout
 
 ```text
-hymnmania/
+TUT/
 ├── VERSION                     # Global version source of truth (e.g., 1.15.0).
 ├── Makefile                    # Build script for the native C++ HymnPlayer engine.
 ├── Dockerfile                  # Multi-stage container build targeting Pybind11.
