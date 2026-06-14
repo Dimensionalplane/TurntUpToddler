@@ -60,6 +60,10 @@ This document outlines the high-level trajectory of the Hymn Remaker project, tr
 - [x] **Live DJ Mode / Infinite Radio:** Build a continuously running background thread (`src/radio_streamer.py`) that dynamically queues, shuffles, and streams the `.mp4` video output folder to a live RTMP endpoint (e.g., YouTube Live) operating as a 24/7 internet radio station.
 - [x] **Advanced Subtitle Parsing:** Extract the exact, note-by-note synchronization arrays natively from `.mxl` files (via `music21`), concatenating syllables (`begin`, `middle`, `end`) and timing durations to completely bypass GPT timing hallucinations, mapping exact `.srt` files directly to the sheet music.
 
-## Phase 6: Cloud Native Polish & App Ecosystem (Current Focus)
+## Phase 6: Cloud Native Polish & App Ecosystem (Completed)
 - [x] **Interactive Radio Controls:** Expose the `RadioStreamer` background thread to the Streamlit UI's sidebar, allowing users to start broadcasts, view the current playing song, and manually "Skip Track" or "Kill Stream" via robust Python `Event` flags.
-- [ ] **Distroless/Alpine Docker Image:** The massive dependencies of PyTorch (`demucs`), OpenCV, and ONNX Runtime (`oemer`) bloat the `hymn_remaker:latest` container. A multi-stage Docker build separating the AI inference models from the Streamlit UI web container will drastically cut deployment size.
+- [x] **Distroless/Alpine Docker Image:** The massive dependencies of PyTorch (`demucs`), OpenCV, and ONNX Runtime (`oemer`) bloat the `hymn_remaker:latest` container. A multi-stage Docker build separating the AI inference models from the Streamlit UI web container will drastically cut deployment size.
+
+## Phase 7: Web Modernization & Distributed Scaling
+- [ ] **FastAPI/Next.js Architecture:** Decompose the monolith into a FastAPI backend and a Next.js frontend to support concurrent users and better state management.
+- [ ] **Kubernetes Orchestration:** Deploy the pipeline as a series of distributed K8s Jobs for massive horizontal scaling of audio/video rendering.

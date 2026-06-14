@@ -2,11 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.26.1] - Current
-### Changed
-- **Submodule Renaming**: Renamed the submodule directory and all internal/external configurations from `hymnmania` to `TUT` to match the new naming scheme.
-- **Branch Merging**: Fast-forwarded and merged all development branches (including `origin/master`) into the `main` branch.
-- **Reference Updates**: Renamed all instances of `hymnmania` in docs and inventory manifests to `TUT`.
+## [1.27.0] - 2026-06-14
+### Added
+- **Multi-Stage Docker Optimization**: Refactored `Dockerfile` to implement an optimized multi-stage build, separating heavy ML dependencies (PyTorch, oemer, demucs) from the lightweight runtime stage.
+- **Repository Consolidation**: Merged multiple outstanding feature branches (`feat/comprehensive-docs-and-tts-params`, `feature/web-ui-and-parallelization`) into the main branch to unify the codebase.
+
+## [1.26.2] - 2026-06-11
+### Added
+- **Kids Mode**: Implemented a dedicated Kids Mode pipeline with automated nursery rhyme downloads, child-friendly styling, and YouTube COPPA compliance.
 
 ## [1.26.0] - 2026-05-20
 ### Added
