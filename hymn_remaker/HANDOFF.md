@@ -1,39 +1,25 @@
-# HANDOFF.md: Project Architecture, History, and Next Steps
-**Version:** 1.6.0
-**Date:** 2026-06-11
+# HANDOFF - HYMN REMAKER (v1.40.0)
 
-## Overview & State
-The `hymn_remaker` project is an incredibly robust, automated AI pipeline for transforming public domain `.mid` files into modern, YouTube-ready music videos. It features parallel processing, Web UI, dynamic audio processing, and professional AI integrations (OpenAI, Replicate, ElevenLabs).
+## Session Summary
+Successfully implemented **Dynamic AI Video Overlays** and synchronized the project documentation for the microservices transition.
 
-The codebase is highly functional, 100% stable, strictly typed, and completely modular.
+## Key Changes
+1.  **Video Background Support:** Updated `VideoProducer.create_video` to detect `.mp4`, `.mov`, etc., and use `-stream_loop -1` in FFmpeg.
+2.  **Pipeline Integration:** Modified `process_single_midi` in `main.py` to generate video prompts and handle dynamic background URLs.
+3.  **Interactive Review Expansion:** Added `video_prompt` to the Redis-based review loop and the Next.js `ReviewModal`.
+4.  **UI Updates:** Added a toggle for "Dynamic AI Video Overlay" in `GenerateForm.js`.
+5.  **Documentation Sync:** All `.md` files in root, `hymn_remaker/`, and `docs/` are updated to v1.40.0.
 
-## Core Features Implemented
-1. **Web UI (`app.py`)**: Built with Streamlit (`port 8501`). Features two main tabs:
-   - **Generate**: Handles multiple `.mid` file uploads. Validates the `MThd` MIDI byte signature instantly. Exposes sliders for Concurrency limits, Dropdowns for Style Presets, an expander for Audio Fading/Normalization, a checkbox to generate ElevenLabs Vocals, and a checkbox to use a dynamic FFmpeg visualizer over static DALL-E art. Also supports "Kids Mode" to download nursery rhymes automatically and configure COPPA compliance.
-   - **Gallery & History**: Reads from a local `sqlite3` database (`history.db`) to display, play, and provide download links for previously generated MP4s, WAVs, and JSON metadata.
-2. **Parallel Pipeline (`main.py`)**: Uses `concurrent.futures.ThreadPoolExecutor` (capped at 4 workers to prevent API rate limits). It securely passes the `streamlit.runtime.scriptrunner.add_script_run_ctx` down to the threads so progress updates stream back to the UI in real-time.
-3. **Audio Mixing (`src/utils.py`)**: Uses `pydub`. It applies automatic `0dBFS` normalization, fades, and crucially: when mixing synthesized vocals with the instrumental track, it **ducks the instrumental by -3dB and boosts the vocals by +2dB**. This creates headroom and prevents digital clipping, ensuring clear lyrics.
-4. **Dynamic AI Prompting (`src/midi_analyzer.py` & `src/content_generator.py`)**: The pipeline reads the `.mid` file byte-signature using `mido` to extract BPM and Time Signature. It passes this to GPT-4 to act as an expert music producer, creating a 250-character expert prompt for Replicate, rather than just using a generic word like "Deep House".
-5. **AI Subtitles & Vocals (`src/content_generator.py` & `src/tts_generator.py`)**: OpenAI (GPT-4) generates estimated timestamps and lyrical lines. This is saved as a `.srt` file. `ElevenLabs` generates the raw vocal audio based on these lines, which are stitched together across a single timeline.
-6. **Video Encoding (`src/video_uploader.py`)**: Uses `ffmpeg`. It can either loop a static image downloaded from DALL-E 3, or run a complex `showwaves` visualizer. It securely burns the `.srt` subtitles into the final video. If subtitle burning fails (e.g., font/special char issues), a `try/except` block catches the `ffmpeg` error and attempts to generate the video *without* subtitles to ensure the pipeline doesn't crash entirely.
-7. **Cloud Architecture (`src/s3_uploader.py` & `src/webhook_notifier.py`)**: Features native AWS S3 integration via `boto3`. Generated media is uploaded with `public-read` access. Upon completion, a Discord Webhook is triggered featuring a rich embed of the downloaded URLs and MusicGen prompt parameters.
-8. **Kids Mode & COPPA Compliance (`src/children_song_finder.py`, `src/content_generator.py`, `src/video_uploader.py`)**: When activated, automatically populates empty workspace inputs with curated public domain nursery rhymes. Enhances LLM prompt constraints to ensure content is safe, positive, and educational. Generates child-friendly storybook illustrations via DALL-E. Explicitly sets `selfDeclaredMadeForKids: True` in the YouTube upload metadata, conforming to COPPA policies.
+## Infrastructure Notes
+- **Redis:** Used for both telemetry and the blocking approval flag.
+- **RabbitMQ:** Workers are configured to handle the new `use_dynamic_video` boolean.
+- **FFmpeg:** Ensure the environment has a recent version for `-stream_loop` support.
 
-## Database Schema (`src/db.py`)
-A local `history.db` SQLite database is maintained.
-- `history` Table: `id` (PK), `hymn_name` (TEXT), `style` (TEXT), `video_path` (TEXT), `audio_path` (TEXT), `metadata_path` (TEXT), `remote_video_url` (TEXT), `remote_audio_url` (TEXT), `date_created` (TIMESTAMP).
+## Known Issues / Bypasses
+- **Frontend Verification:** Playwright was bypassed due to dev-server startup timeouts in the sandbox. UI wiring was manually verified against `index.js`, `GenerateForm.js`, and `ReviewModal.js`.
+- **Suno AI Fallback:** The pipeline successfully falls back to Replicate or local rendering if Suno credits are missing.
 
-## Agent Design Rules & Observations
-- **Do not alter `max_workers=min(4, len(midi_files))`** in `main.py` without considering API rate limits (HTTP 429).
-- **Do not alter `audio = audio - 3`** inside `utils.py` without considering digital clipping when layering heavy bass instrumentals with vocals.
-- **Always update `VERSION.md` and `CHANGELOG.md`** when adding new features.
-- **Run `python -m pytest hymn_remaker/tests/`** before submitting. Tests use `pytest-mock` to avoid burning real API credits during CI/CD.
-
-## Next Steps for Incoming Model (Gemini/Claude/GPT)
-Based on the `ROADMAP.md` and `IDEAS.md`, the pipeline is extremely robust and fully loaded with Cloud integration, Database management, and Dynamic AI prompting.
-
-The next recommended frontier is:
-1. **Frontend Refactoring:** Porting `app.py` away from Streamlit into a Next.js / React application, while exposing the python logic through a `FastAPI` backend.
-2. **Suno.ai / Udio TTS Integration:** Attempting to pivot from ElevenLabs (spoken word/choral TTS) into true generated "singing" by exploring unofficial/official APIs for Suno.ai or Udio.
-
-Godspeed. The party never stops.
+## Resumption Instructions
+Next steps should focus on:
+- Testing the Sora/Runway API hooks once they are fully production-ready.
+- Implementing real-time progress bars in the Next.js UI using the new Redis telemetry endpoints.
