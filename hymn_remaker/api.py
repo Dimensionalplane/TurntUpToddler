@@ -18,7 +18,7 @@ from hymn_remaker.src.stem_separator import StemSeparator
 logger = logging.getLogger("HymnRemakerAPI")
 logging.basicConfig(level=logging.INFO)
 
-app = FastAPI(title="Hymn Remaker API", version="1.26.0")
+app = FastAPI(title="Hymn Remaker API", version="1.27.0")
 
 # Ensure directories and DB exist
 os.makedirs("hymn_remaker/input", exist_ok=True)
@@ -54,6 +54,13 @@ async def generate_hymn(
     file: UploadFile = File(...),
     style: str = Form("Deep House, high quality, electronic"),
     generate_vocals: bool = Form(False),
+    voice_id: str = Form(""),
+    model: str = Form("eleven_multilingual_v2"),
+    video_format: str = Form("Standard 16:9"),
+    create_shorts: bool = Form(False),
+    enable_visualizer: bool = Form(False),
+    visualizer_mode: str = Form("cline"),
+    kids_mode: bool = Form(False),
     normalize_audio: bool = Form(True),
     fade_in_ms: int = Form(0),
     fade_out_ms: int = Form(0),
@@ -95,6 +102,13 @@ async def generate_hymn(
         fade_in_ms=fade_in_ms,
         fade_out_ms=fade_out_ms,
         generate_vocals=generate_vocals,
+        voice_id=voice_id,
+        model=model,
+        video_format=video_format,
+        create_shorts=create_shorts,
+        enable_visualizer=enable_visualizer,
+        visualizer_mode=visualizer_mode,
+        kids_mode=kids_mode,
         status_callback=lambda msg, prog: logger.info(f"Background Progress [{prog}%]: {msg}")
     )
 
@@ -104,6 +118,13 @@ async def generate_hymn(
         "configuration": {
             "style": style,
             "generate_vocals": generate_vocals,
+            "voice_id": voice_id,
+            "model": model,
+            "video_format": video_format,
+            "create_shorts": create_shorts,
+            "enable_visualizer": enable_visualizer,
+            "visualizer_mode": visualizer_mode,
+            "kids_mode": kids_mode
         }
     })
 
