@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import uuid
 from fastapi import FastAPI, File, UploadFile, Form, BackgroundTasks, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -66,8 +67,6 @@ def get_modules():
             raise HTTPException(status_code=500, detail="Failed to initialize AI modules. Check API keys.")
     return _modules
 
-
-import uuid
 
 @app.post("/api/v1/generate")
 async def generate_hymn(

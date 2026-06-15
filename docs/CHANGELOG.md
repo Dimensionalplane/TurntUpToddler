@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.34.0] - 2026-06-14
+### Added
+- **Kubernetes Ingress Support**: Defined Ingress resources to unify routing for the Next.js frontend and FastAPI backend.
+- **Robust Job Polling**: Upgraded the frontend to track multiple concurrent background jobs with individual polling cycles and visual status indicators.
+- **UI UX Enhancements**: Added color-coded status badges and detailed job cards for a better production experience.
+
 ## [1.33.0] - 2026-06-14
 ### Added
 - **Kubernetes Orchestration**: Implemented a complete suite of Kubernetes manifests for scaling the distributed architecture (API, Frontend, Render Workers, Redis, RabbitMQ).

@@ -12,6 +12,43 @@ export default function Home() {
   const [error, setError] = useState(null);
   const [activeJobs, setActiveJobs] = useState([]);
 
+  const pollJobStatus = async (jobId) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/jobs/${jobId}`);
+      const status = response.data.status;
+
+      setActiveJobs(prev => prev.map(job =>
+        job.id === jobId ? { ...job, status } : job
+      ));
+
+      if (status === 'completed' || status === 'failed') {
+        fetchHistory();
+        return true; // Stop polling
+      }
+      return false;
+    } catch (err) {
+      console.error(`Failed to poll job ${jobId}:`, err);
+      return true; // Stop polling on error
+    }
+  };
+
+  useEffect(() => {
+    const pollingIntervals = {};
+
+    activeJobs.forEach(job => {
+      if (job.status !== 'completed' && job.status !== 'failed' && !pollingIntervals[job.id]) {
+        pollingIntervals[job.id] = setInterval(async () => {
+          const shouldStop = await pollJobStatus(job.id);
+          if (shouldStop) clearInterval(pollingIntervals[job.id]);
+        }, 3000);
+      }
+    });
+
+    return () => {
+      Object.values(pollingIntervals).forEach(clearInterval);
+    };
+  }, [activeJobs]);
+
   const fetchHistory = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/history`);
@@ -49,12 +86,35 @@ export default function Home() {
 
       {activeJobs.length > 0 && (
         <section style={{ marginBottom: '2rem' }}>
-          <h2>Active Jobs</h2>
-          {activeJobs.map(job => (
-            <div key={job.id} style={{ background: '#f0f7ff', padding: '1rem', borderRadius: '8px', marginBottom: '0.5rem' }}>
-              <strong>Job ID:</strong> {job.id} | <strong>Status:</strong> {job.status}
-            </div>
-          ))}
+          <h2>Background Tasks</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {activeJobs.map(job => (
+              <div key={job.id} style={{
+                background: job.status === 'completed' ? '#f6fff6' : (job.status === 'failed' ? '#fff6f6' : '#f0f7ff'),
+                padding: '1rem',
+                borderRadius: '8px',
+                border: '1px solid #eee',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <div>
+                  <strong>Job ID:</strong> <code style={{ fontSize: '0.8rem' }}>{job.id}</code>
+                </div>
+                <div style={{
+                  textTransform: 'uppercase',
+                  fontSize: '0.75rem',
+                  fontWeight: 'bold',
+                  padding: '0.2rem 0.6rem',
+                  borderRadius: '10px',
+                  background: job.status === 'completed' ? '#d4edda' : (job.status === 'failed' ? '#f8d7da' : '#cce5ff'),
+                  color: job.status === 'completed' ? '#155724' : (job.status === 'failed' ? '#721c24' : '#004085')
+                }}>
+                  {job.status}
+                </div>
+              </div>
+            ))}
+          </div>
         </section>
       )}
 
