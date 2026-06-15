@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: radio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: radio
+  template:
+    metadata:
+      labels:
+        app: radio
+    spec:
+      containers:
+      - name: radio
+        image: hymn-remaker-radio:latest
+        env:
+        - name: REDIS_HOST
+          value: "redis"
+        volumeMounts:
+        - name: output-storage
+          mountPath: /app/hymn_remaker/output
+      volumes:
+      - name: output-storage
+        persistentVolumeClaim:
+          claimName: output-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: radio
+spec:
+  selector:
+    app: radio
+  ports:
+  - port: 1935
+    targetPort: 1935

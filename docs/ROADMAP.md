@@ -68,6 +68,7 @@ This document outlines the high-level trajectory of the Hymn Remaker project, tr
 - [x] **FastAPI/Next.js Architecture:** Decompose the monolith into a FastAPI backend and a Next.js frontend to support concurrent users and better state management.
 - [x] **Hymn Editor Web Migration:** Ported Native Audio Preview and Metadata Extraction tools to the distributed web stack.
 - [x] **Live Radio Web Controls:** Migrated RTMP broadcasting controls to the unified web dashboard.
+- [x] **Radio Microservice Migration:** Fully decoupled the radio streamer into a standalone distributed service controlled via Redis.
 - [x] **Functional Render Cluster:** Refactored the headless worker to support actual audio/video generation via RabbitMQ.
 - [x] **Kubernetes Orchestration:** Implemented standard K8s manifests and Kustomize overlays for automated cloud deployment and horizontal scaling.
 

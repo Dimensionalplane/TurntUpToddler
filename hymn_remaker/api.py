@@ -26,7 +26,7 @@ from hymn_remaker.src.radio_streamer import RadioStreamer
 logger = logging.getLogger("HymnRemakerAPI")
 logging.basicConfig(level=logging.INFO)
 
-app = FastAPI(title="Hymn Remaker API", version="1.33.0")
+app = FastAPI(title="Hymn Remaker API", version="1.35.0")
 
 # Add CORS middleware to allow requests from the Next.js frontend
 app.add_middleware(
@@ -41,9 +41,6 @@ app.add_middleware(
 os.makedirs("hymn_remaker/input", exist_ok=True)
 os.makedirs("hymn_remaker/output", exist_ok=True)
 init_db()
-
-# Global radio streamer instance
-radio_streamer = None
 
 # Lazy load modules to prevent initialization errors on startup if keys are missing
 _modules = None
@@ -141,8 +138,27 @@ async def generate_hymn(
     except Exception as e:
         logger.error(f"Failed to queue job to RabbitMQ: {e}")
         # Fallback to local background task if cluster is down
+        # Update Redis to processing since it's immediate
+        try:
+            r = redis_lib.Redis(host=redis_host, port=6379, db=0)
+            r.set(f"job:{job_id}:status", "processing")
+        except: pass
+
+        def local_task_wrapper(*args, **kwargs):
+            try:
+                process_single_midi(*args, **kwargs)
+                try:
+                    r_local = redis_lib.Redis(host=redis_host, port=6379, db=0)
+                    r_local.set(f"job:{job_id}:status", "completed")
+                except: pass
+            except:
+                try:
+                    r_local = redis_lib.Redis(host=redis_host, port=6379, db=0)
+                    r_local.set(f"job:{job_id}:status", "failed")
+                except: pass
+
         background_tasks.add_task(
-            process_single_midi,
+            local_task_wrapper,
             midi_path=file_path,
             output_dir="hymn_remaker/output",
             style=style,
@@ -151,6 +167,8 @@ async def generate_hymn(
             upload=False,
             renderer=mods["renderer"],
             remaker=mods["remaker"],
+            suno_remaker=mods.get("suno_remaker"),
+            remake_priority="suno",
             content_gen=mods["content_gen"],
             video_producer=mods["video_producer"],
             mxl_parser=mods["mxl_parser"],
@@ -300,58 +318,67 @@ async def radio_start(
     input_dir: str = Form("hymn_remaker/output")
 ):
     """
-    Start the live RTMP radio broadcast.
+    Start the live RTMP radio broadcast via distributed signal.
     """
-    global radio_streamer
-    if radio_streamer and radio_streamer.is_streaming:
-        raise HTTPException(status_code=400, detail="Radio is already streaming.")
-
     try:
-        radio_streamer = RadioStreamer(stream_url, input_dir=input_dir)
-        radio_streamer.start()
-        return {"status": "success", "message": "Radio broadcast started."}
+        redis_host = os.environ.get("REDIS_HOST", "localhost")
+        r = redis_lib.Redis(host=redis_host, port=6379, db=0)
+        r.publish('radio_commands', json.dumps({
+            "command": "START",
+            "stream_url": stream_url,
+            "input_dir": input_dir
+        }))
+        return {"status": "success", "message": "Radio start command published."}
     except Exception as e:
-        logger.error(f"Failed to start radio: {e}")
+        logger.error(f"Failed to publish radio start: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/api/v1/radio/stop")
 async def radio_stop():
     """
-    Stop the live RTMP radio broadcast.
+    Stop the live RTMP radio broadcast via distributed signal.
     """
-    global radio_streamer
-    if radio_streamer:
-        radio_streamer.stop()
-        radio_streamer = None
-        return {"status": "success", "message": "Radio broadcast stopped."}
-    return {"status": "info", "message": "Radio was not running."}
+    try:
+        redis_host = os.environ.get("REDIS_HOST", "localhost")
+        r = redis_lib.Redis(host=redis_host, port=6379, db=0)
+        r.publish('radio_commands', json.dumps({"command": "STOP"}))
+        return {"status": "success", "message": "Radio stop command published."}
+    except Exception as e:
+        logger.error(f"Failed to publish radio stop: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/api/v1/radio/skip")
 async def radio_skip():
     """
-    Skip the current track in the radio broadcast.
+    Skip the current track in the radio broadcast via distributed signal.
     """
-    global radio_streamer
-    if radio_streamer and radio_streamer.is_streaming:
-        radio_streamer.skip_track()
-        return {"status": "success", "message": "Skipping current track."}
-    raise HTTPException(status_code=400, detail="Radio is not streaming.")
+    try:
+        redis_host = os.environ.get("REDIS_HOST", "localhost")
+        r = redis_lib.Redis(host=redis_host, port=6379, db=0)
+        r.publish('radio_commands', json.dumps({"command": "SKIP"}))
+        return {"status": "success", "message": "Radio skip command published."}
+    except Exception as e:
+        logger.error(f"Failed to publish radio skip: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/api/v1/radio/status")
 async def radio_status():
     """
-    Retrieve the current status and track of the radio broadcast.
+    Retrieve the current status of the radio broadcast from shared Redis state.
     """
-    global radio_streamer
-    if radio_streamer:
-        return {
-            "is_streaming": radio_streamer.is_streaming,
-            "current_track": radio_streamer.current_track
-        }
-    return {"is_streaming": False, "current_track": None}
+    try:
+        redis_host = os.environ.get("REDIS_HOST", "localhost")
+        r = redis_lib.Redis(host=redis_host, port=6379, db=0)
+        status_raw = r.get('radio:status')
+        if status_raw:
+            return json.loads(status_raw)
+        return {"is_streaming": False, "current_track": None}
+    except Exception as e:
+        logger.error(f"Failed to fetch radio status: {e}")
+        return {"is_streaming": False, "current_track": None, "error": str(e)}
 
 
 @app.get("/api/v1/jobs/{job_id}")

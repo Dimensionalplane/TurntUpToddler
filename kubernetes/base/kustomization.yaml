@@ -9,3 +9,4 @@ resources:
   - worker.yaml
   - frontend.yaml
   - ingress.yaml
+  - radio.yaml

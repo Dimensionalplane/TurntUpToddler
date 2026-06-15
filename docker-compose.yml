@@ -52,6 +52,19 @@ services:
       - ./.cache:/app/.cache
     restart: unless-stopped
 
+  radio:
+    build:
+      context: .
+      dockerfile: services/radio/Dockerfile
+    container_name: hymn_remaker_radio
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+    volumes:
+      - ./hymn_remaker/output:/app/hymn_remaker/output
+    restart: unless-stopped
+
   frontend:
     build:
       context: ./frontend

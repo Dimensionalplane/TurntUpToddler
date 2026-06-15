@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.35.0] - 2026-06-14
+### Added
+- **Standalone Radio Microservice**: Decomposed the live RTMP radio streamer into a dedicated microservice (`services/radio/`) for better scalability and resource isolation.
+- **Distributed Control Architecture**: Implemented a Redis Pub/Sub command system to manage the radio broadcast from the API/Frontend independently of the execution pod.
+- **Radio Containerization**: Created optimized Docker and Kubernetes manifests for the radio service, including persistent storage integration for audio/video assets.
+
 ## [1.34.0] - 2026-06-14
 ### Added
 - **Kubernetes Ingress Support**: Defined Ingress resources to unify routing for the Next.js frontend and FastAPI backend.
