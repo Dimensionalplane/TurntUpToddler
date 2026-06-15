@@ -82,10 +82,23 @@ class VideoProducer:
 
         import uuid
         unique_id = uuid.uuid4().hex
-        temp_image_path = f"temp_art_{unique_id}.png"
+
+        # Determine the extension for the temporary background file
+        ext = ".png"
+        if image_url.startswith(('http://', 'https://')):
+            # Basic attempt to get extension from URL
+            from urllib.parse import urlparse
+            path = urlparse(image_url).path
+            if any(path.lower().endswith(e) for e in ('.mp4', '.mov', '.avi', '.mkv', '.jpg', '.jpeg', '.png', '.webp')):
+                ext = os.path.splitext(path)[1]
+        else:
+            ext = os.path.splitext(image_url)[1] or ".png"
+
+        temp_image_path = f"temp_art_{unique_id}{ext}"
         temp_srt_path = f"{output_path}.srt"
-        # 1. Download the image to a temporary file, or copy if local
+        # 1. Download the image/video to a temporary file, or copy if local
         try:
+            is_video_bg = False
             if image_url.startswith('http://') or image_url.startswith('https://'):
                 response = requests.get(image_url)
                 response.raise_for_status()
@@ -94,22 +107,27 @@ class VideoProducer:
             else:
                 # Assume it's a local file path
                 if not os.path.exists(image_url):
-                    raise FileNotFoundError(f"Local image file not found: {image_url}")
+                    raise FileNotFoundError(f"Local image/video file not found: {image_url}")
                 shutil.copy2(image_url, temp_image_path)
+
+            # Detect if the background asset is a video
+            if temp_image_path.lower().endswith(('.mp4', '.mov', '.avi', '.mkv')):
+                is_video_bg = True
+                logger.info("Detected video background asset.")
 
             # 2. Prepare SRT if lyrics are provided
             has_subtitles = False
             if lyrics:
                 has_subtitles = self._create_srt_file(lyrics, temp_srt_path)
 
-            # 3. Use ffmpeg to combine image and audio (and burn subtitles if available)
-            cmd = [
-                settings.FFMPEG_BIN,
-                "-y", # Overwrite output
-                "-loop", "1",
-                "-i", temp_image_path,
-                "-i", audio_path,
-            ]
+            # 3. Use ffmpeg to combine background and audio (and burn subtitles if available)
+            cmd = [settings.FFMPEG_BIN, "-y"]
+            if is_video_bg:
+                cmd.extend(["-stream_loop", "-1", "-i", temp_image_path])
+            else:
+                cmd.extend(["-loop", "1", "-i", temp_image_path])
+
+            cmd.extend(["-i", audio_path])
 
             # Helper to execute ffmpeg
             def run_ffmpeg(subtitles_enabled):

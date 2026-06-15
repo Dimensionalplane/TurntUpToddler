@@ -11,4 +11,12 @@
 - [x] Dynamic prompt generation based on MIDI Tempo parsing.
 - [x] Add submodules dashboard tracking version compatibility.
 - [x] Kids Mode pipeline (automated nursery rhyme search, COPPA youtube uploader compliance, children storybook prompting).
+- [x] Next.js Dashboard & FastAPI Microservice Migration (v1.30.0).
+- [x] RabbitMQ Render Cluster & Distributed Workers (v1.32.0).
+- [x] Kubernetes Orchestration (Helm/Kustomize) & Ingress Routing (v1.35.0).
+- [x] Distributed Interactive Review System (Redis-based Block/Approve) (v1.37.0).
+- [x] Dynamic AI Video Overlays (Sora/Runway Loops) (v1.39.0).
+- [ ] Multi-Model LLM Ensembling for better lyric timing.
+- [ ] Real-time Audio Streaming (Icecast/HLS) directly from workers.
+- [ ] GPU-Accelerated FFmpeg rendering in Docker/K8s.
 

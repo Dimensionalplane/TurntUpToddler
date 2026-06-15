@@ -151,6 +151,22 @@ class ContentGenerator:
                     logger.warning(f"DALL-E 3 art generation failed: {err_msg[:100]}. Using offline fallback.")
         return self._offline_art(prompt, cached_image_path)
 
+    def generate_video_prompt(self, metadata, style="Deep House"):
+        """Generate a descriptive video prompt for AI video generators (Runway/Sora)."""
+        title = metadata.get('title', 'Music Video')
+        desc = metadata.get('description', '')
+        prompt = f"Cinematic music video for '{title}'. {desc}. Visual style: {style}, highly detailed, 4k, smooth motion."
+        return prompt
+
+    def generate_video(self, prompt):
+        """
+        Placeholder for AI video generation (Runway Gen-2 / Sora).
+        Currently returns None or a default stock video path if available.
+        """
+        logger.info(f"Generating AI video background for prompt: {prompt[:50]}...")
+        # TODO: Integrate Runway / Sora API here
+        return None
+
     def _offline_metadata(self, hymn_name, style="Deep House", kids_mode=False):
         """Generate sensible default metadata without API calls."""
         clean_name = hymn_name.replace("_", " ").replace("-", " ").title()

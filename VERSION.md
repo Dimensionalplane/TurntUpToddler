@@ -1,0 +1,1 @@
+docs/VERSION.md

@@ -4,7 +4,8 @@
 **Core Principles:**
 - **Frictionless:** Zero manual configuration required to generate an asset.
 - **Robustness:** Fallbacks for every dependency (FFmpeg errors, Replicate rate limits, OpenAI outages).
-- **Scalable:** Process huge numbers of files in parallel via ThreadPoolExecutors.
+- **Scalable:** Orchestrated via Kubernetes and RabbitMQ, allowing for infinite horizontal scaling of render workers.
+- **Human-in-the-Loop:** Interactive review checkpoints for high-precision metadata and lyric curation.
 
 **Intended Workflow:**
-Upload `.mid` files -> Configure preset styling -> Output High-Quality 4K video mixed with 0dBFS normalized audio, auto-subbed lyrics, and singing/spoken word generation from ElevenLabs.
+Upload `.mid` / `.mxl` / Sheet Music -> Select Style & Features -> Interactive Review (Optional) -> Distributed Render Worker -> S3 Storage -> YouTube / Radio Stream.

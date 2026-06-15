@@ -11,6 +11,7 @@ import logging
 import redis as redis_lib
 import pika
 import shutil
+import anyio
 
 from hymn_remaker.main import process_single_midi
 from hymn_remaker.src.db import get_history, init_db
@@ -82,6 +83,7 @@ async def generate_hymn(
     create_shorts: bool = Form(False),
     enable_visualizer: bool = Form(False),
     visualizer_mode: str = Form("cline"),
+    use_dynamic_video: bool = Form(False),
     kids_mode: bool = Form(False),
     interactive_mode: bool = Form(False),
     suno_session: str = Form(None),
@@ -115,37 +117,45 @@ async def generate_hymn(
     mods = get_modules()
 
     # Queue the job to RabbitMQ cluster for distributed processing
-    try:
+    async def queue_job():
         rabbitmq_host = os.environ.get("RABBITMQ_HOST", "localhost")
-        connection = pika.BlockingConnection(pika.ConnectionParameters(rabbitmq_host))
-        channel = connection.channel()
-        channel.queue_declare(queue='render_jobs', durable=True)
 
-        job_data = {
-            "job_id": job_id,
-            "midi_path": file_path,
-            "output_dir": "hymn_remaker/output",
-            "style": style,
-            "generate_vocals": generate_vocals,
-            "voice_id": voice_id,
-            "model": model,
-            "video_format": video_format,
-            "create_shorts": create_shorts,
-            "enable_visualizer": enable_visualizer,
-            "visualizer_mode": visualizer_mode,
-            "kids_mode": kids_mode,
-            "interactive_mode": interactive_mode,
-            "suno_session": suno_session,
-            "remake_priority": remake_priority
-        }
+        def blocking_publish():
+            connection = pika.BlockingConnection(pika.ConnectionParameters(rabbitmq_host))
+            channel = connection.channel()
+            channel.queue_declare(queue='render_jobs', durable=True)
 
-        channel.basic_publish(
-            exchange='',
-            routing_key='render_jobs',
-            body=json.dumps(job_data),
-            properties=pika.BasicProperties(delivery_mode=2)
-        )
-        connection.close()
+            job_data = {
+                "job_id": job_id,
+                "midi_path": file_path,
+                "output_dir": "hymn_remaker/output",
+                "style": style,
+                "generate_vocals": generate_vocals,
+                "voice_id": voice_id,
+                "model": model,
+                "video_format": video_format,
+                "create_shorts": create_shorts,
+                "enable_visualizer": enable_visualizer,
+                "visualizer_mode": visualizer_mode,
+                "use_dynamic_video": use_dynamic_video,
+                "kids_mode": kids_mode,
+                "interactive_mode": interactive_mode,
+                "suno_session": suno_session,
+                "remake_priority": remake_priority
+            }
+
+            channel.basic_publish(
+                exchange='',
+                routing_key='render_jobs',
+                body=json.dumps(job_data),
+                properties=pika.BasicProperties(delivery_mode=2)
+            )
+            connection.close()
+
+        await anyio.to_thread.run_sync(blocking_publish)
+
+    try:
+        await queue_job()
     except Exception as e:
         logger.error(f"Failed to queue job to RabbitMQ: {e}")
         # Fallback to local background task if cluster is down
@@ -205,6 +215,7 @@ async def generate_hymn(
             create_shorts=create_shorts,
             enable_visualizer=enable_visualizer,
             visualizer_mode=visualizer_mode,
+            use_dynamic_video=use_dynamic_video,
             kids_mode=kids_mode,
             interactive_callback=None, # local fallback doesn't support interactive yet
             status_callback=lambda msg, prog: logger.info(f"Background Progress [{prog}%]: {msg}")
@@ -223,6 +234,7 @@ async def generate_hymn(
             "create_shorts": create_shorts,
             "enable_visualizer": enable_visualizer,
             "visualizer_mode": visualizer_mode,
+            "use_dynamic_video": use_dynamic_video,
             "kids_mode": kids_mode
         }
     })
