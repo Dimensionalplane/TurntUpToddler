@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.31.0] - 2026-06-14
+### Added
+- **Radio Streamer Web Integration**: Ported live RTMP broadcast controls to the distributed web stack.
+- **Broadcast API**: Implemented endpoints for starting, stopping, and skipping tracks on the `RadioStreamer` background thread.
+- **Real-time Radio Monitoring**: Developed the `RadioControls` Next.js component to monitor "Now Playing" tracks and streaming status via polling.
+
 ## [1.30.0] - 2026-06-14
 ### Added
 - **Hymn Editor Web Port**: Successfully ported all backend rendering and extraction tools from the original Streamlit "Hymn Editor" tab to the FastAPI/Next.js stack.

@@ -20,6 +20,7 @@ from hymn_remaker.src.tts_generator import TTSGenerator
 from hymn_remaker.src.musicxml_parser import MusicXMLParser
 from hymn_remaker.src.omr_processor import OMRProcessor
 from hymn_remaker.src.stem_separator import StemSeparator
+from hymn_remaker.src.radio_streamer import RadioStreamer
 
 logger = logging.getLogger("HymnRemakerAPI")
 logging.basicConfig(level=logging.INFO)
@@ -39,6 +40,9 @@ app.add_middleware(
 os.makedirs("hymn_remaker/input", exist_ok=True)
 os.makedirs("hymn_remaker/output", exist_ok=True)
 init_db()
+
+# Global radio streamer instance
+radio_streamer = None
 
 # Lazy load modules to prevent initialization errors on startup if keys are missing
 _modules = None
@@ -258,6 +262,66 @@ async def editor_cluster_submit(
     except Exception as e:
         logger.error(f"Failed to submit cluster job: {e}")
         raise HTTPException(status_code=500, detail=f"Cluster submission failed: {str(e)}")
+
+
+@app.post("/api/v1/radio/start")
+async def radio_start(
+    stream_url: str = Form(...),
+    input_dir: str = Form("hymn_remaker/output")
+):
+    """
+    Start the live RTMP radio broadcast.
+    """
+    global radio_streamer
+    if radio_streamer and radio_streamer.is_streaming:
+        raise HTTPException(status_code=400, detail="Radio is already streaming.")
+
+    try:
+        radio_streamer = RadioStreamer(stream_url, input_dir=input_dir)
+        radio_streamer.start()
+        return {"status": "success", "message": "Radio broadcast started."}
+    except Exception as e:
+        logger.error(f"Failed to start radio: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/v1/radio/stop")
+async def radio_stop():
+    """
+    Stop the live RTMP radio broadcast.
+    """
+    global radio_streamer
+    if radio_streamer:
+        radio_streamer.stop()
+        radio_streamer = None
+        return {"status": "success", "message": "Radio broadcast stopped."}
+    return {"status": "info", "message": "Radio was not running."}
+
+
+@app.post("/api/v1/radio/skip")
+async def radio_skip():
+    """
+    Skip the current track in the radio broadcast.
+    """
+    global radio_streamer
+    if radio_streamer and radio_streamer.is_streaming:
+        radio_streamer.skip_track()
+        return {"status": "success", "message": "Skipping current track."}
+    raise HTTPException(status_code=400, detail="Radio is not streaming.")
+
+
+@app.get("/api/v1/radio/status")
+async def radio_status():
+    """
+    Retrieve the current status and track of the radio broadcast.
+    """
+    global radio_streamer
+    if radio_streamer:
+        return {
+            "is_streaming": radio_streamer.is_streaming,
+            "current_track": radio_streamer.current_track
+        }
+    return {"is_streaming": false, "current_track": None}
 
 
 @app.get("/api/v1/jobs/{job_id}")

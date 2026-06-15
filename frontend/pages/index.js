@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import GenerateForm from '../components/GenerateForm';
 import HymnEditor from '../components/HymnEditor';
+import RadioControls from '../components/RadioControls';
 
 const API_BASE_URL = 'http://localhost:8000/api/v1';
 
@@ -41,6 +42,8 @@ export default function Home() {
       <p>Modernizing hymns with AI.</p>
 
       <GenerateForm onJobStarted={handleJobStarted} />
+
+      <RadioControls />
 
       <HymnEditor />
 

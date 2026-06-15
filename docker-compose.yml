@@ -10,6 +10,7 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - REPLICATE_API_TOKEN=${REPLICATE_API_TOKEN}
       - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+      - REDIS_HOST=redis
     volumes:
       - ./hymn_remaker/input:/app/hymn_remaker/input
       - ./hymn_remaker/output:/app/hymn_remaker/output
@@ -44,6 +45,7 @@ services:
       - REPLICATE_API_TOKEN=${REPLICATE_API_TOKEN}
       - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
       - REDIS_HOST=redis
+      - RABBITMQ_HOST=rabbitmq
     volumes:
       - ./hymn_remaker/input:/app/hymn_remaker/input
       - ./hymn_remaker/output:/app/hymn_remaker/output
@@ -67,5 +69,11 @@ services:
     ports:
       - "6379:6379"
     restart: unless-stopped
-      - ./client_secrets.json:/app/client_secrets.json
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: hymn_remaker_rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
     restart: unless-stopped
