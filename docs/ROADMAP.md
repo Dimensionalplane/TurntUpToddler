@@ -69,4 +69,9 @@ This document outlines the high-level trajectory of the Hymn Remaker project, tr
 - [x] **Hymn Editor Web Migration:** Ported Native Audio Preview and Metadata Extraction tools to the distributed web stack.
 - [x] **Live Radio Web Controls:** Migrated RTMP broadcasting controls to the unified web dashboard.
 - [x] **Functional Render Cluster:** Refactored the headless worker to support actual audio/video generation via RabbitMQ.
-- [ ] **Kubernetes Orchestration:** Deploy the pipeline as a series of distributed K8s Jobs for massive horizontal scaling of audio/video rendering.
+- [x] **Kubernetes Orchestration:** Implemented standard K8s manifests and Kustomize overlays for automated cloud deployment and horizontal scaling.
+
+## Phase 8: Advanced Content & Monetization (Proposed)
+- [ ] **Dynamic Video Overlays:** Replace static DALL-E art with reactive AI videos (e.g. Runway Gen-2).
+- [ ] **Automated Multi-Platform Distribution:** Expand uploader to TikTok, Instagram Reels, and Twitter.
+- [ ] **Premium Subscription API:** Implement Stripe integration for priority rendering and non-watermarked exports.

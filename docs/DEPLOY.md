@@ -98,3 +98,24 @@ For isolated, consistent deployments, a Docker setup is provided.
    ```bash
    docker-compose up -d
    ```
+
+## Kubernetes Orchestration (Production Scaling)
+The project uses Kustomize for automated Kubernetes deployments, enabling horizontal scaling of render workers.
+
+1. **Prerequisites:**
+   - A running Kubernetes cluster (EKS, GKE, or local Kind/Minikube).
+   - `kubectl` configured.
+
+2. **Configure Secrets:**
+   - Copy the secret template: `cp kubernetes/base/secrets.example.yaml kubernetes/base/secrets.yaml`
+   - Update `kubernetes/base/secrets.yaml` with your actual API keys.
+
+3. **Deploy the Stack:**
+   ```bash
+   kubectl apply -k kubernetes/base
+   ```
+
+4. **Monitoring:**
+   - View pods: `kubectl get pods -w`
+   - Access the Next.js frontend via the LoadBalancer IP: `kubectl get svc frontend`
+   - Scale workers: `kubectl scale deployment worker --replicas=5`

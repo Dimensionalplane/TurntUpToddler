@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.33.0] - 2026-06-14
+### Added
+- **Kubernetes Orchestration**: Implemented a complete suite of Kubernetes manifests for scaling the distributed architecture (API, Frontend, Render Workers, Redis, RabbitMQ).
+- **Kustomize Integration**: Established a modular configuration management system using Kustomize for multi-environment deployments.
+- **Persistent Storage Volumes**: Defined PVCs for consistent storage across horizontally scaled rendering pods.
+
 ## [1.32.0] - 2026-06-14
 ### Added
 - **Functional Render Cluster**: Refactored the headless `worker.py` to execute the actual `process_single_midi` pipeline instead of simulated tasks.

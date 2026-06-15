@@ -4,7 +4,7 @@ import GenerateForm from '../components/GenerateForm';
 import HymnEditor from '../components/HymnEditor';
 import RadioControls from '../components/RadioControls';
 
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
 export default function Home() {
   const [history, setHistory] = useState([]);
