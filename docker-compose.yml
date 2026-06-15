@@ -77,3 +77,23 @@ services:
       - "5672:5672"
       - "15672:15672"
     restart: unless-stopped
+
+  render_worker:
+    build:
+      context: .
+      dockerfile: services/renderer/Dockerfile
+    container_name: hymn_remaker_worker
+    depends_on:
+      - redis
+      - rabbitmq
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - REPLICATE_API_TOKEN=${REPLICATE_API_TOKEN}
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+      - REDIS_HOST=redis
+      - RABBITMQ_HOST=rabbitmq
+    volumes:
+      - ./hymn_remaker/input:/app/hymn_remaker/input
+      - ./hymn_remaker/output:/app/hymn_remaker/output
+      - ./.cache:/app/.cache
+    restart: unless-stopped

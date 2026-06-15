@@ -110,36 +110,67 @@ async def generate_hymn(
     # Load modules
     mods = get_modules()
 
-    # Run the pipeline in the background so the HTTP request doesn't timeout
-    background_tasks.add_task(
-        process_single_midi,
-        midi_path=file_path,
-        output_dir="hymn_remaker/output",
-        style=style,
-        skip_render=False,
-        skip_remake=False,
-        upload=False,
-        renderer=mods["renderer"],
-        remaker=mods["remaker"],
-        content_gen=mods["content_gen"],
-        video_producer=mods["video_producer"],
-        mxl_parser=mods["mxl_parser"],
-        omr_processor=mods["omr_processor"],
-        tts_generator=mods["tts_generator"],
-        stem_separator=mods["stem_separator"],
-        normalize_audio=normalize_audio,
-        fade_in_ms=fade_in_ms,
-        fade_out_ms=fade_out_ms,
-        generate_vocals=generate_vocals,
-        voice_id=voice_id,
-        model=model,
-        video_format=video_format,
-        create_shorts=create_shorts,
-        enable_visualizer=enable_visualizer,
-        visualizer_mode=visualizer_mode,
-        kids_mode=kids_mode,
-        status_callback=lambda msg, prog: logger.info(f"Background Progress [{prog}%]: {msg}")
-    )
+    # Queue the job to RabbitMQ cluster for distributed processing
+    try:
+        rabbitmq_host = os.environ.get("RABBITMQ_HOST", "localhost")
+        connection = pika.BlockingConnection(pika.ConnectionParameters(rabbitmq_host))
+        channel = connection.channel()
+        channel.queue_declare(queue='render_jobs', durable=True)
+
+        job_data = {
+            "job_id": job_id,
+            "midi_path": file_path,
+            "output_dir": "hymn_remaker/output",
+            "style": style,
+            "generate_vocals": generate_vocals,
+            "voice_id": voice_id,
+            "model": model,
+            "video_format": video_format,
+            "create_shorts": create_shorts,
+            "enable_visualizer": enable_visualizer,
+            "visualizer_mode": visualizer_mode,
+            "kids_mode": kids_mode
+        }
+
+        channel.basic_publish(
+            exchange='',
+            routing_key='render_jobs',
+            body=json.dumps(job_data),
+            properties=pika.BasicProperties(delivery_mode=2)
+        )
+        connection.close()
+    except Exception as e:
+        logger.error(f"Failed to queue job to RabbitMQ: {e}")
+        # Fallback to local background task if cluster is down
+        background_tasks.add_task(
+            process_single_midi,
+            midi_path=file_path,
+            output_dir="hymn_remaker/output",
+            style=style,
+            skip_render=False,
+            skip_remake=False,
+            upload=False,
+            renderer=mods["renderer"],
+            remaker=mods["remaker"],
+            content_gen=mods["content_gen"],
+            video_producer=mods["video_producer"],
+            mxl_parser=mods["mxl_parser"],
+            omr_processor=mods["omr_processor"],
+            tts_generator=mods["tts_generator"],
+            stem_separator=mods["stem_separator"],
+            normalize_audio=normalize_audio,
+            fade_in_ms=fade_in_ms,
+            fade_out_ms=fade_out_ms,
+            generate_vocals=generate_vocals,
+            voice_id=voice_id,
+            model=model,
+            video_format=video_format,
+            create_shorts=create_shorts,
+            enable_visualizer=enable_visualizer,
+            visualizer_mode=visualizer_mode,
+            kids_mode=kids_mode,
+            status_callback=lambda msg, prog: logger.info(f"Background Progress [{prog}%]: {msg}")
+        )
 
     return JSONResponse(content={
         "status": "accepted",
@@ -321,7 +352,7 @@ async def radio_status():
             "is_streaming": radio_streamer.is_streaming,
             "current_track": radio_streamer.current_track
         }
-    return {"is_streaming": false, "current_track": None}
+    return {"is_streaming": False, "current_track": None}
 
 
 @app.get("/api/v1/jobs/{job_id}")

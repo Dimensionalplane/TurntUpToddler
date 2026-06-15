@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.32.0] - 2026-06-14
+### Added
+- **Functional Render Cluster**: Refactored the headless `worker.py` to execute the actual `process_single_midi` pipeline instead of simulated tasks.
+- **Worker Containerization**: Implemented a dedicated 3-stage `Dockerfile` for the render worker, optimizing it for heavy ML inference.
+- **Distributed Orchestration**: Updated `docker-compose.yml` to include the `render_worker` service, fully enabling the RabbitMQ-based render cluster.
+
 ## [1.31.0] - 2026-06-14
 ### Added
 - **Radio Streamer Web Integration**: Ported live RTMP broadcast controls to the distributed web stack.
