@@ -20,7 +20,7 @@ from hymn_remaker.src.stem_separator import StemSeparator
 logger = logging.getLogger("HymnRemakerAPI")
 logging.basicConfig(level=logging.INFO)
 
-app = FastAPI(title="Hymn Remaker API", version="1.27.0")
+app = FastAPI(title="Hymn Remaker API", version="1.29.0")
 
 # Add CORS middleware to allow requests from the Next.js frontend
 app.add_middleware(
@@ -59,6 +59,8 @@ def get_modules():
     return _modules
 
 
+import uuid
+
 @app.post("/api/v1/generate")
 async def generate_hymn(
     background_tasks: BackgroundTasks,
@@ -88,6 +90,14 @@ async def generate_hymn(
     file_path = os.path.join("hymn_remaker/input", file.filename)
     with open(file_path, "wb") as f:
         f.write(file_bytes)
+
+    job_id = str(uuid.uuid4())
+    redis_host = os.environ.get("REDIS_HOST", "localhost")
+    try:
+        r = redis_lib.Redis(host=redis_host, port=6379, db=0)
+        r.set(f"job:{job_id}:status", "queued")
+    except Exception as e:
+        logger.warning(f"Failed to set initial job status in Redis: {e}")
 
     # Load modules
     mods = get_modules()
@@ -125,6 +135,7 @@ async def generate_hymn(
 
     return JSONResponse(content={
         "status": "accepted",
+        "job_id": job_id,
         "message": f"File {file.filename} is being processed in the background.",
         "configuration": {
             "style": style,

@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.29.0] - 2026-06-14
+### Added
+- **Interactive Next.js Dashboard**: Developed the first functional iteration of the decoupled frontend, including a generation form with full v1.28.0 parameter support and automated history polling.
+- **Dynamic Job Tracking**: Implemented session-based job tracking on the frontend to monitor background processing status in real-time.
+
 ## [1.28.0] - 2026-06-14
 ### Added
 - **Phase 7 Initiation: Next.js Frontend Scaffold**: Created the `frontend/` directory and scaffolded a Next.js application to replace the Streamlit monolith.

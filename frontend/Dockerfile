@@ -18,8 +18,8 @@ WORKDIR /app
 
 ENV NODE_ENV production
 
-RUN addgroup --system --private nextjs
-RUN adduser --system --private nextjs
+RUN addgroup --system -g 1001 nodejs
+RUN adduser --system -u 1001 nextjs
 
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
