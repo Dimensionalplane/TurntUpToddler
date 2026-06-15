@@ -72,6 +72,12 @@ def render_job(ch, method, properties, body):
         style = job_data.get('style', "Deep House, high quality, electronic")
         output_dir = job_data.get('output_dir', "hymn_remaker/output")
 
+        def worker_status_callback(msg, prog):
+            logger.info(f"Job {job_id} Progress: {msg} ({prog}%)")
+            if job_id:
+                r.set(f"job:{job_id}:progress", prog)
+                r.set(f"job:{job_id}:message", msg)
+
         process_single_midi(
             midi_path,
             output_dir,
@@ -91,7 +97,7 @@ def render_job(ch, method, properties, body):
             stem_separator=mods["stem_separator"],
             generate_vocals=job_data.get('generate_vocals', False),
             kids_mode=job_data.get('kids_mode', False),
-            status_callback=lambda msg, prog: logger.info(f"Job {job_id} Progress: {msg} ({prog}%)")
+            status_callback=worker_status_callback
         )
 
         if job_id:

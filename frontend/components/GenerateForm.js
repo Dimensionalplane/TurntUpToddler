@@ -16,6 +16,9 @@ export default function GenerateForm({ onJobStarted }) {
   const [kidsMode, setKidsMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [normalizeAudio, setNormalizeAudio] = useState(true);
+  const [fadeInMs, setFadeInMs] = useState(0);
+  const [fadeOutMs, setFadeOutMs] = useState(0);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,6 +41,9 @@ export default function GenerateForm({ onJobStarted }) {
     formData.append('enable_visualizer', enableVisualizer);
     formData.append('visualizer_mode', visualizerMode);
     formData.append('kids_mode', kidsMode);
+    formData.append('normalize_audio', normalizeAudio);
+    formData.append('fade_in_ms', fadeInMs);
+    formData.append('fade_out_ms', fadeOutMs);
 
     try {
       const response = await axios.post(`${API_BASE_URL}/generate`, formData, {
@@ -80,6 +86,20 @@ export default function GenerateForm({ onJobStarted }) {
           </div>
           <div>
             <label><input type="checkbox" checked={enableVisualizer} onChange={(e) => setEnableVisualizer(e.target.checked)} /> Enable Visualizer</label>
+          </div>
+          <div>
+            <label><input type="checkbox" checked={normalizeAudio} onChange={(e) => setNormalizeAudio(e.target.checked)} /> Normalize Volume</label>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+          <div style={{ flex: 1 }}>
+            <label style={{ fontSize: '0.8rem', display: 'block' }}>Fade In (ms)</label>
+            <input type="number" value={fadeInMs} onChange={(e) => setFadeInMs(e.target.value)} style={{ width: '100%' }} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label style={{ fontSize: '0.8rem', display: 'block' }}>Fade Out (ms)</label>
+            <input type="number" value={fadeOutMs} onChange={(e) => setFadeOutMs(e.target.value)} style={{ width: '100%' }} />
           </div>
         </div>
 

@@ -6,6 +6,7 @@ from fastapi import FastAPI, File, UploadFile, Form, BackgroundTasks, HTTPExcept
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 import logging
 import redis as redis_lib
 import pika
@@ -26,7 +27,7 @@ from hymn_remaker.src.radio_streamer import RadioStreamer
 logger = logging.getLogger("HymnRemakerAPI")
 logging.basicConfig(level=logging.INFO)
 
-app = FastAPI(title="Hymn Remaker API", version="1.35.0")
+app = FastAPI(title="Hymn Remaker API", version="1.36.0")
 
 # Add CORS middleware to allow requests from the Next.js frontend
 app.add_middleware(
@@ -41,6 +42,9 @@ app.add_middleware(
 os.makedirs("hymn_remaker/input", exist_ok=True)
 os.makedirs("hymn_remaker/output", exist_ok=True)
 init_db()
+
+# Serve output directory as static files
+app.mount("/output", StaticFiles(directory="hymn_remaker/output"), name="output")
 
 # Lazy load modules to prevent initialization errors on startup if keys are missing
 _modules = None
@@ -145,11 +149,20 @@ async def generate_hymn(
         except: pass
 
         def local_task_wrapper(*args, **kwargs):
+            def local_status_callback(msg, prog):
+                try:
+                    r_l = redis_lib.Redis(host=redis_host, port=6379, db=0)
+                    r_l.set(f"job:{job_id}:progress", prog)
+                    r_l.set(f"job:{job_id}:message", msg)
+                except: pass
+
+            kwargs['status_callback'] = local_status_callback
             try:
                 process_single_midi(*args, **kwargs)
                 try:
                     r_local = redis_lib.Redis(host=redis_host, port=6379, db=0)
                     r_local.set(f"job:{job_id}:status", "completed")
+                    r_local.set(f"job:{job_id}:progress", 100)
                 except: pass
             except:
                 try:
@@ -384,15 +397,22 @@ async def radio_status():
 @app.get("/api/v1/jobs/{job_id}")
 def get_job_status(job_id: str):
     """
-    Retrieve the status of a specific background job from Redis.
-    Matches the logic used in the Streamlit app.py toolbar.
+    Retrieve the status, progress, and last message of a specific background job from Redis.
     """
     try:
         redis_host = os.environ.get("REDIS_HOST", "localhost")
         r = redis_lib.Redis(host=redis_host, port=6379, db=0)
         status = r.get(f"job:{job_id}:status")
+        progress = r.get(f"job:{job_id}:progress")
+        message = r.get(f"job:{job_id}:message")
+
         if status:
-            return {"job_id": job_id, "status": status.decode("utf-8")}
+            return {
+                "job_id": job_id,
+                "status": status.decode("utf-8"),
+                "progress": int(progress.decode("utf-8")) if progress else 0,
+                "message": message.decode("utf-8") if message else "Queued..."
+            }
         else:
             raise HTTPException(status_code=404, detail=f"Job {job_id} not found.")
     except Exception as e:

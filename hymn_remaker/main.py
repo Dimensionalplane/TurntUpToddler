@@ -23,6 +23,8 @@ from hymn_remaker.src.stem_separator import StemSeparator
 from hymn_remaker.src.radio_streamer import RadioStreamer
 from hymn_remaker.src.utils import process_audio
 from hymn_remaker.src.children_song_finder import ChildrenSongFinder
+from hymn_remaker.src.s3_uploader import S3Uploader
+from hymn_remaker.src.db import add_history
 
 # Load environment variables
 load_dotenv()
@@ -487,6 +489,25 @@ def process_single_midi(
                 update_status(f"Short clips generated in output/shorts/", 92)
             except Exception as e:
                 logger.error(f"Failed to generate shorts: {e}")
+
+        remote_video_url = remote_audio_url = None
+        s3_bucket = os.environ.get("S3_BUCKET_NAME")
+        if s3_bucket:
+            update_status(f"Uploading assets to S3 ({filename})...", 94)
+            s3 = S3Uploader()
+            remote_video_url = s3.upload_file(video_path, s3_bucket)
+            remote_audio_url = s3.upload_file(remake_audio_path, s3_bucket)
+
+        # Record in history DB
+        add_history(
+            hymn_name=name_no_ext,
+            style=style,
+            video_path=video_path,
+            audio_path=remake_audio_path,
+            metadata_path=metadata_path,
+            remote_video_url=remote_video_url,
+            remote_audio_url=remote_audio_url
+        )
 
         if upload:
             update_status(f"Uploading {filename} to YouTube...", 95)

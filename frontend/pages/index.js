@@ -15,10 +15,10 @@ export default function Home() {
   const pollJobStatus = async (jobId) => {
     try {
       const response = await axios.get(`${API_BASE_URL}/jobs/${jobId}`);
-      const status = response.data.status;
+      const { status, progress, message } = response.data;
 
       setActiveJobs(prev => prev.map(job =>
-        job.id === jobId ? { ...job, status } : job
+        job.id === jobId ? { ...job, status, progress, lastMessage: message } : job
       ));
 
       if (status === 'completed' || status === 'failed') {
@@ -93,25 +93,28 @@ export default function Home() {
                 background: job.status === 'completed' ? '#f6fff6' : (job.status === 'failed' ? '#fff6f6' : '#f0f7ff'),
                 padding: '1rem',
                 borderRadius: '8px',
-                border: '1px solid #eee',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
+                border: '1px solid #eee'
               }}>
-                <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                   <strong>Job ID:</strong> <code style={{ fontSize: '0.8rem' }}>{job.id}</code>
+                  <div style={{
+                    textTransform: 'uppercase',
+                    fontSize: '0.75rem',
+                    fontWeight: 'bold',
+                    padding: '0.2rem 0.6rem',
+                    borderRadius: '10px',
+                    background: job.status === 'completed' ? '#d4edda' : (job.status === 'failed' ? '#f8d7da' : '#cce5ff'),
+                    color: job.status === 'completed' ? '#155724' : (job.status === 'failed' ? '#721c24' : '#004085')
+                  }}>
+                    {job.status}
+                  </div>
                 </div>
-                <div style={{
-                  textTransform: 'uppercase',
-                  fontSize: '0.75rem',
-                  fontWeight: 'bold',
-                  padding: '0.2rem 0.6rem',
-                  borderRadius: '10px',
-                  background: job.status === 'completed' ? '#d4edda' : (job.status === 'failed' ? '#f8d7da' : '#cce5ff'),
-                  color: job.status === 'completed' ? '#155724' : (job.status === 'failed' ? '#721c24' : '#004085')
-                }}>
-                  {job.status}
-                </div>
+                {job.status !== 'completed' && job.status !== 'failed' && (
+                  <div style={{ width: '100%', height: '8px', background: '#ddd', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ width: `${job.progress || 0}%`, height: '100%', background: '#0070f3', transition: 'width 0.3s ease' }}></div>
+                  </div>
+                )}
+                <small style={{ color: '#666', marginTop: '0.3rem', display: 'block' }}>{job.lastMessage || 'Queued...'}</small>
               </div>
             ))}
           </div>
@@ -127,13 +130,17 @@ export default function Home() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1.5rem' }}>
           {history.map((item, index) => (
             <div key={index} style={{ border: '1px solid #ddd', padding: '1rem', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-              <h3 style={{ marginTop: 0 }}>{item.title || 'Untitled Hymn'}</h3>
-              <p style={{ color: '#666', fontSize: '0.9rem' }}>{item.description}</p>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <small style={{ color: '#999' }}>{new Date(item.timestamp).toLocaleString()}</small>
-                {item.video_url && (
-                    <a href={item.video_url} target="_blank" rel="noreferrer" style={{ color: '#0070f3', textDecoration: 'none', fontWeight: 'bold' }}>View Video 🎥</a>
-                )}
+              <h3 style={{ marginTop: 0 }}>{item.hymn_name || 'Untitled Hymn'}</h3>
+              <p style={{ color: '#666', fontSize: '0.9rem' }}>{item.style}</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
+                <small style={{ color: '#999' }}>{new Date(item.date_created).toLocaleString()}</small>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  {item.remote_video_url ? (
+                      <a href={item.remote_video_url} target="_blank" rel="noreferrer" style={{ color: '#0070f3', textDecoration: 'none', fontWeight: 'bold' }}>S3 🎥</a>
+                  ) : item.video_path && (
+                      <a href={`http://localhost:8000/output/${item.video_path.split('/').pop()}`} target="_blank" rel="noreferrer" style={{ color: '#0070f3', textDecoration: 'none', fontWeight: 'bold' }}>Local 🎥</a>
+                  )}
+                </div>
               </div>
             </div>
           ))}

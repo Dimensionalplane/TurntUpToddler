@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.36.0] - 2026-06-14
+### Added
+- **Advanced Job Telemetry**: Integrated real-time progress percentages and status messages into the Redis tracking system, shared between workers and the API.
+- **Polished Next.js Dashboard**: Enhanced the frontend dashboard with individual progress bars, color-coded task cards, and automated history refreshes.
+- **Direct Asset Downloads**: Configured the FastAPI backend to serve the output directory as static files, enabling direct video/audio downloads from the web UI.
+- **Extended Generation Controls**: Exposed advanced audio parameters (Normalize, Fade-In, Fade-Out) to the frontend generation form.
+
 ## [1.35.0] - 2026-06-14
 ### Added
 - **Standalone Radio Microservice**: Decomposed the live RTMP radio streamer into a dedicated microservice (`services/radio/`) for better scalability and resource isolation.
