@@ -25,6 +25,52 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - REPLICATE_API_TOKEN=${REPLICATE_API_TOKEN}
       - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+      - REDIS_HOST=redis
+    volumes:
+      - ./hymn_remaker/input:/app/hymn_remaker/input
+      - ./hymn_remaker/output:/app/hymn_remaker/output
+      - ./.cache:/app/.cache
+      - ./client_secrets.json:/app/client_secrets.json
+    restart: unless-stopped
+
+  api:
+    build: .
+    container_name: hymn_remaker_api
+    ports:
+      - "8000:8000"
+    command: ["python", "hymn_remaker/api.py"]
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - REPLICATE_API_TOKEN=${REPLICATE_API_TOKEN}
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+      - REDIS_HOST=redis
+    volumes:
+      - ./hymn_remaker/input:/app/hymn_remaker/input
+      - ./hymn_remaker/output:/app/hymn_remaker/output
+      - ./.cache:/app/.cache
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: hymn_remaker_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+    restart: unless-stopped
+
+  redis:
+    image: redis:alpine
+    container_name: hymn_remaker_redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - REPLICATE_API_TOKEN=${REPLICATE_API_TOKEN}
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
     volumes:
       - ./hymn_remaker/input:/app/hymn_remaker/input
       - ./hymn_remaker/output:/app/hymn_remaker/output

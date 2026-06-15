@@ -65,5 +65,5 @@ This document outlines the high-level trajectory of the Hymn Remaker project, tr
 - [x] **Distroless/Alpine Docker Image:** The massive dependencies of PyTorch (`demucs`), OpenCV, and ONNX Runtime (`oemer`) bloat the `hymn_remaker:latest` container. A multi-stage Docker build separating the AI inference models from the Streamlit UI web container will drastically cut deployment size.
 
 ## Phase 7: Web Modernization & Distributed Scaling
-- [ ] **FastAPI/Next.js Architecture:** Decompose the monolith into a FastAPI backend and a Next.js frontend to support concurrent users and better state management.
+- [x] **FastAPI/Next.js Architecture:** Decompose the monolith into a FastAPI backend and a Next.js frontend to support concurrent users and better state management.
 - [ ] **Kubernetes Orchestration:** Deploy the pipeline as a series of distributed K8s Jobs for massive horizontal scaling of audio/video rendering.

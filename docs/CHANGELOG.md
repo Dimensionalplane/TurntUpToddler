@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.28.0] - 2026-06-14
+### Added
+- **Phase 7 Initiation: Next.js Frontend Scaffold**: Created the `frontend/` directory and scaffolded a Next.js application to replace the Streamlit monolith.
+- **API CORS Support**: Added `CORSMiddleware` to the FastAPI backend to support cross-origin requests from the Next.js frontend.
+- **Job Status API**: Implemented `/api/v1/jobs/{job_id}` endpoint to expose background job status from Redis.
+
 ## [1.27.0] - 2026-06-14
 ### Added
 - **Multi-Stage Docker Optimization**: Refactored `Dockerfile` to implement an optimized multi-stage build, separating heavy ML dependencies (PyTorch, oemer, demucs) from the lightweight runtime stage.

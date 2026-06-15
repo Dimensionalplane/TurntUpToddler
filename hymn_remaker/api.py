@@ -2,7 +2,9 @@ import os
 import sys
 from fastapi import FastAPI, File, UploadFile, Form, BackgroundTasks, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 import logging
+import redis as redis_lib
 
 from hymn_remaker.main import process_single_midi
 from hymn_remaker.src.db import get_history, init_db
@@ -19,6 +21,15 @@ logger = logging.getLogger("HymnRemakerAPI")
 logging.basicConfig(level=logging.INFO)
 
 app = FastAPI(title="Hymn Remaker API", version="1.27.0")
+
+# Add CORS middleware to allow requests from the Next.js frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # For development; refine for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Ensure directories and DB exist
 os.makedirs("hymn_remaker/input", exist_ok=True)
@@ -134,6 +145,25 @@ def get_generation_history():
     """Retrieve all successfully generated hymns from the SQLite database."""
     history = get_history()
     return {"status": "success", "data": history}
+
+
+@app.get("/api/v1/jobs/{job_id}")
+def get_job_status(job_id: str):
+    """
+    Retrieve the status of a specific background job from Redis.
+    Matches the logic used in the Streamlit app.py toolbar.
+    """
+    try:
+        redis_host = os.environ.get("REDIS_HOST", "localhost")
+        r = redis_lib.Redis(host=redis_host, port=6379, db=0)
+        status = r.get(f"job:{job_id}:status")
+        if status:
+            return {"job_id": job_id, "status": status.decode("utf-8")}
+        else:
+            raise HTTPException(status_code=404, detail=f"Job {job_id} not found.")
+    except Exception as e:
+        logger.error(f"Failed to connect to Redis for job status: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error accessing job store.")
 
 
 @app.get("/api/v1/system")
