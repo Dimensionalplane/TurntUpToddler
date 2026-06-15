@@ -30,9 +30,10 @@ logging.basicConfig(level=logging.INFO)
 app = FastAPI(title="Hymn Remaker API", version="1.36.0")
 
 # Add CORS middleware to allow requests from the Next.js frontend
+frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For development; refine for production
+    allow_origins=[frontend_url, "http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -82,6 +83,9 @@ async def generate_hymn(
     enable_visualizer: bool = Form(False),
     visualizer_mode: str = Form("cline"),
     kids_mode: bool = Form(False),
+    interactive_mode: bool = Form(False),
+    suno_session: str = Form(None),
+    remake_priority: str = Form("suno"),
     normalize_audio: bool = Form(True),
     fade_in_ms: int = Form(0),
     fade_out_ms: int = Form(0),
@@ -129,7 +133,10 @@ async def generate_hymn(
             "create_shorts": create_shorts,
             "enable_visualizer": enable_visualizer,
             "visualizer_mode": visualizer_mode,
-            "kids_mode": kids_mode
+            "kids_mode": kids_mode,
+            "interactive_mode": interactive_mode,
+            "suno_session": suno_session,
+            "remake_priority": remake_priority
         }
 
         channel.basic_publish(
@@ -199,6 +206,7 @@ async def generate_hymn(
             enable_visualizer=enable_visualizer,
             visualizer_mode=visualizer_mode,
             kids_mode=kids_mode,
+            interactive_callback=None, # local fallback doesn't support interactive yet
             status_callback=lambda msg, prog: logger.info(f"Background Progress [{prog}%]: {msg}")
         )
 
@@ -392,6 +400,42 @@ async def radio_status():
     except Exception as e:
         logger.error(f"Failed to fetch radio status: {e}")
         return {"is_streaming": False, "current_track": None, "error": str(e)}
+
+
+@app.get("/api/v1/jobs/{job_id}/review")
+def get_job_review_data(job_id: str):
+    """
+    Retrieve pending metadata/lyrics/art_prompt from Redis for interactive review.
+    """
+    try:
+        redis_host = os.environ.get("REDIS_HOST", "localhost")
+        r = redis_lib.Redis(host=redis_host, port=6379, db=0)
+        review_data = r.get(f"job:{job_id}:review_data")
+        if review_data:
+            return json.loads(review_data)
+        else:
+            raise HTTPException(status_code=404, detail="Review data not found or job not in review state.")
+    except Exception as e:
+        logger.error(f"Failed to fetch review data: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/v1/jobs/{job_id}/review")
+async def post_job_review_approval(job_id: str, data: dict):
+    """
+    Update the generated content and set the approval flag in Redis.
+    """
+    try:
+        redis_host = os.environ.get("REDIS_HOST", "localhost")
+        r = redis_lib.Redis(host=redis_host, port=6379, db=0)
+        # Update the data the worker is waiting for
+        r.set(f"job:{job_id}:review_data", json.dumps(data))
+        # Signal approval
+        r.set(f"job:{job_id}:approved", "true")
+        return {"status": "success", "message": "Content approved and updated."}
+    except Exception as e:
+        logger.error(f"Failed to submit review approval: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/api/v1/jobs/{job_id}")

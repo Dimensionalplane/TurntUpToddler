@@ -71,6 +71,7 @@ This document outlines the high-level trajectory of the Hymn Remaker project, tr
 - [x] **Radio Microservice Migration:** Fully decoupled the radio streamer into a standalone distributed service controlled via Redis.
 - [x] **Functional Render Cluster:** Refactored the headless worker to support actual audio/video generation via RabbitMQ.
 - [x] **Kubernetes Orchestration:** Implemented standard K8s manifests and Kustomize overlays for automated cloud deployment and horizontal scaling.
+- [x] **Distributed Interactive Review:** Ported the mid-pipeline user review pause to the distributed worker/web architecture.
 
 ## Phase 8: Advanced Content & Monetization (Proposed)
 - [ ] **Dynamic Video Overlays:** Replace static DALL-E art with reactive AI videos (e.g. Runway Gen-2).

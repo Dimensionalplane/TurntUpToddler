@@ -16,6 +16,9 @@ export default function GenerateForm({ onJobStarted }) {
   const [kidsMode, setKidsMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [interactiveMode, setInteractiveMode] = useState(false);
+  const [remakePriority, setRemakePriority] = useState('suno');
+  const [sunoSession, setSunoSession] = useState('');
   const [normalizeAudio, setNormalizeAudio] = useState(true);
   const [fadeInMs, setFadeInMs] = useState(0);
   const [fadeOutMs, setFadeOutMs] = useState(0);
@@ -44,6 +47,9 @@ export default function GenerateForm({ onJobStarted }) {
     formData.append('normalize_audio', normalizeAudio);
     formData.append('fade_in_ms', fadeInMs);
     formData.append('fade_out_ms', fadeOutMs);
+    formData.append('interactive_mode', interactiveMode);
+    formData.append('remake_priority', remakePriority);
+    formData.append('suno_session', sunoSession);
 
     try {
       const response = await axios.post(`${API_BASE_URL}/generate`, formData, {
@@ -74,6 +80,40 @@ export default function GenerateForm({ onJobStarted }) {
           <input type="text" value={style} onChange={(e) => setStyle(e.target.value)} style={{ width: '100%' }} />
         </div>
 
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+          <div>
+            <label>Voice ID: </label>
+            <input type="text" value={voiceId} onChange={(e) => setVoiceId(e.target.value)} style={{ width: '100%' }} />
+          </div>
+          <div>
+            <label>TTS Model: </label>
+            <select value={model} onChange={(e) => setModel(e.target.value)} style={{ width: '100%' }}>
+              <option value="eleven_multilingual_v2">Multilingual v2</option>
+              <option value="eleven_monolingual_v1">Monolingual v1</option>
+              <option value="eleven_turbo_v2">Turbo v2</option>
+            </select>
+          </div>
+          <div>
+            <label>Remake Priority: </label>
+            <select value={remakePriority} onChange={(e) => setRemakePriority(e.target.value)} style={{ width: '100%' }}>
+              <option value="suno">Suno AI</option>
+              <option value="replicate">Replicate</option>
+            </select>
+          </div>
+          <div>
+            <label>Video Format: </label>
+            <select value={videoFormat} onChange={(e) => setVideoFormat(e.target.value)} style={{ width: '100%' }}>
+              <option value="Standard 16:9">Standard 16:9</option>
+              <option value="Vertical 9:16 (TikTok/Reels)">Vertical 9:16</option>
+            </select>
+          </div>
+        </div>
+
+        <div style={{ marginBottom: '1rem' }}>
+          <label>Suno Session Token: </label>
+          <input type="password" value={sunoSession} onChange={(e) => setSunoSession(e.target.value)} style={{ width: '100%' }} />
+        </div>
+
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
           <div>
             <label><input type="checkbox" checked={generateVocals} onChange={(e) => setGenerateVocals(e.target.checked)} /> Generate Vocals</label>
@@ -89,6 +129,9 @@ export default function GenerateForm({ onJobStarted }) {
           </div>
           <div>
             <label><input type="checkbox" checked={normalizeAudio} onChange={(e) => setNormalizeAudio(e.target.checked)} /> Normalize Volume</label>
+          </div>
+          <div>
+            <label><input type="checkbox" checked={interactiveMode} onChange={(e) => setInteractiveMode(e.target.checked)} /> <b>Interactive Review Mode</b></label>
           </div>
         </div>
 

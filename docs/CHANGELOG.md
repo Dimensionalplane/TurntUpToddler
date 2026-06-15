@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.37.0] - 2026-06-14
+### Added
+- **Distributed Interactive Review System**: Implemented a blocking callback mechanism in the render workers that allows users to manually edit and approve metadata, lyrics, and art prompts via the Next.js UI before final video assembly.
+- **Review API Suite**: Added `/api/v1/jobs/{job_id}/review` endpoints for fetching and approving pending job content.
+- **Next.js Review Modal**: Developed an interactive modal component for safe, user-driven AI content refinement.
+- **Full Parameter Wiring**: Exposed all remaining pipeline parameters (Voice ID, Model, Suno Session, Remake Priority) to the frontend generation form.
+
 ## [1.36.0] - 2026-06-14
 ### Added
 - **Advanced Job Telemetry**: Integrated real-time progress percentages and status messages into the Redis tracking system, shared between workers and the API.

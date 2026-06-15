@@ -3,6 +3,7 @@ import axios from 'axios';
 import GenerateForm from '../components/GenerateForm';
 import HymnEditor from '../components/HymnEditor';
 import RadioControls from '../components/RadioControls';
+import ReviewModal from '../components/ReviewModal';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
@@ -11,6 +12,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeJobs, setActiveJobs] = useState([]);
+  const [reviewJob, setReviewJob] = useState(null);
 
   const pollJobStatus = async (jobId) => {
     try {
@@ -20,6 +22,12 @@ export default function Home() {
       setActiveJobs(prev => prev.map(job =>
         job.id === jobId ? { ...job, status, progress, lastMessage: message } : job
       ));
+
+      if (status === 'awaiting_review') {
+        // Trigger review UI
+        const reviewResponse = await axios.get(`${API_BASE_URL}/jobs/${jobId}/review`);
+        setReviewJob({ id: jobId, data: reviewResponse.data });
+      }
 
       if (status === 'completed' || status === 'failed') {
         fetchHistory();
@@ -83,6 +91,18 @@ export default function Home() {
       <RadioControls />
 
       <HymnEditor />
+
+      {reviewJob && (
+        <ReviewModal
+          jobId={reviewJob.id}
+          initialData={reviewJob.data}
+          onApproved={() => {
+            setReviewJob(null);
+            pollJobStatus(reviewJob.id);
+          }}
+          onCancel={() => setReviewJob(null)}
+        />
+      )}
 
       {activeJobs.length > 0 && (
         <section style={{ marginBottom: '2rem' }}>

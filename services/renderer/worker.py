@@ -78,6 +78,36 @@ def render_job(ch, method, properties, body):
                 r.set(f"job:{job_id}:progress", prog)
                 r.set(f"job:{job_id}:message", msg)
 
+        def worker_interactive_callback(data):
+            if not job_id: return data
+
+            logger.info(f"Job {job_id} entering interactive review state.")
+            # Store data for frontend to fetch
+            r.set(f"job:{job_id}:review_data", json.dumps(data))
+            # Set status to awaiting_review
+            r.set(f"job:{job_id}:status", "awaiting_review")
+
+            # Poll for approval
+            while True:
+                approved = r.get(f"job:{job_id}:approved")
+                if approved and approved.decode('utf-8') == "true":
+                    logger.info(f"Job {job_id} approved. Resuming...")
+                    # Get potentially edited data
+                    updated_data_raw = r.get(f"job:{job_id}:review_data")
+                    # Clear flags
+                    r.delete(f"job:{job_id}:approved")
+                    r.delete(f"job:{job_id}:review_data")
+                    # Reset status to processing
+                    r.set(f"job:{job_id}:status", "processing")
+
+                    if updated_data_raw:
+                        return json.loads(updated_data_raw)
+                    return data
+
+                time.sleep(2)
+
+        interactive_mode = job_data.get('interactive_mode', False)
+
         process_single_midi(
             midi_path,
             output_dir,
@@ -97,6 +127,7 @@ def render_job(ch, method, properties, body):
             stem_separator=mods["stem_separator"],
             generate_vocals=job_data.get('generate_vocals', False),
             kids_mode=job_data.get('kids_mode', False),
+            interactive_callback=worker_interactive_callback if interactive_mode else None,
             status_callback=worker_status_callback
         )
 
