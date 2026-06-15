@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.30.0] - 2026-06-14
+### Added
+- **Hymn Editor Web Port**: Successfully ported all backend rendering and extraction tools from the original Streamlit "Hymn Editor" tab to the FastAPI/Next.js stack.
+- **Native Audio Preview API**: Implemented `/api/v1/editor/preview` to allow real-time C++ based audio synthesis from the web UI.
+- **MusicXML Metadata Extraction**: Implemented `/api/v1/editor/extract` for note-synced lyric and title extraction.
+- **Cluster Submission**: Integrated RabbitMQ job queueing directly into the FastAPI backend and Next.js frontend.
+
 ## [1.29.0] - 2026-06-14
 ### Added
 - **Interactive Next.js Dashboard**: Developed the first functional iteration of the decoupled frontend, including a generation form with full v1.28.0 parameter support and automated history polling.

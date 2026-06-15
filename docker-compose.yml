@@ -67,9 +67,5 @@ services:
     ports:
       - "6379:6379"
     restart: unless-stopped
-    volumes:
-      - ./hymn_remaker/input:/app/hymn_remaker/input
-      - ./hymn_remaker/output:/app/hymn_remaker/output
-      - ./.cache:/app/.cache
       - ./client_secrets.json:/app/client_secrets.json
     restart: unless-stopped

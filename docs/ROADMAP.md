@@ -66,4 +66,5 @@ This document outlines the high-level trajectory of the Hymn Remaker project, tr
 
 ## Phase 7: Web Modernization & Distributed Scaling
 - [x] **FastAPI/Next.js Architecture:** Decompose the monolith into a FastAPI backend and a Next.js frontend to support concurrent users and better state management.
+- [x] **Hymn Editor Web Migration:** Ported Native Audio Preview and Metadata Extraction tools to the distributed web stack.
 - [ ] **Kubernetes Orchestration:** Deploy the pipeline as a series of distributed K8s Jobs for massive horizontal scaling of audio/video rendering.

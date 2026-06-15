@@ -1,10 +1,14 @@
 import os
 import sys
+import json
 from fastapi import FastAPI, File, UploadFile, Form, BackgroundTasks, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 import logging
 import redis as redis_lib
+import pika
+import shutil
 
 from hymn_remaker.main import process_single_midi
 from hymn_remaker.src.db import get_history, init_db
@@ -156,6 +160,104 @@ def get_generation_history():
     """Retrieve all successfully generated hymns from the SQLite database."""
     history = get_history()
     return {"status": "success", "data": history}
+
+
+@app.post("/api/v1/editor/preview")
+async def editor_preview(
+    file: UploadFile = File(...),
+    soundfont: str = Form(None)
+):
+    """
+    Render a fast audio preview of a MIDI or MusicXML file.
+    """
+    file_bytes = await file.read()
+    # Sanitize filename
+    safe_name = "".join([c for c in file.filename if c.isalnum() or c in "._-"])
+    temp_in = os.path.join("hymn_remaker/input", f"preview_{safe_name}")
+    with open(temp_in, "wb") as f:
+        f.write(file_bytes)
+
+    mods = get_modules()
+    renderer = mods["renderer"]
+    if soundfont:
+        renderer = MidiRenderer(soundfont_path=soundfont)
+
+    target_mid = temp_in
+    if file.filename.lower().endswith(('.mxl', '.xml')):
+        target_mid = os.path.join("hymn_remaker/output", f"preview_{file.filename}.mid")
+        mods["mxl_parser"].process(temp_in, target_mid)
+
+    out_wav = os.path.join("hymn_remaker/output", f"preview_{file.filename}.wav")
+    renderer.render(target_mid, out_wav)
+
+    return FileResponse(out_wav, media_type="audio/wav", filename=f"preview_{file.filename}.wav")
+
+
+@app.post("/api/v1/editor/extract")
+async def editor_extract(
+    file: UploadFile = File(...)
+):
+    """
+    Extract metadata and note-synced lyrics from a MusicXML file.
+    """
+    if not file.filename.lower().endswith(('.mxl', '.xml')):
+        raise HTTPException(status_code=400, detail="Only MusicXML (.mxl, .xml) files are supported for extraction.")
+
+    file_bytes = await file.read()
+    # Sanitize filename
+    safe_name = "".join([c for c in file.filename if c.isalnum() or c in "._-"])
+    temp_in = os.path.join("hymn_remaker/input", f"extract_{safe_name}")
+    with open(temp_in, "wb") as f:
+        f.write(file_bytes)
+
+    mods = get_modules()
+    dummy_mid = os.path.join("hymn_remaker/output", "dummy_extract.mid")
+    metadata = mods["mxl_parser"].process(temp_in, dummy_mid)
+
+    return {"status": "success", "metadata": metadata}
+
+
+@app.post("/api/v1/editor/cluster/submit")
+async def editor_cluster_submit(
+    prompt: str = Form("stub prompt"),
+    target_bpm: int = Form(120),
+    model_id: str = Form("stub_model")
+):
+    """
+    Submit a job to the RabbitMQ render cluster.
+    """
+    try:
+        job_id = str(uuid.uuid4())
+        redis_host = os.environ.get("REDIS_HOST", "localhost")
+        r = redis_lib.Redis(host=redis_host, port=6379, db=0)
+        r.set(f"job:{job_id}:status", "queued")
+
+        rabbitmq_host = os.environ.get("RABBITMQ_HOST", "localhost")
+        connection = pika.BlockingConnection(pika.ConnectionParameters(rabbitmq_host))
+        channel = connection.channel()
+        channel.queue_declare(queue='render_jobs', durable=True)
+
+        job_data = {
+            "job_id": job_id,
+            "prompt": prompt,
+            "target_bpm": target_bpm,
+            "model_id": model_id
+        }
+
+        channel.basic_publish(
+            exchange='',
+            routing_key='render_jobs',
+            body=json.dumps(job_data),
+            properties=pika.BasicProperties(
+                delivery_mode=2,
+            )
+        )
+        connection.close()
+
+        return {"status": "success", "job_id": job_id, "message": "Job submitted to cluster."}
+    except Exception as e:
+        logger.error(f"Failed to submit cluster job: {e}")
+        raise HTTPException(status_code=500, detail=f"Cluster submission failed: {str(e)}")
 
 
 @app.get("/api/v1/jobs/{job_id}")

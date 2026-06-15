@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import GenerateForm from '../components/GenerateForm';
+import HymnEditor from '../components/HymnEditor';
 
 const API_BASE_URL = 'http://localhost:8000/api/v1';
 
@@ -40,6 +41,8 @@ export default function Home() {
       <p>Modernizing hymns with AI.</p>
 
       <GenerateForm onJobStarted={handleJobStarted} />
+
+      <HymnEditor />
 
       {activeJobs.length > 0 && (
         <section style={{ marginBottom: '2rem' }}>
