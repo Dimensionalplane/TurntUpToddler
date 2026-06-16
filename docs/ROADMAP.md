@@ -14,6 +14,7 @@
 
 ## PHASE 4: CONTENT EVOLUTION (CURRENT)
 - [x] Dynamic AI Video Overlays (v1.39.0).
+- [x] Persistent Job Configuration & Global Retry Mechanism (v1.41.0).
 - [ ] Multi-Style Video Interpolation (Sora/Runway long-form).
 - [ ] Social Media Auto-Posting (TikTok/Reels/Instagram).
 

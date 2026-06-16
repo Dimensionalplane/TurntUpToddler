@@ -1,5 +1,15 @@
 # CHANGELOG - HYMN REMAKER
 
+## [1.41.0] - 2024-05-24
+### Added
+- **Job Retry Mechanism:** Users can now re-trigger failed generation jobs with a single click from the dashboard.
+- **Enhanced UI Telemetry:** Status cards now show job completion percentage and sub-step messages more prominently.
+- **Adaptive Progress Bars:** Progress bar color changes to amber (warning) when a job is awaiting user review.
+
+### Changed
+- Refactored `api.py` to store job configurations in Redis for persistence.
+- Updated Next.js dashboard with improved task visibility and underscored status formatting.
+
 ## [1.40.0] - 2024-05-23
 ### Added
 - **Dynamic AI Video Overlay:** Support for dynamic video backgrounds (Sora/Runway) in the rendering pipeline.

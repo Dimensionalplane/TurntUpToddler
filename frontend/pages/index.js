@@ -81,6 +81,18 @@ export default function Home() {
     fetchHistory();
   };
 
+  const handleRetry = async (jobId) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/jobs/${jobId}/retry`);
+      if (response.data.new_job_id) {
+        setActiveJobs(prev => [...prev, { id: response.data.new_job_id, status: 'queued' }]);
+      }
+    } catch (err) {
+      console.error('Failed to retry job:', err);
+      alert('Failed to retry job.');
+    }
+  };
+
   return (
     <div style={{ padding: '2rem', fontFamily: 'sans-serif', maxWidth: '1200px', margin: '0 auto' }}>
       <h1>🎵 Hymn Remaker Dashboard</h1>
@@ -117,24 +129,42 @@ export default function Home() {
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                   <strong>Job ID:</strong> <code style={{ fontSize: '0.8rem' }}>{job.id}</code>
-                  <div style={{
-                    textTransform: 'uppercase',
-                    fontSize: '0.75rem',
-                    fontWeight: 'bold',
-                    padding: '0.2rem 0.6rem',
-                    borderRadius: '10px',
-                    background: job.status === 'completed' ? '#d4edda' : (job.status === 'failed' ? '#f8d7da' : '#cce5ff'),
-                    color: job.status === 'completed' ? '#155724' : (job.status === 'failed' ? '#721c24' : '#004085')
-                  }}>
-                    {job.status}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    {job.status === 'failed' && (
+                      <button
+                        onClick={() => handleRetry(job.id)}
+                        style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem', cursor: 'pointer', background: '#fff', border: '1px solid #721c24', color: '#721c24', borderRadius: '4px' }}
+                      >
+                        Retry 🔄
+                      </button>
+                    )}
+                    <div style={{
+                      textTransform: 'uppercase',
+                      fontSize: '0.75rem',
+                      fontWeight: 'bold',
+                      padding: '0.2rem 0.6rem',
+                      borderRadius: '10px',
+                      background: job.status === 'completed' ? '#d4edda' : (job.status === 'failed' ? '#f8d7da' : (job.status === 'awaiting_review' ? '#fff3cd' : '#cce5ff')),
+                      color: job.status === 'completed' ? '#155724' : (job.status === 'failed' ? '#721c24' : (job.status === 'awaiting_review' ? '#856404' : '#004085'))
+                    }}>
+                      {job.status.replace('_', ' ')}
+                    </div>
                   </div>
                 </div>
                 {job.status !== 'completed' && job.status !== 'failed' && (
-                  <div style={{ width: '100%', height: '8px', background: '#ddd', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div style={{ width: `${job.progress || 0}%`, height: '100%', background: '#0070f3', transition: 'width 0.3s ease' }}></div>
+                  <div style={{ marginBottom: '0.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <small style={{ fontWeight: 'bold', color: '#004085' }}>{job.lastMessage || 'Queued...'}</small>
+                      <small style={{ color: '#004085' }}>{job.progress || 0}%</small>
+                    </div>
+                    <div style={{ width: '100%', height: '8px', background: '#ddd', borderRadius: '4px', overflow: 'hidden', marginTop: '0.3rem' }}>
+                      <div style={{ width: `${job.progress || 0}%`, height: '100%', background: job.status === 'awaiting_review' ? '#ffc107' : '#0070f3', transition: 'width 0.3s ease' }}></div>
+                    </div>
                   </div>
                 )}
-                <small style={{ color: '#666', marginTop: '0.3rem', display: 'block' }}>{job.lastMessage || 'Queued...'}</small>
+                {job.status === 'failed' && (
+                  <small style={{ color: '#721c24', marginTop: '0.3rem', display: 'block' }}>{job.lastMessage || 'Failed'}</small>
+                )}
               </div>
             ))}
           </div>

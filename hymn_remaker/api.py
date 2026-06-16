@@ -28,7 +28,7 @@ from hymn_remaker.src.radio_streamer import RadioStreamer
 logger = logging.getLogger("HymnRemakerAPI")
 logging.basicConfig(level=logging.INFO)
 
-app = FastAPI(title="Hymn Remaker API", version="1.36.0")
+app = FastAPI(title="Hymn Remaker API", version="1.41.0")
 
 # Add CORS middleware to allow requests from the Next.js frontend
 frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
@@ -107,11 +107,35 @@ async def generate_hymn(
 
     job_id = str(uuid.uuid4())
     redis_host = os.environ.get("REDIS_HOST", "localhost")
+
+    job_data = {
+        "job_id": job_id,
+        "midi_path": file_path,
+        "output_dir": "hymn_remaker/output",
+        "style": style,
+        "generate_vocals": generate_vocals,
+        "voice_id": voice_id,
+        "model": model,
+        "video_format": video_format,
+        "create_shorts": create_shorts,
+        "enable_visualizer": enable_visualizer,
+        "visualizer_mode": visualizer_mode,
+        "use_dynamic_video": use_dynamic_video,
+        "kids_mode": kids_mode,
+        "interactive_mode": interactive_mode,
+        "suno_session": suno_session,
+        "remake_priority": remake_priority,
+        "normalize_audio": normalize_audio,
+        "fade_in_ms": fade_in_ms,
+        "fade_out_ms": fade_out_ms
+    }
+
     try:
         r = redis_lib.Redis(host=redis_host, port=6379, db=0)
         r.set(f"job:{job_id}:status", "queued")
+        r.set(f"job:{job_id}:config", json.dumps(job_data))
     except Exception as e:
-        logger.warning(f"Failed to set initial job status in Redis: {e}")
+        logger.warning(f"Failed to set initial job status/config in Redis: {e}")
 
     # Load modules
     mods = get_modules()
@@ -124,25 +148,6 @@ async def generate_hymn(
             connection = pika.BlockingConnection(pika.ConnectionParameters(rabbitmq_host))
             channel = connection.channel()
             channel.queue_declare(queue='render_jobs', durable=True)
-
-            job_data = {
-                "job_id": job_id,
-                "midi_path": file_path,
-                "output_dir": "hymn_remaker/output",
-                "style": style,
-                "generate_vocals": generate_vocals,
-                "voice_id": voice_id,
-                "model": model,
-                "video_format": video_format,
-                "create_shorts": create_shorts,
-                "enable_visualizer": enable_visualizer,
-                "visualizer_mode": visualizer_mode,
-                "use_dynamic_video": use_dynamic_video,
-                "kids_mode": kids_mode,
-                "interactive_mode": interactive_mode,
-                "suno_session": suno_session,
-                "remake_priority": remake_priority
-            }
 
             channel.basic_publish(
                 exchange='',
@@ -447,6 +452,108 @@ async def post_job_review_approval(job_id: str, data: dict):
         return {"status": "success", "message": "Content approved and updated."}
     except Exception as e:
         logger.error(f"Failed to submit review approval: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/v1/jobs/{job_id}/retry")
+async def retry_job(job_id: str, background_tasks: BackgroundTasks):
+    """
+    Fetch a failed job's configuration and re-queue it.
+    """
+    redis_host = os.environ.get("REDIS_HOST", "localhost")
+    try:
+        r = redis_lib.Redis(host=redis_host, port=6379, db=0)
+        config_raw = r.get(f"job:{job_id}:config")
+        if not config_raw:
+            raise HTTPException(status_code=404, detail="Original job configuration not found.")
+
+        old_config = json.loads(config_raw)
+
+        # Create new job context
+        new_job_id = str(uuid.uuid4())
+        new_config = old_config.copy()
+        new_config["job_id"] = new_job_id
+
+        r.set(f"job:{new_job_id}:status", "queued")
+        r.set(f"job:{new_job_id}:config", json.dumps(new_config))
+        r.set(f"job:{new_job_id}:message", f"Retrying from job {job_id}...")
+
+        async def queue_job():
+            rabbitmq_host = os.environ.get("RABBITMQ_HOST", "localhost")
+            def blocking_publish():
+                connection = pika.BlockingConnection(pika.ConnectionParameters(rabbitmq_host))
+                channel = connection.channel()
+                channel.queue_declare(queue='render_jobs', durable=True)
+                channel.basic_publish(
+                    exchange='',
+                    routing_key='render_jobs',
+                    body=json.dumps(new_config),
+                    properties=pika.BasicProperties(delivery_mode=2)
+                )
+                connection.close()
+            await anyio.to_thread.run_sync(blocking_publish)
+
+        try:
+            await queue_job()
+        except Exception as e:
+            logger.error(f"Failed to queue retry job to RabbitMQ: {e}")
+            r.set(f"job:{new_job_id}:status", "processing")
+            mods = get_modules()
+
+            def local_task_wrapper(config):
+                job_id_loc = config["job_id"]
+                def local_status_callback(msg, prog):
+                    try:
+                        r_l = redis_lib.Redis(host=redis_host, port=6379, db=0)
+                        r_l.set(f"job:{job_id_loc}:progress", prog)
+                        r_l.set(f"job:{job_id_loc}:message", msg)
+                    except: pass
+                try:
+                    process_single_midi(
+                        midi_path=config["midi_path"],
+                        output_dir=config["output_dir"],
+                        style=config["style"],
+                        skip_render=False,
+                        skip_remake=False,
+                        upload=False,
+                        renderer=mods["renderer"],
+                        remaker=mods["remaker"],
+                        suno_remaker=mods.get("suno_remaker"),
+                        remake_priority=config.get("remake_priority", "suno"),
+                        content_gen=mods["content_gen"],
+                        video_producer=mods["video_producer"],
+                        mxl_parser=mods["mxl_parser"],
+                        omr_processor=mods["omr_processor"],
+                        tts_generator=mods["tts_generator"],
+                        stem_separator=mods["stem_separator"],
+                        normalize_audio=config.get("normalize_audio", True),
+                        fade_in_ms=config.get("fade_in_ms", 0),
+                        fade_out_ms=config.get("fade_out_ms", 0),
+                        generate_vocals=config["generate_vocals"],
+                        voice_id=config["voice_id"],
+                        model=config["model"],
+                        video_format=config["video_format"],
+                        create_shorts=config["create_shorts"],
+                        enable_visualizer=config["enable_visualizer"],
+                        visualizer_mode=config["visualizer_mode"],
+                        use_dynamic_video=config.get("use_dynamic_video", False),
+                        kids_mode=config["kids_mode"],
+                        interactive_callback=None,
+                        status_callback=local_status_callback
+                    )
+                    r.set(f"job:{job_id_loc}:status", "completed")
+                    r.set(f"job:{job_id_loc}:progress", 100)
+                except Exception as ex:
+                    logger.error(f"Retry local task failed: {ex}")
+                    r.set(f"job:{job_id_loc}:status", "failed")
+
+            background_tasks.add_task(local_task_wrapper, new_config)
+
+        return {"status": "success", "new_job_id": new_job_id, "message": "Job re-queued for retry."}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to retry job: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
