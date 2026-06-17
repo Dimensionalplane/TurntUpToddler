@@ -1,5 +1,10 @@
 # CHANGELOG - HYMN REMAKER
 
+## [1.50.0] - 2024-06-03
+### Fixed
+- **Atomic Job Updates:** Transitioned from separate Redis keys to Hash-based storage (`job:{id}`) for status, progress, and messages. This eliminates race conditions where status could be polled while progress was being updated independently.
+- **Redis Connection Pooling:** Implemented a global connection pool in the FastAPI backend to improve concurrent performance under high load.
+
 ## [1.49.0] - 2024-06-02
 ### Added
 - **Subtitle Customization:** Users can now specify the font size and primary color for burned-in subtitles via the Next.js dashboard.

@@ -58,14 +58,14 @@ def render_job(ch, method, properties, body):
 
         if not midi_path or not os.path.exists(midi_path):
             logger.error(f"Job {job_id} failed: MIDI path invalid or missing: {midi_path}")
-            if job_id: r.set(f"job:{job_id}:status", "failed")
+            if job_id: r.hset(f"job:{job_id}", "status", "failed")
             ch.basic_ack(delivery_tag=method.delivery_tag)
             return
 
         logger.info(f" [x] Received job {job_id} for {midi_path}")
 
         if job_id:
-            r.set(f"job:{job_id}:status", "processing")
+            r.hset(f"job:{job_id}", "status", "processing")
 
         mods = get_modules()
 
@@ -76,8 +76,10 @@ def render_job(ch, method, properties, body):
         def worker_status_callback(msg, prog):
             logger.info(f"Job {job_id} Progress: {msg} ({prog}%)")
             if job_id:
-                r.set(f"job:{job_id}:progress", prog)
-                r.set(f"job:{job_id}:message", msg)
+                r.hset(f"job:{job_id}", mapping={
+                    "progress": prog,
+                    "message": msg
+                })
 
         def worker_interactive_callback(data):
             if not job_id: return data
@@ -86,7 +88,7 @@ def render_job(ch, method, properties, body):
             # Store data for frontend to fetch
             r.set(f"job:{job_id}:review_data", json.dumps(data))
             # Set status to awaiting_review
-            r.set(f"job:{job_id}:status", "awaiting_review")
+            r.hset(f"job:{job_id}", "status", "awaiting_review")
 
             # Poll for approval
             while True:
@@ -99,7 +101,7 @@ def render_job(ch, method, properties, body):
                     r.delete(f"job:{job_id}:approved")
                     r.delete(f"job:{job_id}:review_data")
                     # Reset status to processing
-                    r.set(f"job:{job_id}:status", "processing")
+                    r.hset(f"job:{job_id}", "status", "processing")
 
                     if updated_data_raw:
                         return json.loads(updated_data_raw)
@@ -138,7 +140,7 @@ def render_job(ch, method, properties, body):
         )
 
         if job_id:
-            r.set(f"job:{job_id}:status", "completed")
+            r.hset(f"job:{job_id}", "status", "completed")
 
         logger.info(f" [x] Finished job {job_id}")
         ch.basic_ack(delivery_tag=method.delivery_tag)
@@ -146,7 +148,7 @@ def render_job(ch, method, properties, body):
     except Exception as e:
         logger.error(f"Worker Error processing job: {e}")
         if 'job_id' in locals() and job_id:
-            r.set(f"job:{job_id}:status", "failed")
+            r.hset(f"job:{job_id}", "status", "failed")
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
 def main():

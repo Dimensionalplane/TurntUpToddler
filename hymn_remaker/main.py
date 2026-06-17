@@ -448,12 +448,17 @@ def process_single_midi(
 
         # Generate the actual image or video using the (potentially edited) prompt
         background_url = content_gen.generate_art(art_prompt)
-        if use_dynamic_video and video_prompt:
+        if use_dynamic_video:
+            video_prompt = content_gen.generate_video_prompt(metadata, style=style)
             update_status("Generating dynamic AI video background...", 79)
             try:
-                background_url = content_gen.generate_video(video_prompt)
+                dynamic_video_url = content_gen.generate_video(video_prompt)
+                if dynamic_video_url:
+                    background_url = dynamic_video_url
+                else:
+                    logger.warning("AI video generation returned None. Falling back to static album art.")
             except Exception as e:
-                logger.error(f"Failed to generate dynamic video: {e}. Falling back to image.")
+                logger.error(f"Failed to generate dynamic video: {e}. Falling back to static album art.")
 
         # Optional: Generate Vocals via ElevenLabs
         vocal_track_path = None

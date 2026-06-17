@@ -31,6 +31,13 @@ logging.basicConfig(level=logging.INFO)
 
 app = FastAPI(title="Hymn Remaker API", version="1.49.0")
 
+# Redis Connection Pool
+redis_host = os.environ.get("REDIS_HOST", "localhost")
+redis_pool = redis_lib.ConnectionPool(host=redis_host, port=6379, db=0)
+
+def get_redis():
+    return redis_lib.Redis(connection_pool=redis_pool)
+
 # Add CORS middleware to allow requests from the Next.js frontend
 frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
 app.add_middleware(
@@ -56,8 +63,7 @@ def get_modules():
     global _modules
     if not _modules:
         try:
-            redis_host = os.environ.get("REDIS_HOST", "localhost")
-            r_client = redis_lib.Redis(host=redis_host, port=6379, db=0)
+            r_client = get_redis()
             _modules = {
                 "renderer": MidiRenderer(),
                 "remaker": MusicRemaker(),
@@ -143,8 +149,12 @@ async def generate_hymn(
     }
 
     try:
-        r = redis_lib.Redis(host=redis_host, port=6379, db=0)
-        r.set(f"job:{job_id}:status", "queued")
+        r = get_redis()
+        r.hset(f"job:{job_id}", mapping={
+            "status": "queued",
+            "progress": 0,
+            "message": "Queued in RabbitMQ..."
+        })
         r.set(f"job:{job_id}:config", json.dumps(job_data))
     except Exception as e:
         logger.warning(f"Failed to set initial job status/config in Redis: {e}")
@@ -178,30 +188,34 @@ async def generate_hymn(
         # Fallback to local background task if cluster is down
         # Update Redis to processing since it's immediate
         try:
-            r = redis_lib.Redis(host=redis_host, port=6379, db=0)
-            r.set(f"job:{job_id}:status", "processing")
+            r = get_redis()
+            r.hset(f"job:{job_id}", "status", "processing")
         except: pass
 
         def local_task_wrapper(*args, **kwargs):
             def local_status_callback(msg, prog):
                 try:
-                    r_l = redis_lib.Redis(host=redis_host, port=6379, db=0)
-                    r_l.set(f"job:{job_id}:progress", prog)
-                    r_l.set(f"job:{job_id}:message", msg)
+                    r_l = get_redis()
+                    r_l.hset(f"job:{job_id}", mapping={
+                        "progress": prog,
+                        "message": msg
+                    })
                 except: pass
 
             kwargs['status_callback'] = local_status_callback
             try:
                 process_single_midi(*args, **kwargs)
                 try:
-                    r_local = redis_lib.Redis(host=redis_host, port=6379, db=0)
-                    r_local.set(f"job:{job_id}:status", "completed")
-                    r_local.set(f"job:{job_id}:progress", 100)
+                    r_local = get_redis()
+                    r_local.hset(f"job:{job_id}", mapping={
+                        "status": "completed",
+                        "progress": 100
+                    })
                 except: pass
             except:
                 try:
-                    r_local = redis_lib.Redis(host=redis_host, port=6379, db=0)
-                    r_local.set(f"job:{job_id}:status", "failed")
+                    r_local = get_redis()
+                    r_local.hset(f"job:{job_id}", "status", "failed")
                 except: pass
 
         background_tasks.add_task(
@@ -383,8 +397,7 @@ async def radio_start(
     Start the live RTMP radio broadcast via distributed signal.
     """
     try:
-        redis_host = os.environ.get("REDIS_HOST", "localhost")
-        r = redis_lib.Redis(host=redis_host, port=6379, db=0)
+        r = get_redis()
         r.publish('radio_commands', json.dumps({
             "command": "START",
             "stream_url": stream_url,
@@ -402,8 +415,7 @@ async def radio_stop():
     Stop the live RTMP radio broadcast via distributed signal.
     """
     try:
-        redis_host = os.environ.get("REDIS_HOST", "localhost")
-        r = redis_lib.Redis(host=redis_host, port=6379, db=0)
+        r = get_redis()
         r.publish('radio_commands', json.dumps({"command": "STOP"}))
         return {"status": "success", "message": "Radio stop command published."}
     except Exception as e:
@@ -417,8 +429,7 @@ async def radio_skip():
     Skip the current track in the radio broadcast via distributed signal.
     """
     try:
-        redis_host = os.environ.get("REDIS_HOST", "localhost")
-        r = redis_lib.Redis(host=redis_host, port=6379, db=0)
+        r = get_redis()
         r.publish('radio_commands', json.dumps({"command": "SKIP"}))
         return {"status": "success", "message": "Radio skip command published."}
     except Exception as e:
@@ -432,8 +443,7 @@ async def radio_status():
     Retrieve the current status of the radio broadcast from shared Redis state.
     """
     try:
-        redis_host = os.environ.get("REDIS_HOST", "localhost")
-        r = redis_lib.Redis(host=redis_host, port=6379, db=0)
+        r = get_redis()
         status_raw = r.get('radio:status')
         if status_raw:
             return json.loads(status_raw)
@@ -449,8 +459,7 @@ def get_job_review_data(job_id: str):
     Retrieve pending metadata/lyrics/art_prompt from Redis for interactive review.
     """
     try:
-        redis_host = os.environ.get("REDIS_HOST", "localhost")
-        r = redis_lib.Redis(host=redis_host, port=6379, db=0)
+        r = get_redis()
         review_data = r.get(f"job:{job_id}:review_data")
         if review_data:
             return json.loads(review_data)
@@ -467,8 +476,7 @@ async def post_job_review_approval(job_id: str, data: dict):
     Update the generated content and set the approval flag in Redis.
     """
     try:
-        redis_host = os.environ.get("REDIS_HOST", "localhost")
-        r = redis_lib.Redis(host=redis_host, port=6379, db=0)
+        r = get_redis()
         # Update the data the worker is waiting for
         r.set(f"job:{job_id}:review_data", json.dumps(data))
         # Signal approval
@@ -484,9 +492,8 @@ async def retry_job(job_id: str, background_tasks: BackgroundTasks):
     """
     Fetch a failed job's configuration and re-queue it.
     """
-    redis_host = os.environ.get("REDIS_HOST", "localhost")
     try:
-        r = redis_lib.Redis(host=redis_host, port=6379, db=0)
+        r = get_redis()
         config_raw = r.get(f"job:{job_id}:config")
         if not config_raw:
             raise HTTPException(status_code=404, detail="Original job configuration not found.")
@@ -498,9 +505,12 @@ async def retry_job(job_id: str, background_tasks: BackgroundTasks):
         new_config = old_config.copy()
         new_config["job_id"] = new_job_id
 
-        r.set(f"job:{new_job_id}:status", "queued")
+        r.hset(f"job:{new_job_id}", mapping={
+            "status": "queued",
+            "progress": 0,
+            "message": f"Retrying from job {job_id}..."
+        })
         r.set(f"job:{new_job_id}:config", json.dumps(new_config))
-        r.set(f"job:{new_job_id}:message", f"Retrying from job {job_id}...")
 
         async def queue_job():
             rabbitmq_host = os.environ.get("RABBITMQ_HOST", "localhost")
@@ -521,16 +531,18 @@ async def retry_job(job_id: str, background_tasks: BackgroundTasks):
             await queue_job()
         except Exception as e:
             logger.error(f"Failed to queue retry job to RabbitMQ: {e}")
-            r.set(f"job:{new_job_id}:status", "processing")
+            r.hset(f"job:{new_job_id}", "status", "processing")
             mods = get_modules()
 
             def local_task_wrapper(config):
                 job_id_loc = config["job_id"]
                 def local_status_callback(msg, prog):
                     try:
-                        r_l = redis_lib.Redis(host=redis_host, port=6379, db=0)
-                        r_l.set(f"job:{job_id_loc}:progress", prog)
-                        r_l.set(f"job:{job_id_loc}:message", msg)
+                        r_l = get_redis()
+                        r_l.hset(f"job:{job_id_loc}", mapping={
+                            "progress": prog,
+                            "message": msg
+                        })
                     except: pass
                 try:
                     process_single_midi(
@@ -569,11 +581,13 @@ async def retry_job(job_id: str, background_tasks: BackgroundTasks):
                         interactive_callback=None,
                         status_callback=local_status_callback
                     )
-                    r.set(f"job:{job_id_loc}:status", "completed")
-                    r.set(f"job:{job_id_loc}:progress", 100)
+                    r.hset(f"job:{job_id_loc}", mapping={
+                        "status": "completed",
+                        "progress": 100
+                    })
                 except Exception as ex:
                     logger.error(f"Retry local task failed: {ex}")
-                    r.set(f"job:{job_id_loc}:status", "failed")
+                    r.hset(f"job:{job_id_loc}", "status", "failed")
 
             background_tasks.add_task(local_task_wrapper, new_config)
 
@@ -591,18 +605,15 @@ def get_job_status(job_id: str):
     Retrieve the status, progress, and last message of a specific background job from Redis.
     """
     try:
-        redis_host = os.environ.get("REDIS_HOST", "localhost")
-        r = redis_lib.Redis(host=redis_host, port=6379, db=0)
-        status = r.get(f"job:{job_id}:status")
-        progress = r.get(f"job:{job_id}:progress")
-        message = r.get(f"job:{job_id}:message")
+        r = get_redis()
+        job_data = r.hgetall(f"job:{job_id}")
 
-        if status:
+        if job_data:
             return {
                 "job_id": job_id,
-                "status": status.decode("utf-8"),
-                "progress": int(progress.decode("utf-8")) if progress else 0,
-                "message": message.decode("utf-8") if message else "Queued..."
+                "status": job_data.get(b"status", b"unknown").decode("utf-8"),
+                "progress": int(job_data.get(b"progress", b"0").decode("utf-8")),
+                "message": job_data.get(b"message", b"Queued...").decode("utf-8")
             }
         else:
             raise HTTPException(status_code=404, detail=f"Job {job_id} not found.")

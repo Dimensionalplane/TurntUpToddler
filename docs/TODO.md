@@ -8,7 +8,7 @@
 - [x] Implement video-specific caching in Redis (v1.44.0).
 
 ## BUG FIXES
-- [ ] Fix race condition in Job Status polling when RabbitMQ is under high load.
+- [x] Fix race condition in Job Status polling when RabbitMQ is under high load (v1.50.0).
 - [x] Improve sanitization for non-alphanumeric lyric characters in SRT generation (NFKD) (v1.44.0).
 - [x] Fix hardcoded frontend API URLs (v1.46.0).
 

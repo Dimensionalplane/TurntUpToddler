@@ -97,6 +97,10 @@ class VideoProducer:
         unique_id = uuid.uuid4().hex
 
         # Determine the extension for the temporary background file
+        if not image_url:
+             logger.warning("No image_url provided, using placeholder art.")
+             image_url = "https://via.placeholder.com/1024.png"
+
         ext = ".png"
         if image_url.startswith(('http://', 'https://')):
             # Basic attempt to get extension from URL
