@@ -1,5 +1,13 @@
 # CHANGELOG - HYMN REMAKER
 
+## [1.44.0] - 2024-05-27
+### Added
+- **AI Video Caching:** Implemented Redis-based caching for AI-generated video URLs (Sora/Runway) to prevent redundant generation costs.
+- **Enhanced Lyric Normalization:** Added Unicode NFKD normalization to `VideoProducer` to preserve accented characters by converting them to their ASCII equivalents (e.g., ñ -> n) rather than deleting them.
+
+### Changed
+- Distributed workers and API now share the same Redis-backed module state for `ContentGenerator`.
+
 ## [1.43.0] - 2024-05-26
 ### Added
 - **4K UHD Rendering:** Added support for ultra-high-definition 4K video output (3840x2160) across the pipeline.

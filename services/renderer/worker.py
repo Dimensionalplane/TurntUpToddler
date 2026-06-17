@@ -33,11 +33,12 @@ def get_modules():
     global _modules
     if not _modules:
         logger.info("Initializing Pipeline Modules for Worker...")
+        # Reuse existing Redis connection 'r'
         _modules = {
             "renderer": MidiRenderer(),
             "remaker": MusicRemaker(),
             "suno_remaker": SunoRemaker(),
-            "content_gen": ContentGenerator(),
+            "content_gen": ContentGenerator(redis_client=r),
             "video_producer": VideoProducer(),
             "mxl_parser": MusicXMLParser(),
             "omr_processor": OMRProcessor(),

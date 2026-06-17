@@ -41,11 +41,17 @@ class VideoProducer:
 
         try:
             import re
+            import unicodedata
             with open(srt_path, 'w', encoding='utf-8') as f:
                 for i, line in enumerate(lyrics):
                     start = float(line.get('start', i * 5))
                     end = float(line.get('end', start + 4))
                     text = line.get('text', '')
+
+                    # Normalize unicode (decompose accents)
+                    text = unicodedata.normalize('NFKD', text)
+                    # Convert to ASCII, ignoring errors (effectively strips accents)
+                    text = text.encode('ascii', 'ignore').decode('ascii')
 
                     # Sanitize text: Remove characters that break ffmpeg/ass burning
                     # Keep basic alphanumeric, spaces, and essential punctuation

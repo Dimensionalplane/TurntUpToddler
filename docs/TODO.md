@@ -5,11 +5,11 @@
 - [x] Update FFmpeg logic for looped video backgrounds.
 - [x] Expose `use_dynamic_video` in API and Frontend.
 - [x] Optimize Sora/Runway prompt engineering for better loop points.
-- [ ] Implement video-specific caching in Redis.
+- [x] Implement video-specific caching in Redis.
 
 ## BUG FIXES
 - [ ] Fix race condition in Job Status polling when RabbitMQ is under high load.
-- [ ] Improve sanitization for non-alphanumeric lyric characters in SRT generation.
+- [x] Improve sanitization for non-alphanumeric lyric characters in SRT generation.
 
 ## FEATURES
 - [x] Add "Style Presets" dropdown in Frontend for common genre combinations.

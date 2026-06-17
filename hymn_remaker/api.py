@@ -29,7 +29,7 @@ from hymn_remaker.src.radio_streamer import RadioStreamer
 logger = logging.getLogger("HymnRemakerAPI")
 logging.basicConfig(level=logging.INFO)
 
-app = FastAPI(title="Hymn Remaker API", version="1.43.0")
+app = FastAPI(title="Hymn Remaker API", version="1.44.0")
 
 # Add CORS middleware to allow requests from the Next.js frontend
 frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
@@ -56,11 +56,13 @@ def get_modules():
     global _modules
     if not _modules:
         try:
+            redis_host = os.environ.get("REDIS_HOST", "localhost")
+            r_client = redis_lib.Redis(host=redis_host, port=6379, db=0)
             _modules = {
                 "renderer": MidiRenderer(),
                 "remaker": MusicRemaker(),
                 "suno_remaker": SunoRemaker(),
-                "content_gen": ContentGenerator(),
+                "content_gen": ContentGenerator(redis_client=r_client),
                 "video_producer": VideoProducer(),
                 "tts_generator": TTSGenerator(),
                 "mxl_parser": MusicXMLParser(),
