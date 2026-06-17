@@ -31,6 +31,7 @@ export default function GenerateForm({ onJobStarted }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [interactiveMode, setInteractiveMode] = useState(false);
+  const [arrangementStyle, setArrangementStyle] = useState('Original');
   const [remakePriority, setRemakePriority] = useState('suno');
   const [sunoSession, setSunoSession] = useState('');
   const [normalizeAudio, setNormalizeAudio] = useState(true);
@@ -62,6 +63,7 @@ export default function GenerateForm({ onJobStarted }) {
     formData.append('normalize_audio', normalizeAudio);
     formData.append('fade_in_ms', fadeInMs);
     formData.append('fade_out_ms', fadeOutMs);
+    formData.append('arrangement_style', arrangementStyle);
     formData.append('interactive_mode', interactiveMode);
     formData.append('remake_priority', remakePriority);
     formData.append('suno_session', sunoSession);
@@ -141,6 +143,14 @@ export default function GenerateForm({ onJobStarted }) {
             <select value={resolution} onChange={(e) => setResolution(e.target.value)} style={{ width: '100%' }}>
               <option value="1080p">1080p (FHD)</option>
               <option value="4K">4K (UHD)</option>
+            </select>
+          </div>
+          <div>
+            <label>Arrangement (OMR): </label>
+            <select value={arrangementStyle} onChange={(e) => setArrangementStyle(e.target.value)} style={{ width: '100%' }}>
+              <option value="Original">Original</option>
+              <option value="Swing">Swing</option>
+              <option value="Lullaby">Lullaby / Soft</option>
             </select>
           </div>
         </div>

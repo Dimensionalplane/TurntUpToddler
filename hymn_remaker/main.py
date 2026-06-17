@@ -230,6 +230,8 @@ def process_single_midi(
     enable_visualizer=False,
     visualizer_mode="cline",
     interactive_callback=None,
+    use_dynamic_video=False,
+    arrangement_style="Original",
     kids_mode=False):
 
     base_audio_path = remake_audio_path = metadata_path = vocal_track_path = None
@@ -269,6 +271,13 @@ def process_single_midi(
 
         # 0. Check if input is MusicXML and extract/convert
         if filename.lower().endswith((".mxl", ".xml")):
+            # Apply Style Transfer if requested
+            if omr_processor and arrangement_style and arrangement_style.lower() != "original":
+                update_status(f"Applying '{arrangement_style}' arrangement to score...", 14)
+                midi_path = omr_processor.transfer_style(midi_path, arrangement_style)
+                filename = os.path.basename(midi_path)
+                name_no_ext = os.path.splitext(filename)[0]
+
             update_status(f"Step 0/4: Parsing MusicXML and converting to MIDI ({filename})...", 15)
             target_midi_path = os.path.join(output_dir, f"{name_no_ext}_converted.mid")
             if mxl_parser:
@@ -376,6 +385,7 @@ def process_single_midi(
                 f"Abstract album art for {metadata.get('title', name_no_ext)}, {style} style, high quality, 4k"
             )
             art_prompt = metadata.get("art_prompt", default_art_prompt)
+            art_prompt = metadata.get("art_prompt", default_art_prompt)
             if interactive_callback:
                 update_status(f"Pausing for interactive review...", 76)
                 edited_data = interactive_callback({
@@ -436,8 +446,14 @@ def process_single_midi(
                         json.dump(metadata, f, indent=4)
                     update_status(f"Resuming pipeline...", 78)
 
-        # Generate the actual image using the (potentially edited) prompt
-        art_url = content_gen.generate_art(art_prompt)
+        # Generate the actual image or video using the (potentially edited) prompt
+        background_url = content_gen.generate_art(art_prompt)
+        if use_dynamic_video and video_prompt:
+            update_status("Generating dynamic AI video background...", 79)
+            try:
+                background_url = content_gen.generate_video(video_prompt)
+            except Exception as e:
+                logger.error(f"Failed to generate dynamic video: {e}. Falling back to image.")
 
         # Optional: Generate Vocals via ElevenLabs
         vocal_track_path = None
@@ -474,7 +490,7 @@ def process_single_midi(
         update_status(f"Step 4/4: Creating Video with Subtitles ({filename})...", 85)
         video_path = os.path.join(output_dir, f"{name_no_ext}.mp4")
         video_producer.create_video(
-            remake_audio_path, art_url, video_path,
+            remake_audio_path, background_url, video_path,
             lyrics=lyrics, video_format=video_format,
             resolution=resolution,
             sub_font_size=sub_font_size,

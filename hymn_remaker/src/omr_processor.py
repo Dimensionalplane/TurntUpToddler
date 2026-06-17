@@ -68,16 +68,45 @@ class OMRProcessor:
 
     def transfer_style(self, mxl_path, style_name):
         """
-        Apply a musical style transfer to a generated MusicXML file.
+        Apply a musical style transfer to a generated MusicXML file using Music21.
 
         Args:
             mxl_path (str): Path to the source .mxl or .musicxml file.
-            style_name (str): Name of the target style (e.g., 'Swing', 'Classical').
-
-        NOTE: This is a placeholder hook for Phase 5. Future implementations
-        will use Music21 to modify rhythms, harmonies, and articulations based
-        on the selected style before the file is passed to the renderer.
+            style_name (str): Name of the target style (e.g., 'Swing', 'Lullaby').
         """
+        if not style_name or style_name.lower() == "original":
+            return mxl_path
+
         logger.info(f"Applying style transfer '{style_name}' to {mxl_path}...")
-        # TODO: Implement Music21 logic for score transformation
-        return mxl_path
+
+        try:
+            from music21 import converter, tempo, midi
+
+            score = converter.parse(mxl_path)
+
+            if style_name.lower() == "swing":
+                # Implement basic swing: lengthen first 8th, shorten second
+                for p in score.parts:
+                    for n in p.recurse().notes:
+                        if n.quarterLength == 0.5: # 8th note
+                            # This is a simplification; real swing is position-dependent
+                            # but for v1.47.0 we'll perform a global transformation
+                            n.quarterLength = 0.66
+
+            elif style_name.lower() == "lullaby":
+                # Slow down and soften
+                for p in score.parts:
+                    for m in p.getElementsByClass('Measure'):
+                        m.insert(0, tempo.MetronomeMark(number=60))
+                        for n in m.recurse().notes:
+                            n.volume.velocity = 50
+
+            # Save the modified score
+            base, ext = os.path.splitext(mxl_path)
+            output_path = f"{base}_{style_name.lower()}{ext}"
+            score.write('musicxml', fp=output_path)
+            return output_path
+
+        except Exception as e:
+            logger.error(f"Style transfer failed: {e}")
+            return mxl_path

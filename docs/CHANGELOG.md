@@ -1,5 +1,13 @@
 # CHANGELOG - HYMN REMAKER
 
+## [1.47.0] - 2024-05-30
+### Added
+- **Algorithmic Style Transfer:** Integrated `Music21` into `OMRProcessor` to allow for score-level modifications. Supports initial 'Swing' and 'Lullaby' arrangement styles.
+- **Arrangement Selection:** Added "Arrangement (OMR)" dropdown to the Next.js dashboard.
+
+### Fixed
+- Improved file extension handling during score modification to support both `.mxl` and `.musicxml` reliably.
+
 ## [1.46.0] - 2024-05-29
 ### Added
 - **Multi-Channel Webhooks:** `WebhookNotifier` now supports multiple Discord/Slack channels via a configuration dictionary.
