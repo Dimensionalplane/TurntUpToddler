@@ -37,7 +37,7 @@ RUN pip install --no-cache-dir \
     oemer==0.1.8 \
     demucs==4.0.1 \
     opencv-python-headless==4.13.0.92 \
-    onnxruntime-gpu==1.26.0
+    onnxruntime-gpu==1.19.0
 
 # --- Stage 3: Runtime Environment (slim) ---
 FROM python:3.12-slim
@@ -84,8 +84,8 @@ RUN pip install --no-cache-dir --no-deps \
     elevenlabs>=2.46 \
     streamlit>=1.57 \
     requests>=2.32 \
-    numpy>=2.4 \
-    scipy>=1.17
+    numpy>=1.26 \
+    scipy>=1.14
 
 # Copy compiled C++ extension from builder
 COPY --from=builder /build/hymn_player_ext*.so ./

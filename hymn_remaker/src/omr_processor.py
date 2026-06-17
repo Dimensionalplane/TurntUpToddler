@@ -89,9 +89,19 @@ class OMRProcessor:
                 for p in score.parts:
                     for n in p.recurse().notes:
                         if n.quarterLength == 0.5: # 8th note
-                            # This is a simplification; real swing is position-dependent
-                            # but for v1.47.0 we'll perform a global transformation
-                            n.quarterLength = 0.66
+                            # Position-dependent swing: lengthen 8ths on beats 1, 2, 3, 4
+                            if n.beat == int(n.beat):
+                                n.quarterLength = 0.67
+                            else:
+                                n.quarterLength = 0.33
+
+            elif style_name.lower() == "arpeggio":
+                # Convert chords to arpeggios
+                for p in score.parts:
+                    for n in p.recurse().notes:
+                        if n.isChord:
+                            # Simple arpeggio logic: spread the chord notes
+                            pass # TODO: Implement complex arpeggio expansion
 
             elif style_name.lower() == "lullaby":
                 # Slow down and soften

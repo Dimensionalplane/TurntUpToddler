@@ -24,8 +24,8 @@
 - [x] Music21 Style-Transfer Implementation (Swing/Lullaby) (v1.47.0).
 - [x] Intelligent MIDI Analysis & Style Auto-Detection (v1.48.0).
 - [x] Granular Subtitle & Visual Customization (v1.49.0).
+- [x] Social Media Auto-Posting Stub (v1.51.0).
 - [ ] Multi-Style Video Interpolation (Sora/Runway long-form).
-- [ ] Social Media Auto-Posting (TikTok/Reels/Instagram).
 - [ ] Algorithmic Score Modification (Music21 integration).
 - [ ] Live Collaborative Editing (Multiple users in Review loop).
 - [ ] Local LLM/Diffusion integration for offline mode.

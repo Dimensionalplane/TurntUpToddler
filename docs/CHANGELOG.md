@@ -1,9 +1,15 @@
 # CHANGELOG - HYMN REMAKER
 
+## [1.51.0] - 2024-06-04
+### Added
+- **Social Media Auto-Posting (Stub):** Implemented `SocialMediaPoster` in `hymn_remaker/src/social_media_poster.py` for automated TikTok and Instagram Reels posting.
+- **Enhanced Arrangement Styles:** Improved `Swing` arrangement with position-dependent timing and added `Arpeggio` arrangement stub in `OMRProcessor`.
+
 ## [1.50.0] - 2024-06-03
 ### Fixed
 - **Atomic Job Updates:** Transitioned from separate Redis keys to Hash-based storage (`job:{id}`) for status, progress, and messages. This eliminates race conditions where status could be polled while progress was being updated independently.
 - **Redis Connection Pooling:** Implemented a global connection pool in the FastAPI backend to improve concurrent performance under high load.
+- **AI Video Robustness:** Fixed functional regression in `process_single_midi` when AI video generation returns None; system now gracefully falls back to static album art.
 
 ## [1.49.0] - 2024-06-02
 ### Added
