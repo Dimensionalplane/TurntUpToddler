@@ -1,5 +1,18 @@
 # CHANGELOG - HYMN REMAKER
 
+## [1.42.0] - 2024-05-25
+### Added
+- **Musical Style Presets:** Introduced a system for genre presets (Deep House, Lofi, Synthwave, etc.) to simplify generation.
+- **Config API:** New `/api/v1/config/presets` endpoint to serve dynamic configuration to the frontend.
+- **Style Dropdown:** Added a searchable preset dropdown to the Next.js `GenerateForm`.
+
+### Fixed
+- **Lyric Sanitization:** Implemented regex filtering for non-standard characters in SRT generation to prevent FFmpeg burning failures.
+- **SRT Encoding:** Enforced UTF-8 encoding for subtitle files.
+
+### Changed
+- Refactored `settings.py` to centralize style configurations.
+
 ## [1.41.0] - 2024-05-24
 ### Added
 - **Job Retry Mechanism:** Users can now re-trigger failed generation jobs with a single click from the dashboard.

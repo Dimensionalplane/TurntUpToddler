@@ -1,11 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
 export default function GenerateForm({ onJobStarted }) {
   const [file, setFile] = useState(null);
+  const [presets, setPresets] = useState({});
   const [style, setStyle] = useState('Deep House, high quality, electronic');
+
+  useEffect(() => {
+    const fetchPresets = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/config/presets`);
+        setPresets(response.data.presets || {});
+      } catch (err) {
+        console.error('Failed to fetch style presets:', err);
+      }
+    };
+    fetchPresets();
+  }, []);
   const [generateVocals, setGenerateVocals] = useState(false);
   const [voiceId, setVoiceId] = useState('');
   const [model, setModel] = useState('eleven_multilingual_v2');
@@ -76,7 +89,21 @@ export default function GenerateForm({ onJobStarted }) {
         </div>
 
         <div style={{ marginBottom: '1rem' }}>
-          <label>Style: </label>
+          <label>Style Preset: </label>
+          <select
+            onChange={(e) => {
+              if (e.target.value !== 'custom') {
+                setStyle(presets[e.target.value]);
+              }
+            }}
+            style={{ width: '100%', marginBottom: '0.5rem' }}
+          >
+            <option value="custom">-- Select a Preset (or type below) --</option>
+            {Object.keys(presets).map(p => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
+          <label>Style Prompt: </label>
           <input type="text" value={style} onChange={(e) => setStyle(e.target.value)} style={{ width: '100%' }} />
         </div>
 

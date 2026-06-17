@@ -40,11 +40,17 @@ class VideoProducer:
             return False
 
         try:
-            with open(srt_path, 'w') as f:
+            import re
+            with open(srt_path, 'w', encoding='utf-8') as f:
                 for i, line in enumerate(lyrics):
                     start = float(line.get('start', i * 5))
                     end = float(line.get('end', start + 4))
                     text = line.get('text', '')
+
+                    # Sanitize text: Remove characters that break ffmpeg/ass burning
+                    # Keep basic alphanumeric, spaces, and essential punctuation
+                    text = re.sub(r'[^\w\s.,!?\'"-]', '', text)
+                    text = text.strip()
 
                     # Convert seconds to SRT timestamp: HH:MM:SS,mmm
                     def format_time(seconds):

@@ -252,6 +252,13 @@ def get_generation_history():
     return {"status": "success", "data": history}
 
 
+@app.get("/api/v1/config/presets")
+def get_style_presets():
+    """Retrieve available musical style presets."""
+    from hymn_remaker import settings
+    return {"status": "success", "presets": settings.STYLE_PRESETS}
+
+
 @app.post("/api/v1/editor/preview")
 async def editor_preview(
     file: UploadFile = File(...),
