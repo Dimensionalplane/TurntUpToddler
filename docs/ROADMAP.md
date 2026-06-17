@@ -20,8 +20,10 @@
 - [x] YouTube Live Radio & FFmpeg Stream Stability (v1.45.0).
 
 ## PHASE 5: ADVANCED COMPOSITION (CURRENT)
+- [x] Multi-Channel Webhook Expansion (v1.46.0).
+- [x] Style-Transfer Placeholder Hook in OMR (v1.46.0).
 - [ ] Multi-Style Video Interpolation (Sora/Runway long-form).
 - [ ] Social Media Auto-Posting (TikTok/Reels/Instagram).
-- [ ] Style-Transfer for Sheet Music (OMR -> Custom Style).
+- [ ] Algorithmic Score Modification (Music21 integration).
 - [ ] Live Collaborative Editing (Multiple users in Review loop).
 - [ ] Local LLM/Diffusion integration for offline mode.

@@ -188,7 +188,7 @@ export default function Home() {
                   {item.remote_video_url ? (
                       <a href={item.remote_video_url} target="_blank" rel="noreferrer" style={{ color: '#0070f3', textDecoration: 'none', fontWeight: 'bold' }}>S3 🎥</a>
                   ) : item.video_path && (
-                      <a href={`http://localhost:8000/output/${item.video_path.split('/').pop()}`} target="_blank" rel="noreferrer" style={{ color: '#0070f3', textDecoration: 'none', fontWeight: 'bold' }}>Local 🎥</a>
+                      <a href={`${API_BASE_URL.replace('/api/v1', '')}/output/${item.video_path.split('/').pop()}`} target="_blank" rel="noreferrer" style={{ color: '#0070f3', textDecoration: 'none', fontWeight: 'bold' }}>Local 🎥</a>
                   )}
                 </div>
               </div>

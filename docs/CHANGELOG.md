@@ -1,5 +1,13 @@
 # CHANGELOG - HYMN REMAKER
 
+## [1.46.0] - 2024-05-29
+### Added
+- **Multi-Channel Webhooks:** `WebhookNotifier` now supports multiple Discord/Slack channels via a configuration dictionary.
+- **Style-Transfer Placeholder:** Added hook in `OMRProcessor` for future algorithmic score modifications.
+
+### Fixed
+- **Frontend URL Wiring:** Fixed a hardcoded backend URL in the dashboard to support dynamic deployment environments.
+
 ## [1.45.0] - 2024-05-28
 ### Added
 - **YouTube Live Radio:** Added full support for streaming to YouTube Live RTMP endpoints.

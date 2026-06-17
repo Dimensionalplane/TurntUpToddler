@@ -29,7 +29,7 @@ from hymn_remaker.src.radio_streamer import RadioStreamer
 logger = logging.getLogger("HymnRemakerAPI")
 logging.basicConfig(level=logging.INFO)
 
-app = FastAPI(title="Hymn Remaker API", version="1.45.0")
+app = FastAPI(title="Hymn Remaker API", version="1.46.0")
 
 # Add CORS middleware to allow requests from the Next.js frontend
 frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")

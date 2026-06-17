@@ -11,11 +11,12 @@ class WebhookNotifier:
         Initialize the Webhook Notifier.
 
         Args:
-            webhook_url (str): The Discord/Slack compatible webhook URL.
+            webhook_url (str or dict): The Discord/Slack compatible webhook URL,
+                                       or a dict mapping channel names to URLs.
         """
-        self.webhook_url = webhook_url
+        self.webhooks = {"default": webhook_url} if isinstance(webhook_url, str) else (webhook_url or {})
 
-    def send_notification(self, title, description, s3_video_url=None, youtube_url=None, s3_audio_url=None, style=None, color=5814783):
+    def send_notification(self, title, description, s3_video_url=None, youtube_url=None, s3_audio_url=None, style=None, color=5814783, channel="default"):
         """
         Send a rich embed notification to a Discord webhook.
 
@@ -31,11 +32,12 @@ class WebhookNotifier:
         Returns:
             bool: True if successful, False otherwise.
         """
-        if not self.webhook_url:
-            logger.warning("No webhook URL configured. Skipping notification.")
+        target_url = self.webhooks.get(channel)
+        if not target_url:
+            logger.warning(f"No webhook URL configured for channel '{channel}'. Skipping notification.")
             return False
 
-        logger.info(f"Sending webhook notification to {self.webhook_url.split('/api/webhooks/')[0]}...")
+        logger.info(f"Sending webhook notification to {target_url.split('/api/webhooks/')[0]} (channel: {channel})...")
 
         # Construct Discord-style Rich Embed
         embed = {
@@ -72,7 +74,7 @@ class WebhookNotifier:
         }
 
         try:
-            response = requests.post(self.webhook_url, data=json.dumps(payload), headers=headers)
+            response = requests.post(target_url, data=json.dumps(payload), headers=headers)
             response.raise_for_status()
             logger.info("Webhook notification sent successfully.")
             return True

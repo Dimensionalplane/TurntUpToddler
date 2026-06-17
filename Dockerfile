@@ -32,12 +32,12 @@ RUN apt-get update && apt-get install -y \
 
 COPY hymn_remaker/requirements.txt .
 RUN pip install --no-cache-dir \
-    torch==2.1.2 \
-    torchaudio==2.1.2 \
+    torch==2.12.0 \
+    torchaudio==2.11.0 \
     oemer==0.1.8 \
     demucs==4.0.1 \
-    opencv-python-headless==4.10.0.84 \
-    onnxruntime-gpu==1.17.1
+    opencv-python-headless==4.13.0.92 \
+    onnxruntime-gpu==1.26.0
 
 # --- Stage 3: Runtime Environment (slim) ---
 FROM python:3.12-slim
@@ -79,13 +79,13 @@ RUN pip install --no-cache-dir --no-deps \
     playwright-stealth==2.0.3 \
     pyrubberband==0.4.0 \
     && pip install --no-cache-dir \
-    google-auth>=2.20.0 \
-    google-api-core>=2.11.1 \
-    elevenlabs>=1.0.0 \
-    streamlit>=1.30.0 \
-    requests>=2.31.0 \
-    numpy>=1.26.0 \
-    scipy>=1.11.0
+    google-auth>=2.41 \
+    google-api-core>=2.30 \
+    elevenlabs>=2.46 \
+    streamlit>=1.57 \
+    requests>=2.32 \
+    numpy>=2.4 \
+    scipy>=1.17
 
 # Copy compiled C++ extension from builder
 COPY --from=builder /build/hymn_player_ext*.so ./

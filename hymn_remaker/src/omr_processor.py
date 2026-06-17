@@ -65,3 +65,19 @@ class OMRProcessor:
         except Exception as e:
             logger.error(f"OMR Processor encountered an error: {e}")
             raise e
+
+    def transfer_style(self, mxl_path, style_name):
+        """
+        Apply a musical style transfer to a generated MusicXML file.
+
+        Args:
+            mxl_path (str): Path to the source .mxl or .musicxml file.
+            style_name (str): Name of the target style (e.g., 'Swing', 'Classical').
+
+        NOTE: This is a placeholder hook for Phase 5. Future implementations
+        will use Music21 to modify rhythms, harmonies, and articulations based
+        on the selected style before the file is passed to the renderer.
+        """
+        logger.info(f"Applying style transfer '{style_name}' to {mxl_path}...")
+        # TODO: Implement Music21 logic for score transformation
+        return mxl_path
