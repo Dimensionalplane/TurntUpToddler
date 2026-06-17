@@ -6,7 +6,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/a
 export default function GenerateForm({ onJobStarted }) {
   const [file, setFile] = useState(null);
   const [presets, setPresets] = useState({});
-  const [style, setStyle] = useState('Auto');
+  const [style, setStyle] = useState('Deep House, high quality, electronic');
 
   useEffect(() => {
     const fetchPresets = async () => {
@@ -37,6 +37,8 @@ export default function GenerateForm({ onJobStarted }) {
   const [normalizeAudio, setNormalizeAudio] = useState(true);
   const [fadeInMs, setFadeInMs] = useState(0);
   const [fadeOutMs, setFadeOutMs] = useState(0);
+  const [subFontSize, setSubFontSize] = useState(24);
+  const [subPrimaryColor, setSubPrimaryColor] = useState('#FFFFFF');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -63,6 +65,8 @@ export default function GenerateForm({ onJobStarted }) {
     formData.append('normalize_audio', normalizeAudio);
     formData.append('fade_in_ms', fadeInMs);
     formData.append('fade_out_ms', fadeOutMs);
+    formData.append('sub_font_size', subFontSize);
+    formData.append('sub_primary_color', subPrimaryColor);
     formData.append('arrangement_style', arrangementStyle);
     formData.append('interactive_mode', interactiveMode);
     formData.append('remake_priority', remakePriority);
@@ -189,6 +193,17 @@ export default function GenerateForm({ onJobStarted }) {
           <div style={{ flex: 1 }}>
             <label style={{ fontSize: '0.8rem', display: 'block' }}>Fade Out (ms)</label>
             <input type="number" value={fadeOutMs} onChange={(e) => setFadeOutMs(e.target.value)} style={{ width: '100%' }} />
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+          <div style={{ flex: 1 }}>
+            <label style={{ fontSize: '0.8rem', display: 'block' }}>Sub Font Size</label>
+            <input type="number" value={subFontSize} onChange={(e) => setSubFontSize(e.target.value)} style={{ width: '100%' }} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label style={{ fontSize: '0.8rem', display: 'block' }}>Sub Color</label>
+            <input type="color" value={subPrimaryColor} onChange={(e) => setSubPrimaryColor(e.target.value)} style={{ width: '100%', height: '38px', padding: '2px' }} />
           </div>
         </div>
 

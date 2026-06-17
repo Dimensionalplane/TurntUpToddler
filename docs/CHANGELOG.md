@@ -1,5 +1,13 @@
 # CHANGELOG - HYMN REMAKER
 
+## [1.49.0] - 2024-06-02
+### Added
+- **Subtitle Customization:** Users can now specify the font size and primary color for burned-in subtitles via the Next.js dashboard.
+- **Enhanced API Schemas:** Updated generation endpoints to support granular visual styling parameters.
+
+### Changed
+- Propagated visual styling preferences through the distributed render worker cluster.
+
 ## [1.48.0] - 2024-06-01
 ### Added
 - **Auto-Detect Style:** New intelligent style detection based on MIDI BPM and note density.

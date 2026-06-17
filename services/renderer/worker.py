@@ -128,6 +128,8 @@ def render_job(ch, method, properties, body):
             stem_separator=mods["stem_separator"],
             generate_vocals=job_data.get('generate_vocals', False),
             arrangement_style=job_data.get('arrangement_style', "Original"),
+            sub_font_size=job_data.get('sub_font_size', 24),
+            sub_primary_color=job_data.get('sub_primary_color', "#FFFFFF"),
             video_format=job_data.get('video_format', "Standard 16:9"),
             resolution=job_data.get('resolution', "1080p"),
             kids_mode=job_data.get('kids_mode', False),

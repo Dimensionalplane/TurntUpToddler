@@ -23,6 +23,7 @@
 - [x] Multi-Channel Webhook Expansion (v1.46.0).
 - [x] Music21 Style-Transfer Implementation (Swing/Lullaby) (v1.47.0).
 - [x] Intelligent MIDI Analysis & Style Auto-Detection (v1.48.0).
+- [x] Granular Subtitle & Visual Customization (v1.49.0).
 - [ ] Multi-Style Video Interpolation (Sora/Runway long-form).
 - [ ] Social Media Auto-Posting (TikTok/Reels/Instagram).
 - [ ] Algorithmic Score Modification (Music21 integration).

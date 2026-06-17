@@ -29,7 +29,7 @@ from hymn_remaker.src.radio_streamer import RadioStreamer
 logger = logging.getLogger("HymnRemakerAPI")
 logging.basicConfig(level=logging.INFO)
 
-app = FastAPI(title="Hymn Remaker API", version="1.47.0")
+app = FastAPI(title="Hymn Remaker API", version="1.49.0")
 
 # Add CORS middleware to allow requests from the Next.js frontend
 frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
@@ -79,7 +79,7 @@ def get_modules():
 async def generate_hymn(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
-    style: str = Form("Auto"),
+    style: str = Form("Deep House, high quality, electronic"),
     generate_vocals: bool = Form(False),
     voice_id: str = Form(""),
     model: str = Form("eleven_multilingual_v2"),
@@ -97,6 +97,8 @@ async def generate_hymn(
     normalize_audio: bool = Form(True),
     fade_in_ms: int = Form(0),
     fade_out_ms: int = Form(0),
+    sub_font_size: int = Form(24),
+    sub_primary_color: str = Form("#FFFFFF"),
 ):
     """
     Upload a MIDI file and asynchronously generate the hymn remake.
@@ -135,7 +137,9 @@ async def generate_hymn(
         "arrangement_style": arrangement_style,
         "normalize_audio": normalize_audio,
         "fade_in_ms": fade_in_ms,
-        "fade_out_ms": fade_out_ms
+        "fade_out_ms": fade_out_ms,
+        "sub_font_size": sub_font_size,
+        "sub_primary_color": sub_primary_color
     }
 
     try:
@@ -222,6 +226,8 @@ async def generate_hymn(
             normalize_audio=normalize_audio,
             fade_in_ms=fade_in_ms,
             fade_out_ms=fade_out_ms,
+            sub_font_size=sub_font_size,
+            sub_primary_color=sub_primary_color,
             generate_vocals=generate_vocals,
             voice_id=voice_id,
             model=model,
@@ -548,6 +554,8 @@ async def retry_job(job_id: str, background_tasks: BackgroundTasks):
                         normalize_audio=config.get("normalize_audio", True),
                         fade_in_ms=config.get("fade_in_ms", 0),
                         fade_out_ms=config.get("fade_out_ms", 0),
+                        sub_font_size=config.get("sub_font_size", 24),
+                        sub_primary_color=config.get("sub_primary_color", "#FFFFFF"),
                         generate_vocals=config["generate_vocals"],
                         voice_id=config["voice_id"],
                         model=config["model"],

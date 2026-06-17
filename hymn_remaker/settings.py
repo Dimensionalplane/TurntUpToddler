@@ -30,14 +30,12 @@ DEFAULT_SOUNDFONT_PATHS = [
 DEFAULT_STYLE = "Deep House, high quality, electronic"
 
 STYLE_PRESETS = {
-    "Auto-Detect": "Auto",
     "Deep House": "Deep House, high quality, electronic, club-ready, 4/4 beat",
     "Lofi Hip Hop": "Lofi hip hop, chill, relaxed, nostalgic, vinyl crackle, jazz samples",
     "Ambient / Cinematic": "Ambient, orchestral, cinematic, soaring pads, ethereal, high quality",
     "Synthwave": "Synthwave, 80s retro, neon, analog synthesizers, driving bassline",
     "Techno": "Melodic techno, dark, driving, hypnotic, warehouse vibes",
-    "Pop / Acoustic": "Modern pop, acoustic guitar, clean production, radio-friendly",
-    "Lullaby": "Lullaby, soft toy piano, gentle glockenspiel, calming, sleep music"
+    "Pop / Acoustic": "Modern pop, acoustic guitar, clean production, radio-friendly"
 }
 
 DEFAULT_VIDEO_FORMAT = "Standard 16:9"
