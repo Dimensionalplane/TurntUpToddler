@@ -4,7 +4,7 @@
 - [x] Integrate Dynamic AI Video generation in pipeline.
 - [x] Update FFmpeg logic for looped video backgrounds.
 - [x] Expose `use_dynamic_video` in API and Frontend.
-- [ ] Optimize Sora/Runway prompt engineering for better loop points.
+- [x] Optimize Sora/Runway prompt engineering for better loop points.
 - [ ] Implement video-specific caching in Redis.
 
 ## BUG FIXES
@@ -12,6 +12,6 @@
 - [ ] Improve sanitization for non-alphanumeric lyric characters in SRT generation.
 
 ## FEATURES
-- [ ] Add "Style Presets" dropdown in Frontend for common genre combinations.
-- [ ] Support for 4K video rendering (currently 1080p).
+- [x] Add "Style Presets" dropdown in Frontend for common genre combinations.
+- [x] Support for 4K video rendering (currently 1080p).
 - [ ] Expand Radio Service to support YouTube Live RTMP.

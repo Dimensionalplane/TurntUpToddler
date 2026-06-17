@@ -17,6 +17,7 @@ from hymn_remaker.main import process_single_midi
 from hymn_remaker.src.db import get_history, init_db
 from hymn_remaker.src.midi_renderer import MidiRenderer
 from hymn_remaker.src.remaker import MusicRemaker
+from hymn_remaker.src.suno_remaker import SunoRemaker
 from hymn_remaker.src.content_generator import ContentGenerator
 from hymn_remaker.src.video_uploader import VideoProducer
 from hymn_remaker.src.tts_generator import TTSGenerator
@@ -28,7 +29,7 @@ from hymn_remaker.src.radio_streamer import RadioStreamer
 logger = logging.getLogger("HymnRemakerAPI")
 logging.basicConfig(level=logging.INFO)
 
-app = FastAPI(title="Hymn Remaker API", version="1.41.0")
+app = FastAPI(title="Hymn Remaker API", version="1.43.0")
 
 # Add CORS middleware to allow requests from the Next.js frontend
 frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
@@ -58,6 +59,7 @@ def get_modules():
             _modules = {
                 "renderer": MidiRenderer(),
                 "remaker": MusicRemaker(),
+                "suno_remaker": SunoRemaker(),
                 "content_gen": ContentGenerator(),
                 "video_producer": VideoProducer(),
                 "tts_generator": TTSGenerator(),
@@ -80,6 +82,7 @@ async def generate_hymn(
     voice_id: str = Form(""),
     model: str = Form("eleven_multilingual_v2"),
     video_format: str = Form("Standard 16:9"),
+    resolution: str = Form("1080p"),
     create_shorts: bool = Form(False),
     enable_visualizer: bool = Form(False),
     visualizer_mode: str = Form("cline"),
@@ -117,6 +120,7 @@ async def generate_hymn(
         "voice_id": voice_id,
         "model": model,
         "video_format": video_format,
+        "resolution": resolution,
         "create_shorts": create_shorts,
         "enable_visualizer": enable_visualizer,
         "visualizer_mode": visualizer_mode,
@@ -217,6 +221,7 @@ async def generate_hymn(
             voice_id=voice_id,
             model=model,
             video_format=video_format,
+            resolution=resolution,
             create_shorts=create_shorts,
             enable_visualizer=enable_visualizer,
             visualizer_mode=visualizer_mode,
@@ -236,6 +241,7 @@ async def generate_hymn(
             "voice_id": voice_id,
             "model": model,
             "video_format": video_format,
+            "resolution": resolution,
             "create_shorts": create_shorts,
             "enable_visualizer": enable_visualizer,
             "visualizer_mode": visualizer_mode,
@@ -540,6 +546,7 @@ async def retry_job(job_id: str, background_tasks: BackgroundTasks):
                         voice_id=config["voice_id"],
                         model=config["model"],
                         video_format=config["video_format"],
+                        resolution=config.get("resolution", "1080p"),
                         create_shorts=config["create_shorts"],
                         enable_visualizer=config["enable_visualizer"],
                         visualizer_mode=config["visualizer_mode"],

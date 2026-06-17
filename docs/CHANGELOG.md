@@ -1,5 +1,14 @@
 # CHANGELOG - HYMN REMAKER
 
+## [1.43.0] - 2024-05-26
+### Added
+- **4K UHD Rendering:** Added support for ultra-high-definition 4K video output (3840x2160) across the pipeline.
+- **Resolution Selection:** New dropdown in Next.js dashboard to toggle between 1080p and 4K.
+- **Improved AI Video Looping:** Enhanced Sora/Runway prompting logic to encourage seamless infinite background loops.
+
+### Fixed
+- **API Modularization:** Fixed a gap where `SunoRemaker` was missing from the backend module registry, improving task reliability.
+
 ## [1.42.0] - 2024-05-25
 ### Added
 - **Musical Style Presets:** Introduced a system for genre presets (Deep House, Lofi, Synthwave, etc.) to simplify generation.

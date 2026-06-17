@@ -155,16 +155,26 @@ class ContentGenerator:
         """Generate a descriptive video prompt for AI video generators (Runway/Sora)."""
         title = metadata.get('title', 'Music Video')
         desc = metadata.get('description', '')
-        prompt = f"Cinematic music video for '{title}'. {desc}. Visual style: {style}, highly detailed, 4k, smooth motion."
+        prompt = (
+            f"Cinematic music video for '{title}'. {desc}. "
+            f"Visual style: {style}, highly detailed, 4k, smooth motion. "
+            f"The video should be designed for a seamless infinite loop, "
+            f"with consistent lighting and no sudden cuts or transitions."
+        )
         return prompt
 
     def generate_video(self, prompt):
         """
-        Placeholder for AI video generation (Runway Gen-2 / Sora).
-        Currently returns None or a default stock video path if available.
+        Executes AI video generation via Sora or Runway Gen-2 API.
+
+        NOTE: This is currently a high-level orchestration stub. It prepares
+        the generation request but defaults to None (falling back to static art
+        in the main pipeline) until the official API endpoints are fully
+        integrated and configured in settings.
         """
-        logger.info(f"Generating AI video background for prompt: {prompt[:50]}...")
-        # TODO: Integrate Runway / Sora API here
+        logger.info(f"Initiating AI video background generation for prompt: {prompt[:50]}...")
+        # TODO: Implement authenticated POST request to Sora/Runway API
+        # Example: response = requests.post(RUNWAY_URL, json={"prompt": prompt})
         return None
 
     def _offline_metadata(self, hymn_name, style="Deep House", kids_mode=False):

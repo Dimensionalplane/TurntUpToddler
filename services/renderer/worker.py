@@ -126,6 +126,8 @@ def render_job(ch, method, properties, body):
             tts_generator=mods["tts_generator"],
             stem_separator=mods["stem_separator"],
             generate_vocals=job_data.get('generate_vocals', False),
+            video_format=job_data.get('video_format', "Standard 16:9"),
+            resolution=job_data.get('resolution', "1080p"),
             kids_mode=job_data.get('kids_mode', False),
             interactive_callback=worker_interactive_callback if interactive_mode else None,
             status_callback=worker_status_callback

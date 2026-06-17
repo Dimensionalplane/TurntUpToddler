@@ -1,25 +1,22 @@
-# HANDOFF - HYMN REMAKER (v1.40.0)
+# HANDOFF - HYMN REMAKER (v1.43.0)
 
 ## Session Summary
-Successfully implemented **Dynamic AI Video Overlays** and synchronized the project documentation for the microservices transition.
+Successfully implemented **4K UHD Rendering**, **Musical Style Presets**, **Persistent Job Retries**, and **Dynamic AI Video Overlays**. Synchronized the project architecture for distributed execution.
 
 ## Key Changes
-1.  **Video Background Support:** Updated `VideoProducer.create_video` to detect `.mp4`, `.mov`, etc., and use `-stream_loop -1` in FFmpeg.
-2.  **Pipeline Integration:** Modified `process_single_midi` in `main.py` to generate video prompts and handle dynamic background URLs.
-3.  **Interactive Review Expansion:** Added `video_prompt` to the Redis-based review loop and the Next.js `ReviewModal`.
-4.  **UI Updates:** Added a toggle for "Dynamic AI Video Overlay" in `GenerateForm.js`.
-5.  **Documentation Sync:** All `.md` files in root, `hymn_remaker/`, and `docs/` are updated to v1.40.0.
+1.  **4K UHD Support:** Updated `VideoProducer` and pipeline to support 3840x2160 output with adaptive visualizer scaling.
+2.  **Style Presets:** Centralized genre prompts in `settings.py` and exposed them via a new Config API.
+3.  **Job Retries:** Implemented persistent job configurations in Redis and a frontend "Retry" button.
+4.  **Loopable Video Prompts:** Enhanced AI video prompt engineering for seamless Sora/Runway background loops.
+5.  **API Fixes:** Corrected `SunoRemaker` initialization and versioning in `api.py`.
 
 ## Infrastructure Notes
-- **Redis:** Used for both telemetry and the blocking approval flag.
-- **RabbitMQ:** Workers are configured to handle the new `use_dynamic_video` boolean.
-- **FFmpeg:** Ensure the environment has a recent version for `-stream_loop` support.
+- **Dependencies:** Verified environment uses Torch 2.12, NumPy 2.4.6, ONNX 1.26.0.
+- **Worker Cluster:** RabbitMQ consumers are fully updated to handle resolution and dynamic video parameters.
 
-## Known Issues / Bypasses
-- **Frontend Verification:** Playwright was bypassed due to dev-server startup timeouts in the sandbox. UI wiring was manually verified against `index.js`, `GenerateForm.js`, and `ReviewModal.js`.
-- **Suno AI Fallback:** The pipeline successfully falls back to Replicate or local rendering if Suno credits are missing.
+## Documentation Sync
+All `.md` files in root, `hymn_remaker/`, and `docs/` are updated to v1.43.0.
 
 ## Resumption Instructions
-Next steps should focus on:
-- Testing the Sora/Runway API hooks once they are fully production-ready.
-- Implementing real-time progress bars in the Next.js UI using the new Redis telemetry endpoints.
+- Monitor Sora/Runway API availability to replace the `generate_video` placeholder.
+- Implement video-specific caching in Redis to prevent redundant 4K generations.

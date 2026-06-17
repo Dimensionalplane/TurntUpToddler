@@ -73,7 +73,7 @@ class VideoProducer:
             logger.error(f"Failed to create SRT: {e}")
             return False
 
-    def create_video(self, audio_path, image_url, output_path, lyrics=None, video_format="Standard 16:9", sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True, enable_visualizer=False, visualizer_mode="cline"):
+    def create_video(self, audio_path, image_url, output_path, lyrics=None, video_format="Standard 16:9", resolution="1080p", sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True, enable_visualizer=False, visualizer_mode="cline"):
         """
         Create an MP4 video from an audio file, image URL, and optional lyrics using ffmpeg.
 
@@ -83,8 +83,9 @@ class VideoProducer:
             output_path (str): Path to the output video file.
             lyrics (list): Optional list of synced lyrics dicts.
             video_format (str): The aspect ratio of the output video.
+            resolution (str): "1080p" or "4K".
         """
-        logger.info(f"Creating video from {audio_path}...")
+        logger.info(f"Creating {resolution} video from {audio_path}...")
 
         import uuid
         unique_id = uuid.uuid4().hex
@@ -139,23 +140,32 @@ class VideoProducer:
             def run_ffmpeg(subtitles_enabled):
                 ffmpeg_cmd = cmd.copy()
 
-                # Determine base filters depending on format
+                # Determine base filters depending on format and resolution
                 base_vf = ""
-                target_w, target_h = (1080, 1920) if video_format == "Vertical 9:16 (TikTok/Reels)" else (1920, 1080)
+
+                if resolution == "4K":
+                    target_w, target_h = (2160, 3840) if video_format == "Vertical 9:16 (TikTok/Reels)" else (3840, 2160)
+                    scale_dim = 2160
+                else:
+                    target_w, target_h = (1080, 1920) if video_format == "Vertical 9:16 (TikTok/Reels)" else (1920, 1080)
+                    scale_dim = 1080
                 
                 if video_format == "Vertical 9:16 (TikTok/Reels)":
-                    # Scale to 1080 width, then pad to 1080x1920, ensuring even dimensions
-                    base_vf = f"[0:v]scale=1080:trunc(1080/a/2)*2,pad={target_w}:{target_h}:(ow-iw)/2:(oh-ih)/2:black[v_base]"
+                    # Scale to target width, then pad to target height, ensuring even dimensions
+                    base_vf = f"[0:v]scale={target_w}:trunc({target_w}/a/2)*2,pad={target_w}:{target_h}:(ow-iw)/2:(oh-ih)/2:black[v_base]"
                 else:
-                    # Standard 16:9, scale to 1080 height, then pad to 1920x1080, ensuring even dimensions
-                    base_vf = f"[0:v]scale=trunc(1080*a/2)*2:1080,pad={target_w}:{target_h}:(ow-iw)/2:(oh-ih)/2:black[v_base]"
+                    # Standard 16:9, scale to target height, then pad to target width, ensuring even dimensions
+                    base_vf = f"[0:v]scale=trunc({scale_dim}*a/2)*2:{scale_dim},pad={target_w}:{target_h}:(ow-iw)/2:(oh-ih)/2:black[v_base]"
 
                 # Build filter complex
                 filters = [base_vf]
 
                 # Add Audio-Reactive Visualizer
                 if enable_visualizer:
-                    w_viz, h_viz = (1080, 150) if video_format == "Vertical 9:16 (TikTok/Reels)" else (1920, 200)
+                    if resolution == "4K":
+                        w_viz, h_viz = (2160, 300) if video_format == "Vertical 9:16 (TikTok/Reels)" else (3840, 400)
+                    else:
+                        w_viz, h_viz = (1080, 150) if video_format == "Vertical 9:16 (TikTok/Reels)" else (1920, 200)
                     y_pos = "(H-h)/2" # Center vertically
 
                     if visualizer_mode == "avectorscope":

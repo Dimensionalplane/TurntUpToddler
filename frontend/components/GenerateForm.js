@@ -23,6 +23,7 @@ export default function GenerateForm({ onJobStarted }) {
   const [voiceId, setVoiceId] = useState('');
   const [model, setModel] = useState('eleven_multilingual_v2');
   const [videoFormat, setVideoFormat] = useState('Standard 16:9');
+  const [resolution, setResolution] = useState('1080p');
   const [createShorts, setCreateShorts] = useState(false);
   const [enableVisualizer, setEnableVisualizer] = useState(false);
   const [visualizerMode, setVisualizerMode] = useState('cline');
@@ -53,6 +54,7 @@ export default function GenerateForm({ onJobStarted }) {
     formData.append('voice_id', voiceId);
     formData.append('model', model);
     formData.append('video_format', videoFormat);
+    formData.append('resolution', resolution);
     formData.append('create_shorts', createShorts);
     formData.append('enable_visualizer', enableVisualizer);
     formData.append('visualizer_mode', visualizerMode);
@@ -132,6 +134,13 @@ export default function GenerateForm({ onJobStarted }) {
             <select value={videoFormat} onChange={(e) => setVideoFormat(e.target.value)} style={{ width: '100%' }}>
               <option value="Standard 16:9">Standard 16:9</option>
               <option value="Vertical 9:16 (TikTok/Reels)">Vertical 9:16</option>
+            </select>
+          </div>
+          <div>
+            <label>Resolution: </label>
+            <select value={resolution} onChange={(e) => setResolution(e.target.value)} style={{ width: '100%' }}>
+              <option value="1080p">1080p (FHD)</option>
+              <option value="4K">4K (UHD)</option>
             </select>
           </div>
         </div>

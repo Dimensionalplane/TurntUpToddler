@@ -54,6 +54,7 @@ def main():
     parser.add_argument("--voice-id", default=settings.DEFAULT_ELEVENLABS_VOICE_ID, help="ElevenLabs Voice ID")
     parser.add_argument("--model", default=settings.DEFAULT_ELEVENLABS_MODEL, help="ElevenLabs Model")
     parser.add_argument("--video-format", default=settings.DEFAULT_VIDEO_FORMAT, choices=["Standard 16:9", "Vertical 9:16 (TikTok/Reels)"], help="Output video format")
+    parser.add_argument("--resolution", default="1080p", choices=["1080p", "4K"], help="Output video resolution")
     parser.add_argument("--daemon", action="store_true", help="Run in daemon mode, watching the input directory for new files continuously.")
     parser.add_argument("--create-shorts", action="store_true", help="Extract 15-second short clips from the final video.")
     parser.add_argument("--stream-rtmp", default=None, help="RTMP URL for live DJ radio streaming")
@@ -106,6 +107,7 @@ def main():
                     voice_id=args.voice_id,
                     model=args.model,
                     video_format=args.video_format,
+                    resolution=args.resolution,
                     create_shorts=args.create_shorts,
                     enable_visualizer=args.visualizer,
                     visualizer_mode=args.visualizer_mode,
@@ -217,6 +219,7 @@ def process_single_midi(
     voice_id=settings.DEFAULT_ELEVENLABS_VOICE_ID,
     model=settings.DEFAULT_ELEVENLABS_MODEL,
     video_format=settings.DEFAULT_VIDEO_FORMAT,
+    resolution="1080p",
     create_shorts=False,
     status_callback=None,
     sub_font_size=24,
@@ -473,6 +476,7 @@ def process_single_midi(
         video_producer.create_video(
             remake_audio_path, art_url, video_path,
             lyrics=lyrics, video_format=video_format,
+            resolution=resolution,
             sub_font_size=sub_font_size,
             sub_primary_color=sub_primary_color,
             sub_outline_color=sub_outline_color,
