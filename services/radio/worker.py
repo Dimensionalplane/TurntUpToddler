@@ -52,8 +52,19 @@ def main():
                     streamer.skip_track()
 
         # Update status in Redis
+        is_actually_streaming = False
+        if streamer:
+            # Re-verify the thread is alive
+            if streamer.stream_thread and streamer.stream_thread.is_alive():
+                is_actually_streaming = streamer.is_streaming
+            else:
+                # Thread died, cleanup
+                logger.warning("Radio streamer thread died unexpectedly.")
+                streamer.is_streaming = False
+                is_actually_streaming = False
+
         status = {
-            "is_streaming": streamer.is_streaming if streamer else False,
+            "is_streaming": is_actually_streaming,
             "current_track": streamer.current_track if streamer else None
         }
         r.set('radio:status', json.dumps(status))

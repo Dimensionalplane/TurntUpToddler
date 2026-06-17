@@ -1,5 +1,14 @@
 # CHANGELOG - HYMN REMAKER
 
+## [1.45.0] - 2024-05-28
+### Added
+- **YouTube Live Radio:** Added full support for streaming to YouTube Live RTMP endpoints.
+- **Improved Stream Monitoring:** The radio worker now verifies the health of the streaming thread before reporting status to Redis.
+
+### Fixed
+- **RTMP Compatibility:** Added `-flvflags no_duration_filesize` to `RadioStreamer` for better compatibility with YouTube's RTMP ingest servers.
+- **UI UX:** Improved radio control labels and added loading states to the dashboard.
+
 ## [1.44.0] - 2024-05-27
 ### Added
 - **AI Video Caching:** Implemented Redis-based caching for AI-generated video URLs (Sora/Runway) to prevent redundant generation costs.

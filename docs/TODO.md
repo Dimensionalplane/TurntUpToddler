@@ -9,9 +9,9 @@
 
 ## BUG FIXES
 - [ ] Fix race condition in Job Status polling when RabbitMQ is under high load.
-- [x] Improve sanitization for non-alphanumeric lyric characters in SRT generation.
+- [ ] Improve sanitization for non-alphanumeric lyric characters in SRT generation.
 
 ## FEATURES
 - [x] Add "Style Presets" dropdown in Frontend for common genre combinations.
 - [x] Support for 4K video rendering (currently 1080p).
-- [ ] Expand Radio Service to support YouTube Live RTMP.
+- [x] Expand Radio Service to support YouTube Live RTMP.

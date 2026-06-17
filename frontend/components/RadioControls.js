@@ -58,15 +58,18 @@ export default function RadioControls() {
 
       {!status.is_streaming ? (
         <div>
-          <input
-            type="text"
-            placeholder="RTMP URL (e.g., YouTube Live)"
-            value={streamUrl}
-            onChange={(e) => setStreamUrl(e.target.value)}
-            style={{ width: '100%', marginBottom: '1rem' }}
-          />
-          <button onClick={handleStart} disabled={loading} style={{ background: '#28a745', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px' }}>
-            Start Broadcast 📻
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={{ display: 'block', fontSize: '0.8rem', color: '#666' }}>YouTube Live RTMP URL:</label>
+            <input
+              type="text"
+              placeholder="rtmp://a.rtmp.youtube.com/live2/XXXX-XXXX-XXXX-XXXX"
+              value={streamUrl}
+              onChange={(e) => setStreamUrl(e.target.value)}
+              style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+            />
+          </div>
+          <button onClick={handleStart} disabled={loading} style={{ background: '#28a745', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', cursor: 'pointer' }}>
+            {loading ? 'Starting...' : 'Start Broadcast 📻'}
           </button>
         </div>
       ) : (
