@@ -29,7 +29,7 @@ from hymn_remaker.src.radio_streamer import RadioStreamer
 logger = logging.getLogger("HymnRemakerAPI")
 logging.basicConfig(level=logging.INFO)
 
-app = FastAPI(title="Hymn Remaker API", version="1.46.0")
+app = FastAPI(title="Hymn Remaker API", version="1.47.0")
 
 # Add CORS middleware to allow requests from the Next.js frontend
 frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
@@ -79,7 +79,7 @@ def get_modules():
 async def generate_hymn(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
-    style: str = Form("Deep House, high quality, electronic"),
+    style: str = Form("Auto"),
     generate_vocals: bool = Form(False),
     voice_id: str = Form(""),
     model: str = Form("eleven_multilingual_v2"),

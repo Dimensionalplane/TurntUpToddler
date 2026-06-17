@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 from hymn_remaker import settings
 
 from hymn_remaker.src.midi_renderer import MidiRenderer
+from hymn_remaker.src.midi_analyzer import MidiAnalyzer
 from hymn_remaker.src.remaker import MusicRemaker
 from hymn_remaker.src.suno_remaker import SunoRemaker
 from hymn_remaker.src.content_generator import ContentGenerator
@@ -236,8 +237,24 @@ def process_single_midi(
 
     base_audio_path = remake_audio_path = metadata_path = vocal_track_path = None
     try:
+        def update_status(msg, progress):
+            logger.info(msg)
+            if status_callback:
+                status_callback(msg, progress)
+
         filename = os.path.basename(midi_path)
         name_no_ext = os.path.splitext(filename)[0]
+        update_status(f"Processing {filename}...", 10)
+
+        # Auto-detect style if requested
+        if style.lower() == "auto":
+            update_status(f"Auto-detecting style for {filename}...", 11)
+            # Suggest style from MIDI characteristics
+            # Note: We use target_midi_path later, but for now we analyze original/converted input
+            detected_preset = MidiAnalyzer.suggest_style(midi_path)
+            from hymn_remaker import settings
+            style = settings.STYLE_PRESETS.get(detected_preset, settings.DEFAULT_STYLE)
+            update_status(f"Auto-detected style: {detected_preset}", 12)
 
         if kids_mode:
             # Enforce children's styling
@@ -247,13 +264,6 @@ def process_single_midi(
             else:
                 style = "nursery rhyme, playful, happy, glockenspiel, toy piano, acoustic guitar, kids music, upbeat, high quality"
             logger.info(f"Kids Mode active. Auto-selected style preset: {style}")
-
-        def update_status(msg, progress):
-            logger.info(msg)
-            if status_callback:
-                status_callback(msg, progress)
-
-        update_status(f"Processing {filename}...", 10)
         pre_extracted_metadata = {}
         target_midi_path = midi_path
 

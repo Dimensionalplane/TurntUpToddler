@@ -1,5 +1,14 @@
 # CHANGELOG - HYMN REMAKER
 
+## [1.48.0] - 2024-06-01
+### Added
+- **Auto-Detect Style:** New intelligent style detection based on MIDI BPM and note density.
+- **Enhanced MIDI Analysis:** `MidiAnalyzer` now calculates complex metrics to suggest appropriate genres (e.g., Ambient for slow/sparse tracks, Techno for fast/dense tracks).
+- **Default Style Automation:** The pipeline now defaults to "Auto", reducing the need for manual configuration.
+
+### Fixed
+- Corrected a race condition where the `update_status` callback was accessed before definition in `process_single_midi`.
+
 ## [1.47.0] - 2024-05-30
 ### Added
 - **Algorithmic Style Transfer:** Integrated `Music21` into `OMRProcessor` to allow for score-level modifications. Supports initial 'Swing' and 'Lullaby' arrangement styles.

@@ -27,6 +27,18 @@ spec:
             secretKeyRef:
               name: api-secrets
               key: openai-key
+        volumeMounts:
+        - name: input-storage
+          mountPath: /app/hymn_remaker/input
+        - name: output-storage
+          mountPath: /app/hymn_remaker/output
+      volumes:
+      - name: input-storage
+        persistentVolumeClaim:
+          claimName: input-pvc
+      - name: output-storage
+        persistentVolumeClaim:
+          claimName: output-pvc
 ---
 apiVersion: v1
 kind: Service

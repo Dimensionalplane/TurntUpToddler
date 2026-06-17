@@ -18,4 +18,5 @@
 - [x] Expand Radio Service to support YouTube Live RTMP (v1.45.0).
 - [x] Multi-Channel Webhook Notifier (v1.46.0).
 - [x] Implement "Style-Transfer" logic in OMRProcessor (v1.47.0).
+- [x] Intelligent MIDI Analysis & Style Auto-Detection (v1.48.0).
 - [ ] Live Collaborative Editing in Review loop.

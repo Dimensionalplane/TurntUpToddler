@@ -6,7 +6,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/a
 export default function GenerateForm({ onJobStarted }) {
   const [file, setFile] = useState(null);
   const [presets, setPresets] = useState({});
-  const [style, setStyle] = useState('Deep House, high quality, electronic');
+  const [style, setStyle] = useState('Auto');
 
   useEffect(() => {
     const fetchPresets = async () => {
