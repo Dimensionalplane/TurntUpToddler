@@ -32,8 +32,8 @@ RUN apt-get update && apt-get install -y \
 
 COPY hymn_remaker/requirements.txt .
 RUN pip install --no-cache-dir \
-    torch==2.12.0 \
-    torchaudio==2.11.0 \
+    torch==2.4.0 \
+    torchaudio==2.4.0 \
     oemer==0.1.8 \
     demucs==4.0.1 \
     opencv-python-headless==4.13.0.92 \
