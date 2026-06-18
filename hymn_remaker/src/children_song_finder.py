@@ -8,7 +8,10 @@ class ChildrenSongFinder:
     # Curated, open-license public domain children's songs MIDI file links
     SONGS = {
         "twinkle_twinkle_little_star": "https://susam.net/files/music/twinkle-twinkle-little-star/twinkle-twinkle-little-star.midi",
-        "mary_had_a_little_lamb": "https://raw.githubusercontent.com/vishnubob/python-midi/master/mary.mid"
+        "mary_had_a_little_lamb": "https://raw.githubusercontent.com/vishnubob/python-midi/master/mary.mid",
+        "itsy_bitsy_spider": "https://bitmidi.com/uploads/21307.mid",
+        "row_row_row_your_boat": "https://bitmidi.com/uploads/86438.mid",
+        "wheels_on_the_bus": "https://bitmidi.com/uploads/112674.mid"
     }
 
     def download_all(self, output_dir):
