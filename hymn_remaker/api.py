@@ -481,9 +481,29 @@ async def post_job_review_approval(job_id: str, data: dict):
         r.set(f"job:{job_id}:review_data", json.dumps(data))
         # Signal approval
         r.set(f"job:{job_id}:approved", "true")
+        # Notify other collaborative editors
+        r.publish(f"job:{job_id}:edits", json.dumps({"type": "APPROVE", "data": data}))
         return {"status": "success", "message": "Content approved and updated."}
     except Exception as e:
         logger.error(f"Failed to submit review approval: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/v1/jobs/{job_id}/review/update")
+async def update_job_review_data(job_id: str, data: dict):
+    """
+    Live Collaborative Editing: Update metadata/lyrics in real-time without approving.
+    Broadcasts the change to all other clients subscribed to the job edit channel.
+    """
+    try:
+        r = get_redis()
+        # Update the pending review data in Redis
+        r.set(f"job:{job_id}:review_data", json.dumps(data))
+        # Broadcast the update to all active collaborative sessions
+        r.publish(f"job:{job_id}:edits", json.dumps({"type": "UPDATE", "data": data}))
+        return {"status": "success", "message": "Content updated and broadcasted."}
+    except Exception as e:
+        logger.error(f"Failed to broadcast live update: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

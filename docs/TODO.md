@@ -20,4 +20,4 @@
 - [x] Implement "Style-Transfer" logic in OMRProcessor (v1.47.0).
 - [x] Intelligent MIDI Analysis & Style Auto-Detection (v1.48.0).
 - [x] Granular Subtitle & Visual Customization (v1.49.0).
-- [ ] Live Collaborative Editing in Review loop.
+- [x] Live Collaborative Editing in Review loop (v1.52.0).

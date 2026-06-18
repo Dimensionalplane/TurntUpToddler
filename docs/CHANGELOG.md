@@ -1,5 +1,9 @@
 # CHANGELOG - HYMN REMAKER
 
+## [1.52.0] - 2024-06-05
+### Added
+- **Live Collaborative Editing:** Backend support for real-time synchronization between multiple dashboard users during the interactive review phase. Added `POST /api/v1/jobs/{job_id}/review/update` and Redis Pub/Sub broadcasting.
+
 ## [1.51.0] - 2024-06-04
 ### Added
 - **Social Media Auto-Posting (Stub):** Implemented `SocialMediaPoster` in `hymn_remaker/src/social_media_poster.py` for automated TikTok and Instagram Reels posting.
