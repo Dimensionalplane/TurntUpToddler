@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.37.0] - 2026-06-22
+### Added
+- **Expanded Kids Mode Pipeline**: Added more curated public domain children's songs (Itsy Bitsy Spider, Row Row Row Your Boat, Wheels on the Bus) to the automated `children_song_finder.py` downloader.
+- **Kids Mode Validation**: Enhanced and verified test suite coverage around COPPA compliance and missing API offline fallbacks for Kids Mode metadata.
+
 ## [1.6.0] - 2026-06-11
 ### Added
 - **Kids Mode & COPPA Compliance**: Introduced a kids-centric automated pipeline to safely transform nursery rhymes into Youtube videos for small children.
