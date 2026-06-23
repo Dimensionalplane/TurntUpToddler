@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.38.0] - 2026-06-22
+### Added
+- **Executive Sync Protocol**: Handled dual-direction intelligent merge engine, reconciling main and resolving upstream history drift.
+
 ## [5.37.0] - 2026-06-22
 ### Added
 - **Expanded Kids Mode Pipeline**: Added more curated public domain children's songs (Itsy Bitsy Spider, Row Row Row Your Boat, Wheels on the Bus) to the automated `children_song_finder.py` downloader.
