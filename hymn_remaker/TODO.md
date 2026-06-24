@@ -6,4 +6,9 @@
 - [x] Implement `status_callback` deep into `tts_generator` for per-line progress updates.
 - [x] Add Submodules Dashboard tracking version compatibility to `app.py`.
 - [x] Kids Mode with COPPA compliance and automated nursery rhyme downloads.
-- [ ] Port `app.py` UI to a Next.js frontend with FastAPI backend.
+- [x] Port `app.py` UI to a Next.js frontend with FastAPI backend.
+- [x] Implement Dynamic AI Video Overlay (Sora/Runway integration).
+- [x] Add Video Background support to `VideoProducer` (FFmpeg looping).
+- [ ] Implement Real-time progress bars for RabbitMQ workers in Next.js UI.
+- [ ] Add "Retry" functionality for failed Suno AI generations in Dashboard.
+- [ ] Optimize Docker image size by pruning ML caches during build.

@@ -23,6 +23,8 @@ from hymn_remaker.src.stem_separator import StemSeparator
 from hymn_remaker.src.radio_streamer import RadioStreamer
 from hymn_remaker.src.utils import process_audio
 from hymn_remaker.src.children_song_finder import ChildrenSongFinder
+from hymn_remaker.src.s3_uploader import S3Uploader
+from hymn_remaker.src.db import add_history
 
 # Load environment variables
 load_dotenv()
@@ -52,6 +54,7 @@ def main():
     parser.add_argument("--voice-id", default=settings.DEFAULT_ELEVENLABS_VOICE_ID, help="ElevenLabs Voice ID")
     parser.add_argument("--model", default=settings.DEFAULT_ELEVENLABS_MODEL, help="ElevenLabs Model")
     parser.add_argument("--video-format", default=settings.DEFAULT_VIDEO_FORMAT, choices=["Standard 16:9", "Vertical 9:16 (TikTok/Reels)"], help="Output video format")
+    parser.add_argument("--resolution", default="1080p", choices=["1080p", "4K"], help="Output video resolution")
     parser.add_argument("--daemon", action="store_true", help="Run in daemon mode, watching the input directory for new files continuously.")
     parser.add_argument("--create-shorts", action="store_true", help="Extract 15-second short clips from the final video.")
     parser.add_argument("--stream-rtmp", default=None, help="RTMP URL for live DJ radio streaming")
@@ -104,6 +107,7 @@ def main():
                     voice_id=args.voice_id,
                     model=args.model,
                     video_format=args.video_format,
+                    resolution=args.resolution,
                     create_shorts=args.create_shorts,
                     enable_visualizer=args.visualizer,
                     visualizer_mode=args.visualizer_mode,
@@ -215,6 +219,7 @@ def process_single_midi(
     voice_id=settings.DEFAULT_ELEVENLABS_VOICE_ID,
     model=settings.DEFAULT_ELEVENLABS_MODEL,
     video_format=settings.DEFAULT_VIDEO_FORMAT,
+    resolution="1080p",
     create_shorts=False,
     status_callback=None,
     sub_font_size=24,
@@ -225,6 +230,8 @@ def process_single_midi(
     enable_visualizer=False,
     visualizer_mode="cline",
     interactive_callback=None,
+    use_dynamic_video=False,
+    arrangement_style="Original",
     kids_mode=False):
 
     base_audio_path = remake_audio_path = metadata_path = vocal_track_path = None
@@ -264,6 +271,13 @@ def process_single_midi(
 
         # 0. Check if input is MusicXML and extract/convert
         if filename.lower().endswith((".mxl", ".xml")):
+            # Apply Style Transfer if requested
+            if omr_processor and arrangement_style and arrangement_style.lower() != "original":
+                update_status(f"Applying '{arrangement_style}' arrangement to score...", 14)
+                midi_path = omr_processor.transfer_style(midi_path, arrangement_style)
+                filename = os.path.basename(midi_path)
+                name_no_ext = os.path.splitext(filename)[0]
+
             update_status(f"Step 0/4: Parsing MusicXML and converting to MIDI ({filename})...", 15)
             target_midi_path = os.path.join(output_dir, f"{name_no_ext}_converted.mid")
             if mxl_parser:
@@ -371,6 +385,7 @@ def process_single_midi(
                 f"Abstract album art for {metadata.get('title', name_no_ext)}, {style} style, high quality, 4k"
             )
             art_prompt = metadata.get("art_prompt", default_art_prompt)
+            art_prompt = metadata.get("art_prompt", default_art_prompt)
             if interactive_callback:
                 update_status(f"Pausing for interactive review...", 76)
                 edited_data = interactive_callback({
@@ -431,8 +446,19 @@ def process_single_midi(
                         json.dump(metadata, f, indent=4)
                     update_status(f"Resuming pipeline...", 78)
 
-        # Generate the actual image using the (potentially edited) prompt
-        art_url = content_gen.generate_art(art_prompt)
+        # Generate the actual image or video using the (potentially edited) prompt
+        background_url = content_gen.generate_art(art_prompt)
+        if use_dynamic_video:
+            video_prompt = content_gen.generate_video_prompt(metadata, style=style)
+            update_status("Generating dynamic AI video background...", 79)
+            try:
+                dynamic_video_url = content_gen.generate_video(video_prompt)
+                if dynamic_video_url:
+                    background_url = dynamic_video_url
+                else:
+                    logger.warning("AI video generation returned None. Falling back to static album art.")
+            except Exception as e:
+                logger.error(f"Failed to generate dynamic video: {e}. Falling back to static album art.")
 
         # Optional: Generate Vocals via ElevenLabs
         vocal_track_path = None
@@ -469,8 +495,9 @@ def process_single_midi(
         update_status(f"Step 4/4: Creating Video with Subtitles ({filename})...", 85)
         video_path = os.path.join(output_dir, f"{name_no_ext}.mp4")
         video_producer.create_video(
-            remake_audio_path, art_url, video_path,
+            remake_audio_path, background_url, video_path,
             lyrics=lyrics, video_format=video_format,
+            resolution=resolution,
             sub_font_size=sub_font_size,
             sub_primary_color=sub_primary_color,
             sub_outline_color=sub_outline_color,
@@ -487,6 +514,25 @@ def process_single_midi(
                 update_status(f"Short clips generated in output/shorts/", 92)
             except Exception as e:
                 logger.error(f"Failed to generate shorts: {e}")
+
+        remote_video_url = remote_audio_url = None
+        s3_bucket = os.environ.get("S3_BUCKET_NAME")
+        if s3_bucket:
+            update_status(f"Uploading assets to S3 ({filename})...", 94)
+            s3 = S3Uploader()
+            remote_video_url = s3.upload_file(video_path, s3_bucket)
+            remote_audio_url = s3.upload_file(remake_audio_path, s3_bucket)
+
+        # Record in history DB
+        add_history(
+            hymn_name=name_no_ext,
+            style=style,
+            video_path=video_path,
+            audio_path=remake_audio_path,
+            metadata_path=metadata_path,
+            remote_video_url=remote_video_url,
+            remote_audio_url=remote_audio_url
+        )
 
         if upload:
             update_status(f"Uploading {filename} to YouTube...", 95)

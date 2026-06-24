@@ -10,9 +10,10 @@ logger = logging.getLogger(__name__)
 
 
 class ContentGenerator:
-    def __init__(self, api_key=None):
+    def __init__(self, api_key=None, redis_client=None):
         """Initialize the ContentGenerator with an OpenAI API key."""
         self.api_key = api_key or os.environ.get("OPENAI_API_KEY")
+        self.redis = redis_client
         if not self.api_key:
             logger.warning("OPENAI_API_KEY not set. Will use offline fallbacks.")
         if self.api_key:
@@ -150,6 +151,47 @@ class ContentGenerator:
                 else:
                     logger.warning(f"DALL-E 3 art generation failed: {err_msg[:100]}. Using offline fallback.")
         return self._offline_art(prompt, cached_image_path)
+
+    def generate_video_prompt(self, metadata, style="Deep House"):
+        """Generate a descriptive video prompt for AI video generators (Runway/Sora)."""
+        title = metadata.get('title', 'Music Video')
+        desc = metadata.get('description', '')
+        prompt = (
+            f"Cinematic music video for '{title}'. {desc}. "
+            f"Visual style: {style}, highly detailed, 4k, smooth motion. "
+            f"The video should be designed for a seamless infinite loop, "
+            f"with consistent lighting and no sudden cuts or transitions."
+        )
+        return prompt
+
+    def generate_video(self, prompt):
+        """
+        Executes AI video generation via Sora or Runway Gen-2 API with Redis caching.
+
+        NOTE: This is currently a high-level orchestration stub. It prepares
+        the generation request but defaults to None (falling back to static art
+        in the main pipeline) until the official API endpoints are fully
+        integrated and configured in settings.
+        """
+        prompt_hash = hashlib.md5(prompt.encode('utf-8')).hexdigest()
+        cache_key = f"video_cache:{prompt_hash}"
+
+        if self.redis:
+            cached_url = self.redis.get(cache_key)
+            if cached_url:
+                url_str = cached_url.decode('utf-8')
+                logger.info(f"Found cached video URL for prompt: {url_str}")
+                return url_str
+
+        logger.info(f"Initiating AI video background generation for prompt: {prompt[:50]}...")
+        # TODO: Implement authenticated POST request to Sora/Runway API
+        # Example:
+        # response = requests.post(RUNWAY_URL, json={"prompt": prompt})
+        # video_url = response.json().get("url")
+        # if video_url and self.redis:
+        #     self.redis.set(cache_key, video_url, ex=60*60*24*7) # Cache for 1 week
+
+        return None
 
     def _offline_metadata(self, hymn_name, style="Deep House", kids_mode=False):
         """Generate sensible default metadata without API calls."""

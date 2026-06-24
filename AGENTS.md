@@ -1,0 +1,1 @@
+hymn_remaker/AGENTS.md

@@ -44,7 +44,7 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install only lightweight runtime system dependencies
+# Install runtime system dependencies
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     fluidsynth \
@@ -52,10 +52,10 @@ RUN apt-get update && apt-get install -y \
     rubberband-cli \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy ML packages from ml-deps stage (PyTorch, oemer, demucs, OpenCV, ONNX)
+# Copy ML packages from ml-deps stage
 COPY --from=ml-deps /usr/local/lib/python3.12/site-packages/ /usr/local/lib/python3.12/site-packages/
 
-# Install lightweight Python dependencies only
+# Install lightweight Python dependencies
 COPY hymn_remaker/requirements.txt .
 RUN pip install --no-cache-dir --no-deps \
     midi2audio==0.1.1 \
@@ -75,26 +75,21 @@ RUN pip install --no-cache-dir --no-deps \
     music21==9.9.1 \
     pybind11==3.0.4 \
     redis==5.0.3 \
-    streamlit-autorefresh==1.0.1 \
-    playwright-stealth==2.0.3 \
+    pika==1.3.2 \
     pyrubberband==0.4.0 \
     && pip install --no-cache-dir \
     google-auth>=2.41 \
     google-api-core>=2.30 \
     elevenlabs>=2.46 \
-    streamlit>=1.57 \
     requests>=2.32 \
     numpy>=1.26 \
     scipy>=1.14
 
-# Copy compiled C++ extension from builder
+# Copy compiled C++ extension
 COPY --from=builder /build/hymn_player_ext*.so ./
 
-# Copy the rest of the application
+# Copy the application code
 COPY . .
 
-# Expose Streamlit port
-EXPOSE 8501
-
-# Default to running the Streamlit UI, but can be overridden in docker-compose for daemon mode
-CMD ["python", "-m", "streamlit", "run", "hymn_remaker/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# Start the worker
+CMD ["python", "services/renderer/worker.py"]

@@ -62,6 +62,7 @@ class RadioStreamer:
                     "-c:v", "copy",
                     "-c:a", "copy",
                     "-f", "flv",
+                    "-flvflags", "no_duration_filesize",
                     self.full_url
                 ]
 
