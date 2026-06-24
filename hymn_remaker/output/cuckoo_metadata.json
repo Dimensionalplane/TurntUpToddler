@@ -1,0 +1,21 @@
+{
+  "title": "The Cuckoo",
+  "description": "A delightful rendition of The Cuckoo for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Oh the cuckoo she's a pretty bird,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "She sings as she flies.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

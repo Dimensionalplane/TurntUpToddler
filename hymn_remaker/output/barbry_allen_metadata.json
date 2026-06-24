@@ -1,0 +1,31 @@
+{
+  "title": "Barbry Allen",
+  "description": "A delightful rendition of Barbry Allen for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "In Scarlet Town, where I was born,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "There was a fair maid dwellin'.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Made every youth cry well-a-day,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Her name was Barbry Allen.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "title": "Duck Duck Goose",
+  "description": "A delightful rendition of Duck Duck Goose for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Duck, duck, goose, let's play,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Running in a circle every day.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Duck, duck, goose, don't be slow,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Find your spot and sit down low.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "title": "Scottish Lullaby",
+  "description": "A delightful rendition of Scottish Lullaby for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Hush now my bonnie lass, the evening is nigh,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Close your sweet eyes and dream till the sky.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "title": "Frosty the Snowman",
+  "description": "A delightful rendition of Frosty the Snowman for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Frosty the Snowman was a jolly happy soul,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "With a corncob pipe and a button nose,",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "And two eyes made out of coal.",
+      "start": 15.0,
+      "end": 19.0
+    }
+  ]
+}

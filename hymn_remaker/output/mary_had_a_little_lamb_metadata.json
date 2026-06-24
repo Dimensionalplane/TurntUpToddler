@@ -1,0 +1,51 @@
+{
+  "title": "Mary Had a Little Lamb",
+  "description": "A delightful rendition of Mary Had a Little Lamb for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Mary had a little lamb,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Its fleece was white as snow;",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "And everywhere that Mary went",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "The lamb was sure to go.",
+      "start": 20.0,
+      "end": 24.0
+    },
+    {
+      "text": "It followed her to school one day,",
+      "start": 25.0,
+      "end": 29.0
+    },
+    {
+      "text": "Which was against the rule;",
+      "start": 30.0,
+      "end": 34.0
+    },
+    {
+      "text": "It made the children laugh and play",
+      "start": 35.0,
+      "end": 39.0
+    },
+    {
+      "text": "To see a lamb at school.",
+      "start": 40.0,
+      "end": 44.0
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "title": "Cockles and Mussels",
+  "description": "A delightful rendition of Cockles and Mussels for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "In Dublin's fair city, where girls are so pretty,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "I first set my eyes on sweet Molly Malone.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

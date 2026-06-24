@@ -1,0 +1,31 @@
+{
+  "title": "Simple Simon",
+  "description": "A delightful rendition of Simple Simon for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Simple Simon met a pieman,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Going to the fair.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Said Simple Simon to the pieman,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Let me taste your ware.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

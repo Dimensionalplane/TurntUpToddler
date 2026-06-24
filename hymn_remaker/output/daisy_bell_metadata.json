@@ -1,0 +1,41 @@
+{
+  "title": "Daisy Bell (Bicycle Built for Two)",
+  "description": "A delightful rendition of Daisy Bell (Bicycle Built for Two) for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Daisy, Daisy, give me your answer, do!",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "I'm half crazy all for the love of you!",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "It won't be a stylish marriage,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "I can't afford a carriage,",
+      "start": 20.0,
+      "end": 24.0
+    },
+    {
+      "text": "But you'll look sweet upon the seat",
+      "start": 25.0,
+      "end": 29.0
+    },
+    {
+      "text": "Of a bicycle built for two!",
+      "start": 30.0,
+      "end": 34.0
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "title": "Amazing Grace",
+  "description": "A delightful rendition of Amazing Grace for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Amazing grace, how sweet the sound,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "That saved a wretch like me!",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "I once was lost but now am found,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Was blind but now I see.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

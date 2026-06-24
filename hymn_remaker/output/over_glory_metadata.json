@@ -1,0 +1,31 @@
+{
+  "title": "Over My Head",
+  "description": "A delightful rendition of Over My Head for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Over my head, I hear music in the air,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Over my head, I hear music in the air,",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Over my head, I hear music in the air,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "There must be a God somewhere.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

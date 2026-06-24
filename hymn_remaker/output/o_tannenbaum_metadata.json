@@ -1,0 +1,21 @@
+{
+  "title": "O Tannenbaum",
+  "description": "MIDI 112747 from bitmidi.com",
+  "tags": [
+    "german",
+    "christmas"
+  ],
+  "lyrics": [
+    {
+      "text": "O Tannenbaum o Tannenbaum",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Wie treu sind deine Blatter",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ],
+  "source_id": 112747
+}

@@ -1,0 +1,31 @@
+{
+  "title": "Nicky Nicky Nacky Noo",
+  "description": "A delightful rendition of Nicky Nicky Nacky Noo for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Nicky nicky nacky noo,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "That's what you have to do.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Nicky nicky nacky noo,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Now you join in too.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "title": "The Wheels of the Bicycle",
+  "description": "A delightful rendition of The Wheels of the Bicycle for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "The wheels of the bicycle go round and round,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Round and round, round and round.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "The bell on the bicycle goes ring ring ring,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "All through the town.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

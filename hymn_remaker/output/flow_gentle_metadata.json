@@ -1,0 +1,21 @@
+{
+  "title": "Flow Gently Sweet Afton",
+  "description": "A delightful rendition of Flow Gently Sweet Afton for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Flow gently sweet Afton among thy green braes,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Flow gently I'll sing thee a song in thy praise.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

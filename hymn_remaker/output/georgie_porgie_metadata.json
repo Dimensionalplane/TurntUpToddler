@@ -1,0 +1,31 @@
+{
+  "title": "Georgie Porgie",
+  "description": "A delightful rendition of Georgie Porgie for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Georgie Porgie, pudding and pie,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Kissed the girls and made them cry;",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "When the boys came out to play,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Georgie Porgie ran away.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

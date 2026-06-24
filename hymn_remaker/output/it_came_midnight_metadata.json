@@ -1,0 +1,21 @@
+{
+  "title": "It Came Upon the Midnight Clear",
+  "description": "A delightful rendition of It Came Upon the Midnight Clear for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "It came upon the midnight clear, that glorious song of old,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "From angels bending near the earth to touch their harps of gold.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

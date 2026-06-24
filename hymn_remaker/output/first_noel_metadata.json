@@ -1,0 +1,21 @@
+{
+  "title": "The First Noel",
+  "description": "A delightful rendition of The First Noel for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "The first Noel the angels did say,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Was to certain poor shepherds in fields as they lay.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "title": "Swing Low Sweet Chariot",
+  "description": "MIDI 112698 from bitmidi.com",
+  "tags": [
+    "spiritual",
+    "gospel"
+  ],
+  "lyrics": [
+    {
+      "text": "Swing low sweet chariot",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Coming for to carry me home",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ],
+  "source_id": 112698
+}

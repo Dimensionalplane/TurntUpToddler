@@ -1,0 +1,31 @@
+{
+  "title": "The Water Is Wide",
+  "description": "A delightful rendition of The Water Is Wide for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "The water is wide, I cannot get o'er,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "And neither have I wings to fly.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Give me a boat that can carry two,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "And both shall row, my love and I.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

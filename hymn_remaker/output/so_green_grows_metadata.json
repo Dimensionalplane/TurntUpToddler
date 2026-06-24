@@ -1,0 +1,31 @@
+{
+  "title": "So Green Grows the Grass",
+  "description": "A delightful rendition of So Green Grows the Grass for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "So green grows the grass,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "The grass grows green.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "So green grows the grass,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "On the banks of the river.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

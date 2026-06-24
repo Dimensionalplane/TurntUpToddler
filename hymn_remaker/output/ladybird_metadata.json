@@ -1,0 +1,31 @@
+{
+  "title": "Ladybird Ladybird",
+  "description": "A delightful rendition of Ladybird Ladybird for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Ladybird, ladybird, fly away home,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Your house is on fire and your children are gone.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "All except one, and that's little Ann,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "And she has crept under the warming pan.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

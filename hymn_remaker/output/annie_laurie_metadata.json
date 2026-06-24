@@ -1,0 +1,31 @@
+{
+  "title": "Annie Laurie",
+  "description": "A delightful rendition of Annie Laurie for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Maxwelton's braes are bonnie,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Where early falls the dew.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "And it's there that Annie Laurie,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Gave me her promise true.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

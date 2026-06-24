@@ -1,0 +1,31 @@
+{
+  "title": "Hey Diddle Diddle",
+  "description": "A delightful rendition of Hey Diddle Diddle for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Hey diddle diddle, the cat and the fiddle,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "The cow jumped over the moon.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "The little dog laughed to see such sport,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "And the dish ran away with the spoon.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

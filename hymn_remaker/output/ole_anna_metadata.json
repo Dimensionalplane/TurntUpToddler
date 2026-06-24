@@ -1,0 +1,31 @@
+{
+  "title": "Ole Anna",
+  "description": "A delightful rendition of Ole Anna for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Ole Anna, Ole Anna,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Working in the cotton field.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Ole Anna, Ole Anna,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Singing till the sun is sealed.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

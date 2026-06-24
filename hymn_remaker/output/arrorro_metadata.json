@@ -1,0 +1,31 @@
+{
+  "title": "Arrorró Mi Niño (Spain)",
+  "description": "A delightful rendition of Arrorró Mi Niño (Spain) for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Arrorró mi niño, arrorró mi sol,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Arrorró pedazo de mi corazón.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Este niño lindo ya quiere dormir,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Háganle la cuna de rosa y jazmín.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

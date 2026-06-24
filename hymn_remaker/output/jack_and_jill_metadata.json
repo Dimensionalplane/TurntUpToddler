@@ -1,0 +1,31 @@
+{
+  "title": "Jack and Jill",
+  "description": "A delightful rendition of Jack and Jill for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Jack and Jill went up the hill,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "To fetch a pail of water.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Jack fell down and broke his crown,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "And Jill came tumbling after.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

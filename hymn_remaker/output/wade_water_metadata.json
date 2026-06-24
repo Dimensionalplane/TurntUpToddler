@@ -1,0 +1,21 @@
+{
+  "title": "Wade in the Water",
+  "description": "A delightful rendition of Wade in the Water for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Wade in the water, wade in the water children,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Wade in the water, God's gonna trouble the water.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

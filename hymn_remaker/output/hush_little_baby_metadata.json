@@ -1,0 +1,31 @@
+{
+  "title": "Hush Little Baby",
+  "description": "A delightful rendition of Hush Little Baby for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Hush little baby, don't say a word,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Mama's gonna buy you a mockingbird.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "And if that mockingbird don't sing,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Mama's gonna buy you a diamond ring.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "title": "Shenandoah",
+  "description": "A delightful rendition of Shenandoah for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Oh Shenandoah, I long to hear you,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Away you rolling river.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Oh Shenandoah, I long to hear you,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Away, I'm bound away, 'cross the wide Missouri.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

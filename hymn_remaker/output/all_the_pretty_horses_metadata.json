@@ -1,0 +1,20 @@
+{
+  "title": "All the Pretty Horses",
+  "description": "MIDI 112727 from bitmidi.com",
+  "tags": [
+    "lullaby"
+  ],
+  "lyrics": [
+    {
+      "text": "Hush-a-bye don't you cry",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Go to sleepy little baby",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ],
+  "source_id": 112727
+}

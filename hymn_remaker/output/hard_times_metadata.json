@@ -1,0 +1,31 @@
+{
+  "title": "Hard Times Come Again No More",
+  "description": "A delightful rendition of Hard Times Come Again No More for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Let us pause in life's pleasures and count its many tears,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "While we all sup sorrow with the poor.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "There's a song that will linger forever in our ears,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Oh hard times come again no more.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

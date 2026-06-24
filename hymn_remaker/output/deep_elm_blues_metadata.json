@@ -1,0 +1,21 @@
+{
+  "title": "Deep Elm Blues",
+  "description": "MIDI 112694 from bitmidi.com",
+  "tags": [
+    "folk",
+    "american"
+  ],
+  "lyrics": [
+    {
+      "text": "I've got the deep elm blues",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "I've got the deep elm blues",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ],
+  "source_id": 112694
+}

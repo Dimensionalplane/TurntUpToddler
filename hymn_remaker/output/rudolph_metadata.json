@@ -1,0 +1,31 @@
+{
+  "title": "Rudolph the Red-Nosed Reindeer",
+  "description": "A delightful rendition of Rudolph the Red-Nosed Reindeer for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Rudolph the Red-Nosed Reindeer had a very shiny nose,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "And if you ever saw it you would even say it glows.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "All of the other reindeer used to laugh and call him names,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "They never let poor Rudolph join in any reindeer games.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

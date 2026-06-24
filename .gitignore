@@ -3,25 +3,17 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
-.Python
 env/
 venv/
-pip-log.txt
-pip-delete-this-directory.txt
 .tox/
 .coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
 *.cover
 *.log
 .git
 .mypy_cache/
 .pytest_cache/
-.hypotheses/
 
-# Local configuration
+# Local config
 .env
 client_secrets.json
 token.json
@@ -31,22 +23,3 @@ dist/
 build/
 *.egg-info/
 *.so
-tests/run_tests
-
-# Generated files
-hymn_remaker/output/
-temp_art*.png
-
-# Suno test artifacts
-suno_test*.png
-suno_test*.jpg
-suno_page.html
-
-# Jules session folders
-jules_session_*/
-suno_create_*.png
-suno_error.png
-suno_fail.png
-suno_stealth_*.png
-suno_payload_capture.json
-hymn_remaker/history.db

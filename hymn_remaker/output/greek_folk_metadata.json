@@ -1,0 +1,21 @@
+{
+  "title": "Greek Folk Dance",
+  "description": "A delightful rendition of Greek Folk Dance for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Sto pa pa, sto pa pa,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Dance around and join the fun.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

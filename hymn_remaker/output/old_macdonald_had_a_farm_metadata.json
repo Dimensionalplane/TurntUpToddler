@@ -1,0 +1,39 @@
+{
+    "title": "Old MacDonald Had a Farm",
+    "description": "E-I-E-I-O! Meet the farm animals and learn their sounds with Old MacDonald in this classic animal song for kids.",
+    "tags": [
+        "old macdonald",
+        "farm animals",
+        "animal sounds",
+        "kids farm song",
+        "educational videos",
+        "children singing"
+    ],
+    "lyrics": [
+        {
+            "text": "Old MacDonald had a farm, E-I-E-I-O!",
+            "start": 5.0,
+            "end": 9.0
+        },
+        {
+            "text": "And on his farm he had some chicks, E-I-E-I-O!",
+            "start": 10.0,
+            "end": 14.0
+        },
+        {
+            "text": "With a cluck-cluck here, and a cluck-cluck there,",
+            "start": 15.0,
+            "end": 19.0
+        },
+        {
+            "text": "Here a cluck, there a cluck, everywhere a cluck-cluck,",
+            "start": 20.0,
+            "end": 24.0
+        },
+        {
+            "text": "Old MacDonald had a farm, E-I-E-I-O!",
+            "start": 25.0,
+            "end": 29.0
+        }
+    ]
+}

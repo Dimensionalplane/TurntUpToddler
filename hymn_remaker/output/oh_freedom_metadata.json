@@ -1,0 +1,26 @@
+{
+  "title": "Oh Freedom",
+  "description": "A delightful rendition of Oh Freedom for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Oh freedom, oh freedom, oh freedom over me,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "And before I'd be a slave, I'll be buried in my grave,",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "And go home to my Lord and be free.",
+      "start": 15.0,
+      "end": 19.0
+    }
+  ]
+}

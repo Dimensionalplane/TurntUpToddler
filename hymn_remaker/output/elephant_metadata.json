@@ -1,0 +1,31 @@
+{
+  "title": "The Elephant",
+  "description": "A delightful rendition of The Elephant for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "An elephant goes like this and that,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "He's terribly big and he's terribly fat.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "He has no fingers, he has no toes,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "But goodness gracious, what a nose!",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "title": "Swing Low Sweet Chariot",
+  "description": "A delightful rendition of Swing Low Sweet Chariot for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Swing low, sweet chariot,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Coming for to carry me home.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Swing low, sweet chariot,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Coming for to carry me home.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

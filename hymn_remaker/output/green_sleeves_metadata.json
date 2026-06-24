@@ -1,0 +1,31 @@
+{
+  "title": "Greensleeves",
+  "description": "A delightful rendition of Greensleeves for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Alas my love you do me wrong,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "To cast me off discourteously.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "For I have loved you well and long,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Delighting in your company.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

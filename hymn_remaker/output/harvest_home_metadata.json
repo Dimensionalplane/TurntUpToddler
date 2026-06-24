@@ -1,0 +1,21 @@
+{
+  "title": "Harvest Home",
+  "description": "A delightful rendition of Harvest Home for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Come ye thankful people come, raise the song of harvest home!",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "All is safely gathered in ere the winter storms begin.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

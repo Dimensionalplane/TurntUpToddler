@@ -1,0 +1,31 @@
+{
+  "title": "Ten Little Indians",
+  "description": "A delightful rendition of Ten Little Indians for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "One little, two little, three little Indians,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Four little, five little, six little Indians,",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Seven little, eight little, nine little Indians,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Ten little Indian boys.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "title": "The Wearing of the Green",
+  "description": "A delightful rendition of The Wearing of the Green for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Oh Paddy dear and did you hear the news that's going round?",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "The shamrock is forbid by law to grow on Irish ground.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

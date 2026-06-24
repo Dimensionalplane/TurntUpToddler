@@ -1,0 +1,21 @@
+{
+  "title": "Down by the Riverside",
+  "description": "MIDI 112702 from bitmidi.com",
+  "tags": [
+    "spiritual",
+    "gospel"
+  ],
+  "lyrics": [
+    {
+      "text": "Gonna lay down my burdens down by the riverside",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Down by the riverside",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ],
+  "source_id": 112702
+}

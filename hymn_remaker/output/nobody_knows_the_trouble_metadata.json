@@ -1,0 +1,21 @@
+{
+  "title": "Nobody Knows the Trouble",
+  "description": "MIDI 112705 from bitmidi.com",
+  "tags": [
+    "spiritual",
+    "gospel"
+  ],
+  "lyrics": [
+    {
+      "text": "Nobody knows the trouble I've seen",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Nobody knows but Jesus",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ],
+  "source_id": 112705
+}

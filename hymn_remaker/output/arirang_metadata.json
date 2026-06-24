@@ -1,0 +1,31 @@
+{
+  "title": "Arirang (Korea)",
+  "description": "A delightful rendition of Arirang (Korea) for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Arirang, Arirang, Arariyo,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Crossing over the Arirang Pass.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "The one who abandoned me,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Will not walk even ten li.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

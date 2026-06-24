@@ -1,0 +1,31 @@
+{
+  "title": "Little Miss Muffet",
+  "description": "A delightful rendition of Little Miss Muffet for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Little Miss Muffet sat on a tuffet,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Eating her curds and whey;",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Along came a spider, who sat down beside her,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "And frightened Miss Muffet away.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

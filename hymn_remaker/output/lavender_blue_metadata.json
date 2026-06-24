@@ -1,0 +1,21 @@
+{
+  "title": "Lavender's Blue",
+  "description": "A delightful rendition of Lavender's Blue for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Lavender's blue, dilly dilly, lavender's green,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "When I am king, dilly dilly, you shall be queen.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

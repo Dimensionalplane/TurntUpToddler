@@ -1,0 +1,31 @@
+{
+  "title": "Little Bo Peep",
+  "description": "A delightful rendition of Little Bo Peep for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Little Bo Peep has lost her sheep,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "And doesn't know where to find them;",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Leave them alone, and they'll come home,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Wagging their tails behind them.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

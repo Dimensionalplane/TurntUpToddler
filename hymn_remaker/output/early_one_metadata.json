@@ -1,0 +1,21 @@
+{
+  "title": "Early One Morning",
+  "description": "A delightful rendition of Early One Morning for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Early one morning just as the sun was rising,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "I heard a maid singing in the valley below.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

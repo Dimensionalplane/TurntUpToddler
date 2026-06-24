@@ -1,0 +1,31 @@
+{
+  "title": "Alice the Camel",
+  "description": "A delightful rendition of Alice the Camel for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Alice the camel has five humps,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Alice the camel has five humps,",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Alice the camel has five humps,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "So go, Alice, go!",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

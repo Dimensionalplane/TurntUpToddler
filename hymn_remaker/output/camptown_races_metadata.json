@@ -1,0 +1,21 @@
+{
+  "title": "Camptown Races",
+  "description": "MIDI 112680 from bitmidi.com",
+  "tags": [
+    "folk",
+    "american"
+  ],
+  "lyrics": [
+    {
+      "text": "The Camptown ladies sing this song doo-da doo-da",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "The Camptown race track five miles long oh doo-da day",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ],
+  "source_id": 112680
+}

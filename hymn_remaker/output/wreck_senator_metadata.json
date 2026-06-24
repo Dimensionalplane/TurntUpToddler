@@ -1,0 +1,21 @@
+{
+  "title": "The Wreck of the Senator",
+  "description": "A delightful rendition of The Wreck of the Senator for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "The Senator went down at sea,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "A mighty ship so proud and free.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

@@ -1745,233 +1745,893 @@ PLAY_SONGS = {
 # ── SECTION 8: COUNTING & LEARNING SONGS (20) ──
 
 LEARNING_SONGS = {
-    "one_two_buckle_shoe": {"title": "One Two Buckle My Shoe", "midi_url": "https://bitmidi.com/uploads/112643.mid",
-        "lyrics": ["One, two, buckle my shoe,", "Three, four, knock at the door,", "Five, six, pick up sticks,", "Seven, eight, lay them straight,", "Nine, ten, a big fat hen."]},
-    "ten_little_indians": {"title": "Ten Little Indians", "midi_url": "https://bitmidi.com/uploads/112646.mid",
-        "lyrics": ["One little, two little, three little Indians,", "Four little, five little, six little Indians,", "Seven little, eight little, nine little Indians,", "Ten little Indian boys."]},
-    "ants_marching": {"title": "The Ants Go Marching", "midi_url": "https://bitmidi.com/uploads/65288.mid",
-        "lyrics": ["The ants go marching one by one, hurrah, hurrah!", "The ants go marching one by one, hurrah, hurrah!", "The ants go marching one by one,", "The little one stops to suck his thumb,", "And they all go marching down to the ground to get out of the rain."]},
-    "alice_camel": {"title": "Alice the Camel", "midi_url": "https://bitmidi.com/uploads/65289.mid",
-        "lyrics": ["Alice the camel has five humps,", "Alice the camel has five humps,", "Alice the camel has five humps,", "So go, Alice, go!"]},
-    "green_bottle": {"title": "Ten Green Bottles", "midi_url": "https://bitmidi.com/uploads/65290.mid",
-        "lyrics": ["Ten green bottles hanging on the wall,", "Ten green bottles hanging on the wall,", "And if one green bottle should accidentally fall,", "There'll be nine green bottles hanging on the wall."]},
-    "five_current_buns": {"title": "Five Currant Buns", "midi_url": "https://bitmidi.com/uploads/65291.mid",
-        "lyrics": ["Five currant buns in a baker's shop,", "Round and fat with a cherry on the top.", "Along came a boy with a penny one day,", "Bought a currant bun and took it away."]},
-    "speckled_frogs": {"title": "Five Little Speckled Frogs", "midi_url": "https://bitmidi.com/uploads/65292.mid",
-        "lyrics": ["Five little speckled frogs sat on a speckled log,", "Eating the most delicious bugs, yum yum!", "One jumped into the pool where it was nice and cool,", "Now there are four little speckled frogs."]},
-    "monkeys_bed": {"title": "Five Little Monkeys", "midi_url": "https://bitmidi.com/uploads/65293.mid",
-        "lyrics": ["Five little monkeys jumping on the bed,", "One fell off and bumped his head.", "Mama called the doctor and the doctor said,", "No more monkeys jumping on the bed!"]},
-    "once_i_caught": {"title": "Once I Caught a Fish Alive", "midi_url": "https://bitmidi.com/uploads/65294.mid",
-        "lyrics": ["One, two, three, four, five,", "Once I caught a fish alive.", "Six, seven, eight, nine, ten,", "Then I let it go again."]},
-    "days_week": {"title": "Days of the Week", "midi_url": "https://bitmidi.com/uploads/65295.mid",
-        "lyrics": ["Monday, Tuesday, Wednesday,", "Thursday, Friday, Saturday,", "Sunday, Sunday, Sunday,", "Those are the days of the week!"]},
-    "months_year": {"title": "Months of the Year", "midi_url": "https://bitmidi.com/uploads/65296.mid",
-        "lyrics": ["January, February, March, April,", "May, June, July, August,", "September, October, November, December,", "These are the months of the year."]},
-    "colors_rainbow": {"title": "Colors of the Rainbow", "midi_url": "https://bitmidi.com/uploads/65297.mid",
-        "lyrics": ["Red and yellow and pink and green,", "Purple and orange and blue,", "I can sing a rainbow, sing a rainbow,", "Sing a rainbow too."]},
-    "whats_weather": {"title": "What's the Weather", "midi_url": "https://bitmidi.com/uploads/65298.mid",
-        "lyrics": ["What's the weather, what's the weather,", "What's the weather like today?", "Is it sunny, is it rainy,", "Is it windy, is it snowy?"]},
-    "grand_old_duke": {"title": "The Grand Old Duke of York", "midi_url": "https://bitmidi.com/uploads/112646.mid",
-        "lyrics": ["Oh, the grand old Duke of York,", "He had ten thousand men,", "He marched them up to the top of the hill,", "And he marched them down again."]},
+    "one_two_buckle_shoe": {
+        "title": "One Two Buckle My Shoe",
+        "midi_url": "https://bitmidi.com/uploads/112643.mid",
+        "lyrics": [
+            "One, two, buckle my shoe,",
+            "Three, four, knock at the door,",
+            "Five, six, pick up sticks,",
+            "Seven, eight, lay them straight,",
+            "Nine, ten, a big fat hen.",
+        ],
+    },
+    "ten_little_indians": {
+        "title": "Ten Little Indians",
+        "midi_url": "https://bitmidi.com/uploads/112646.mid",
+        "lyrics": [
+            "One little, two little, three little Indians,",
+            "Four little, five little, six little Indians,",
+            "Seven little, eight little, nine little Indians,",
+            "Ten little Indian boys.",
+        ],
+    },
+    "ants_marching": {
+        "title": "The Ants Go Marching",
+        "midi_url": "https://bitmidi.com/uploads/65288.mid",
+        "lyrics": [
+            "The ants go marching one by one, hurrah, hurrah!",
+            "The ants go marching one by one, hurrah, hurrah!",
+            "The ants go marching one by one,",
+            "The little one stops to suck his thumb,",
+            "And they all go marching down to the ground to get out of the rain.",
+        ],
+    },
+    "alice_camel": {
+        "title": "Alice the Camel",
+        "midi_url": "https://bitmidi.com/uploads/65289.mid",
+        "lyrics": [
+            "Alice the camel has five humps,",
+            "Alice the camel has five humps,",
+            "Alice the camel has five humps,",
+            "So go, Alice, go!",
+        ],
+    },
+    "green_bottle": {
+        "title": "Ten Green Bottles",
+        "midi_url": "https://bitmidi.com/uploads/65290.mid",
+        "lyrics": [
+            "Ten green bottles hanging on the wall,",
+            "Ten green bottles hanging on the wall,",
+            "And if one green bottle should accidentally fall,",
+            "There'll be nine green bottles hanging on the wall.",
+        ],
+    },
+    "five_current_buns": {
+        "title": "Five Currant Buns",
+        "midi_url": "https://bitmidi.com/uploads/65291.mid",
+        "lyrics": [
+            "Five currant buns in a baker's shop,",
+            "Round and fat with a cherry on the top.",
+            "Along came a boy with a penny one day,",
+            "Bought a currant bun and took it away.",
+        ],
+    },
+    "speckled_frogs": {
+        "title": "Five Little Speckled Frogs",
+        "midi_url": "https://bitmidi.com/uploads/65292.mid",
+        "lyrics": [
+            "Five little speckled frogs sat on a speckled log,",
+            "Eating the most delicious bugs, yum yum!",
+            "One jumped into the pool where it was nice and cool,",
+            "Now there are four little speckled frogs.",
+        ],
+    },
+    "monkeys_bed": {
+        "title": "Five Little Monkeys",
+        "midi_url": "https://bitmidi.com/uploads/65293.mid",
+        "lyrics": [
+            "Five little monkeys jumping on the bed,",
+            "One fell off and bumped his head.",
+            "Mama called the doctor and the doctor said,",
+            "No more monkeys jumping on the bed!",
+        ],
+    },
+    "once_i_caught": {
+        "title": "Once I Caught a Fish Alive",
+        "midi_url": "https://bitmidi.com/uploads/65294.mid",
+        "lyrics": [
+            "One, two, three, four, five,",
+            "Once I caught a fish alive.",
+            "Six, seven, eight, nine, ten,",
+            "Then I let it go again.",
+        ],
+    },
+    "days_week": {
+        "title": "Days of the Week",
+        "midi_url": "https://bitmidi.com/uploads/65295.mid",
+        "lyrics": [
+            "Monday, Tuesday, Wednesday,",
+            "Thursday, Friday, Saturday,",
+            "Sunday, Sunday, Sunday,",
+            "Those are the days of the week!",
+        ],
+    },
+    "months_year": {
+        "title": "Months of the Year",
+        "midi_url": "https://bitmidi.com/uploads/65296.mid",
+        "lyrics": [
+            "January, February, March, April,",
+            "May, June, July, August,",
+            "September, October, November, December,",
+            "These are the months of the year.",
+        ],
+    },
+    "colors_rainbow": {
+        "title": "Colors of the Rainbow",
+        "midi_url": "https://bitmidi.com/uploads/65297.mid",
+        "lyrics": [
+            "Red and yellow and pink and green,",
+            "Purple and orange and blue,",
+            "I can sing a rainbow, sing a rainbow,",
+            "Sing a rainbow too.",
+        ],
+    },
+    "whats_weather": {
+        "title": "What's the Weather",
+        "midi_url": "https://bitmidi.com/uploads/65298.mid",
+        "lyrics": [
+            "What's the weather, what's the weather,",
+            "What's the weather like today?",
+            "Is it sunny, is it rainy,",
+            "Is it windy, is it snowy?",
+        ],
+    },
+    "grand_old_duke": {
+        "title": "The Grand Old Duke of York",
+        "midi_url": "https://bitmidi.com/uploads/112646.mid",
+        "lyrics": [
+            "Oh, the grand old Duke of York,",
+            "He had ten thousand men,",
+            "He marched them up to the top of the hill,",
+            "And he marched them down again.",
+        ],
+    },
 }
 
 # ── SECTION 9: ANIMAL SONGS & NATURE (20) ──
 
 ANIMAL_SONGS = {
-    "duck_duck_goose_play": {"title": "Duck Duck Goose", "midi_url": "https://bitmidi.com/uploads/65299.mid",
-        "lyrics": ["Duck, duck, goose, let's play,", "Running in a circle every day.", "Duck, duck, goose, don't be slow,", "Find your spot and sit down low."]},
-    "little_rabbit": {"title": "Little Rabbit Foo Foo", "midi_url": "https://bitmidi.com/uploads/65300.mid",
-        "lyrics": ["Little Rabbit Foo Foo, hopping through the forest,", "Scooping up the field mice and bopping them on the head.", "Down came the Good Fairy, and she said,", "Little Rabbit Foo Foo, I don't want to see you scooping up the field mice!"]},
-    "owl_hoot": {"title": "The Wise Old Owl", "midi_url": "https://bitmidi.com/uploads/65301.mid",
-        "lyrics": ["A wise old owl sat in an oak,", "The more he saw the less he spoke,", "The less he spoke the more he heard,", "Why can't we all be like that wise old bird?"]},
-    "three_kittens": {"title": "Three Little Kittens", "midi_url": "https://bitmidi.com/uploads/65302.mid",
-        "lyrics": ["Three little kittens, they lost their mittens,", "And they began to cry,", "Oh mother dear, we sadly fear,", "That we have lost our mittens."]},
-    "pussycat_pussycat": {"title": "Pussycat Pussycat", "midi_url": "https://bitmidi.com/uploads/65303.mid",
-        "lyrics": ["Pussycat, pussycat, where have you been?", "I've been to London to visit the Queen.", "Pussycat, pussycat, what did you there?", "I frightened a little mouse under the chair."]},
-    "brown_bear": {"title": "Brown Bear Brown Bear", "midi_url": "https://bitmidi.com/uploads/65304.mid",
-        "lyrics": ["Brown bear, brown bear, what do you see?", "I see a red bird looking at me.", "Red bird, red bird, what do you see?", "I see a yellow duck looking at me."]},
-    "butterfly": {"title": "Butterfly Butterfly", "midi_url": "https://bitmidi.com/uploads/65305.mid",
-        "lyrics": ["Butterfly, butterfly, flutter around,", "Land on a flower without a sound.", "Butterfly, butterfly, flying so high,", "Dancing and twirling up in the sky."]},
-    "ladybug": {"title": "Ladybug Ladybug", "midi_url": "https://bitmidi.com/uploads/65306.mid",
-        "lyrics": ["Ladybug, ladybug, fly away home,", "Your house is on fire, your children will roam.", "All except one and that's little Ann,", "And she has crept under the warming pan."]},
-    "elephant": {"title": "The Elephant", "midi_url": "https://bitmidi.com/uploads/65307.mid",
-        "lyrics": ["An elephant goes like this and that,", "He's terribly big and he's terribly fat.", "He has no fingers, he has no toes,", "But goodness gracious, what a nose!"]},
-    "caterpillar": {"title": "The Caterpillar", "midi_url": "https://bitmidi.com/uploads/65308.mid",
-        "lyrics": ["Caterpillar, caterpillar, crawling on the ground,", "Spinning your cocoon around and around.", "Soon you'll be a butterfly, flying in the sky,", "Caterpillar, caterpillar, goodbye, goodbye!"]},
-    "bunny_hop": {"title": "Little Bunny Hop", "midi_url": "https://bitmidi.com/uploads/65309.mid",
-        "lyrics": ["Hop little bunny, hop hop hop,", "Hop little bunny, don't you stop.", "Hop little bunny, one two three,", "Hop little bunny, come to me."]},
-    "fishes_swim": {"title": "Little Fishes", "midi_url": "https://bitmidi.com/uploads/65310.mid",
-        "lyrics": ["Little fishes swimming in the sea,", "Swimming and a-swimming, happy as can be.", "Little fishes swimming in a row,", "Watch them as they come and go."]},
-    "spider_song": {"title": "Spider Song", "midi_url": "https://bitmidi.com/uploads/65311.mid",
-        "lyrics": ["The spider spins her web so fine,", "A masterpiece of silken line.", "She weaves it in the morning dew,", "A perfect home for me and you."]},
+    "duck_duck_goose_play": {
+        "title": "Duck Duck Goose",
+        "midi_url": "https://bitmidi.com/uploads/65299.mid",
+        "lyrics": [
+            "Duck, duck, goose, let's play,",
+            "Running in a circle every day.",
+            "Duck, duck, goose, don't be slow,",
+            "Find your spot and sit down low.",
+        ],
+    },
+    "little_rabbit": {
+        "title": "Little Rabbit Foo Foo",
+        "midi_url": "https://bitmidi.com/uploads/65300.mid",
+        "lyrics": [
+            "Little Rabbit Foo Foo, hopping through the forest,",
+            "Scooping up the field mice and bopping them on the head.",
+            "Down came the Good Fairy, and she said,",
+            "Little Rabbit Foo Foo, I don't want to see you scooping up the field mice!",
+        ],
+    },
+    "owl_hoot": {
+        "title": "The Wise Old Owl",
+        "midi_url": "https://bitmidi.com/uploads/65301.mid",
+        "lyrics": [
+            "A wise old owl sat in an oak,",
+            "The more he saw the less he spoke,",
+            "The less he spoke the more he heard,",
+            "Why can't we all be like that wise old bird?",
+        ],
+    },
+    "three_kittens": {
+        "title": "Three Little Kittens",
+        "midi_url": "https://bitmidi.com/uploads/65302.mid",
+        "lyrics": [
+            "Three little kittens, they lost their mittens,",
+            "And they began to cry,",
+            "Oh mother dear, we sadly fear,",
+            "That we have lost our mittens.",
+        ],
+    },
+    "pussycat_pussycat": {
+        "title": "Pussycat Pussycat",
+        "midi_url": "https://bitmidi.com/uploads/65303.mid",
+        "lyrics": [
+            "Pussycat, pussycat, where have you been?",
+            "I've been to London to visit the Queen.",
+            "Pussycat, pussycat, what did you there?",
+            "I frightened a little mouse under the chair.",
+        ],
+    },
+    "brown_bear": {
+        "title": "Brown Bear Brown Bear",
+        "midi_url": "https://bitmidi.com/uploads/65304.mid",
+        "lyrics": [
+            "Brown bear, brown bear, what do you see?",
+            "I see a red bird looking at me.",
+            "Red bird, red bird, what do you see?",
+            "I see a yellow duck looking at me.",
+        ],
+    },
+    "butterfly": {
+        "title": "Butterfly Butterfly",
+        "midi_url": "https://bitmidi.com/uploads/65305.mid",
+        "lyrics": [
+            "Butterfly, butterfly, flutter around,",
+            "Land on a flower without a sound.",
+            "Butterfly, butterfly, flying so high,",
+            "Dancing and twirling up in the sky.",
+        ],
+    },
+    "ladybug": {
+        "title": "Ladybug Ladybug",
+        "midi_url": "https://bitmidi.com/uploads/65306.mid",
+        "lyrics": [
+            "Ladybug, ladybug, fly away home,",
+            "Your house is on fire, your children will roam.",
+            "All except one and that's little Ann,",
+            "And she has crept under the warming pan.",
+        ],
+    },
+    "elephant": {
+        "title": "The Elephant",
+        "midi_url": "https://bitmidi.com/uploads/65307.mid",
+        "lyrics": [
+            "An elephant goes like this and that,",
+            "He's terribly big and he's terribly fat.",
+            "He has no fingers, he has no toes,",
+            "But goodness gracious, what a nose!",
+        ],
+    },
+    "caterpillar": {
+        "title": "The Caterpillar",
+        "midi_url": "https://bitmidi.com/uploads/65308.mid",
+        "lyrics": [
+            "Caterpillar, caterpillar, crawling on the ground,",
+            "Spinning your cocoon around and around.",
+            "Soon you'll be a butterfly, flying in the sky,",
+            "Caterpillar, caterpillar, goodbye, goodbye!",
+        ],
+    },
+    "bunny_hop": {
+        "title": "Little Bunny Hop",
+        "midi_url": "https://bitmidi.com/uploads/65309.mid",
+        "lyrics": [
+            "Hop little bunny, hop hop hop,",
+            "Hop little bunny, don't you stop.",
+            "Hop little bunny, one two three,",
+            "Hop little bunny, come to me.",
+        ],
+    },
+    "fishes_swim": {
+        "title": "Little Fishes",
+        "midi_url": "https://bitmidi.com/uploads/65310.mid",
+        "lyrics": [
+            "Little fishes swimming in the sea,",
+            "Swimming and a-swimming, happy as can be.",
+            "Little fishes swimming in a row,",
+            "Watch them as they come and go.",
+        ],
+    },
+    "spider_song": {
+        "title": "Spider Song",
+        "midi_url": "https://bitmidi.com/uploads/65311.mid",
+        "lyrics": [
+            "The spider spins her web so fine,",
+            "A masterpiece of silken line.",
+            "She weaves it in the morning dew,",
+            "A perfect home for me and you.",
+        ],
+    },
 }
 
 # ── SECTION 10: HOLIDAY & SEASONAL SONGS (25) ──
 
 HOLIDAY_SONGS = {
-    "rudolph": {"title": "Rudolph the Red-Nosed Reindeer", "midi_url": "https://bitmidi.com/uploads/107564.mid",
-        "lyrics": ["Rudolph the Red-Nosed Reindeer had a very shiny nose,", "And if you ever saw it you would even say it glows.", "All of the other reindeer used to laugh and call him names,", "They never let poor Rudolph join in any reindeer games."]},
-    "santa_claus": {"title": "Santa Claus Is Coming to Town", "midi_url": "https://bitmidi.com/uploads/107565.mid",
-        "lyrics": ["You better watch out, you better not cry,", "Better not pout, I'm telling you why,", "Santa Claus is coming to town."]},
-    "frosty": {"title": "Frosty the Snowman", "midi_url": "https://bitmidi.com/uploads/107566.mid",
-        "lyrics": ["Frosty the Snowman was a jolly happy soul,", "With a corncob pipe and a button nose,", "And two eyes made out of coal."]},
-    "o_christmas_tree": {"title": "O Christmas Tree", "midi_url": "https://bitmidi.com/uploads/107567.mid",
-        "lyrics": ["O Christmas tree, O Christmas tree,", "How lovely are thy branches!", "O Christmas tree, O Christmas tree,", "How lovely are thy branches!"]},
-    "first_noel": {"title": "The First Noel", "midi_url": "https://bitmidi.com/uploads/107568.mid",
-        "lyrics": ["The first Noel the angels did say,", "Was to certain poor shepherds in fields as they lay."]},
-    "we_three_kings": {"title": "We Three Kings", "midi_url": "https://bitmidi.com/uploads/107569.mid",
-        "lyrics": ["We three kings of Orient are,", "Bearing gifts we traverse afar,", "Field and fountain, moor and mountain,", "Following yonder star."]},
-    "good_king_wenceslas": {"title": "Good King Wenceslas", "midi_url": "https://bitmidi.com/uploads/107570.mid",
-        "lyrics": ["Good King Wenceslas looked out on the feast of Stephen,", "When the snow lay round about, deep and crisp and even."]},
-    "o_little_town": {"title": "O Little Town of Bethlehem", "midi_url": "https://bitmidi.com/uploads/107571.mid",
-        "lyrics": ["O little town of Bethlehem, how still we see thee lie!", "Above thy deep and dreamless sleep the silent stars go by."]},
-    "it_came_midnight": {"title": "It Came Upon the Midnight Clear", "midi_url": "https://bitmidi.com/uploads/107572.mid",
-        "lyrics": ["It came upon the midnight clear, that glorious song of old,", "From angels bending near the earth to touch their harps of gold."]},
-    "angels_heard": {"title": "Angels We Have Heard on High", "midi_url": "https://bitmidi.com/uploads/107573.mid",
-        "lyrics": ["Angels we have heard on high, sweetly singing o'er the plains,", "And the mountains in reply echoing their joyous strains."]},
-    "twelve_days": {"title": "The Twelve Days of Christmas", "midi_url": "https://bitmidi.com/uploads/107574.mid",
-        "lyrics": ["On the first day of Christmas, my true love gave to me,", "A partridge in a pear tree."]},
-    "here_comes_sun": {"title": "Here Comes the Sun", "midi_url": "https://bitmidi.com/uploads/107575.mid",
-        "lyrics": ["Here comes the sun, little darling,", "Here comes the sun and I say it's all right."]},
-    "easter_parade": {"title": "Easter Parade", "midi_url": "https://bitmidi.com/uploads/107576.mid",
-        "lyrics": ["In your Easter bonnet with all the frills upon it,", "You'll be the grandest lady in the Easter parade."]},
-    "harvest_home": {"title": "Harvest Home", "midi_url": "https://bitmidi.com/uploads/107577.mid",
-        "lyrics": ["Come ye thankful people come, raise the song of harvest home!", "All is safely gathered in ere the winter storms begin."]},
-    "over_river": {"title": "Over the River and Through the Woods", "midi_url": "https://bitmidi.com/uploads/107578.mid",
-        "lyrics": ["Over the river and through the woods, to Grandmother's house we go!", "The horse knows the way to carry the sleigh through the white and drifted snow."]},
-    "skater_waltz": {"title": "Skater's Waltz", "midi_url": "https://bitmidi.com/uploads/107579.mid",
-        "lyrics": ["Gliding and sliding on the ice so bright,", "Dancing in the winter moonlight."]},
+    "rudolph": {
+        "title": "Rudolph the Red-Nosed Reindeer",
+        "midi_url": "https://bitmidi.com/uploads/107564.mid",
+        "lyrics": [
+            "Rudolph the Red-Nosed Reindeer had a very shiny nose,",
+            "And if you ever saw it you would even say it glows.",
+            "All of the other reindeer used to laugh and call him names,",
+            "They never let poor Rudolph join in any reindeer games.",
+        ],
+    },
+    "santa_claus": {
+        "title": "Santa Claus Is Coming to Town",
+        "midi_url": "https://bitmidi.com/uploads/107565.mid",
+        "lyrics": [
+            "You better watch out, you better not cry,",
+            "Better not pout, I'm telling you why,",
+            "Santa Claus is coming to town.",
+        ],
+    },
+    "frosty": {
+        "title": "Frosty the Snowman",
+        "midi_url": "https://bitmidi.com/uploads/107566.mid",
+        "lyrics": [
+            "Frosty the Snowman was a jolly happy soul,",
+            "With a corncob pipe and a button nose,",
+            "And two eyes made out of coal.",
+        ],
+    },
+    "o_christmas_tree": {
+        "title": "O Christmas Tree",
+        "midi_url": "https://bitmidi.com/uploads/107567.mid",
+        "lyrics": [
+            "O Christmas tree, O Christmas tree,",
+            "How lovely are thy branches!",
+            "O Christmas tree, O Christmas tree,",
+            "How lovely are thy branches!",
+        ],
+    },
+    "first_noel": {
+        "title": "The First Noel",
+        "midi_url": "https://bitmidi.com/uploads/107568.mid",
+        "lyrics": [
+            "The first Noel the angels did say,",
+            "Was to certain poor shepherds in fields as they lay.",
+        ],
+    },
+    "we_three_kings": {
+        "title": "We Three Kings",
+        "midi_url": "https://bitmidi.com/uploads/107569.mid",
+        "lyrics": [
+            "We three kings of Orient are,",
+            "Bearing gifts we traverse afar,",
+            "Field and fountain, moor and mountain,",
+            "Following yonder star.",
+        ],
+    },
+    "good_king_wenceslas": {
+        "title": "Good King Wenceslas",
+        "midi_url": "https://bitmidi.com/uploads/107570.mid",
+        "lyrics": [
+            "Good King Wenceslas looked out on the feast of Stephen,",
+            "When the snow lay round about, deep and crisp and even.",
+        ],
+    },
+    "o_little_town": {
+        "title": "O Little Town of Bethlehem",
+        "midi_url": "https://bitmidi.com/uploads/107571.mid",
+        "lyrics": [
+            "O little town of Bethlehem, how still we see thee lie!",
+            "Above thy deep and dreamless sleep the silent stars go by.",
+        ],
+    },
+    "it_came_midnight": {
+        "title": "It Came Upon the Midnight Clear",
+        "midi_url": "https://bitmidi.com/uploads/107572.mid",
+        "lyrics": [
+            "It came upon the midnight clear, that glorious song of old,",
+            "From angels bending near the earth to touch their harps of gold.",
+        ],
+    },
+    "angels_heard": {
+        "title": "Angels We Have Heard on High",
+        "midi_url": "https://bitmidi.com/uploads/107573.mid",
+        "lyrics": [
+            "Angels we have heard on high, sweetly singing o'er the plains,",
+            "And the mountains in reply echoing their joyous strains.",
+        ],
+    },
+    "twelve_days": {
+        "title": "The Twelve Days of Christmas",
+        "midi_url": "https://bitmidi.com/uploads/107574.mid",
+        "lyrics": [
+            "On the first day of Christmas, my true love gave to me,",
+            "A partridge in a pear tree.",
+        ],
+    },
+    "here_comes_sun": {
+        "title": "Here Comes the Sun",
+        "midi_url": "https://bitmidi.com/uploads/107575.mid",
+        "lyrics": [
+            "Here comes the sun, little darling,",
+            "Here comes the sun and I say it's all right.",
+        ],
+    },
+    "easter_parade": {
+        "title": "Easter Parade",
+        "midi_url": "https://bitmidi.com/uploads/107576.mid",
+        "lyrics": [
+            "In your Easter bonnet with all the frills upon it,",
+            "You'll be the grandest lady in the Easter parade.",
+        ],
+    },
+    "harvest_home": {
+        "title": "Harvest Home",
+        "midi_url": "https://bitmidi.com/uploads/107577.mid",
+        "lyrics": [
+            "Come ye thankful people come, raise the song of harvest home!",
+            "All is safely gathered in ere the winter storms begin.",
+        ],
+    },
+    "over_river": {
+        "title": "Over the River and Through the Woods",
+        "midi_url": "https://bitmidi.com/uploads/107578.mid",
+        "lyrics": [
+            "Over the river and through the woods, to Grandmother's house we go!",
+            "The horse knows the way to carry the sleigh through the white and drifted snow.",
+        ],
+    },
+    "skater_waltz": {
+        "title": "Skater's Waltz",
+        "midi_url": "https://bitmidi.com/uploads/107579.mid",
+        "lyrics": [
+            "Gliding and sliding on the ice so bright,",
+            "Dancing in the winter moonlight.",
+        ],
+    },
 }
 
 # ── SECTION 11: SPIRITUALS & GOSPEL FOR KIDS (20) ──
 
 GOSPEL_SONGS = {
-    "jesus_loves_me": {"title": "Jesus Loves Me", "midi_url": "https://bitmidi.com/uploads/34522.mid",
-        "lyrics": ["Jesus loves me, this I know,", "For the Bible tells me so.", "Little ones to Him belong,", "They are weak but He is strong.", "Yes, Jesus loves me, yes, Jesus loves me,", "Yes, Jesus loves me, the Bible tells me so."]},
-    "this_little_light": {"title": "This Little Light of Mine", "midi_url": "https://bitmidi.com/uploads/112703.mid",
-        "lyrics": ["This little light of mine, I'm gonna let it shine,", "This little light of mine, I'm gonna let it shine,", "Let it shine, let it shine, let it shine."]},
-    "rise_shine": {"title": "Rise and Shine (Arky Arky)", "midi_url": "https://bitmidi.com/uploads/112704.mid",
-        "lyrics": ["The Lord said to Noah, there's gonna be a floody floody,", "The Lord said to Noah, there's gonna be a floody floody.", "Get those children out of the muddy muddy,", "Children of the Lord."]},
-    "who_made_ocean": {"title": "Who Made the Ocean", "midi_url": "https://bitmidi.com/uploads/112705.mid",
-        "lyrics": ["Who made the ocean, who made the trees?", "Who made the mountains, who made the breeze?", "God made the ocean, God made the trees,", "God made the mountains, God made the breeze."]},
-    "father_we_thank": {"title": "Father We Thank Thee", "midi_url": "https://bitmidi.com/uploads/112706.mid",
-        "lyrics": ["Father we thank thee for the night,", "And for the pleasant morning light.", "For rest and food and loving care,", "And all that makes the world so fair."]},
-    "all_things_bright": {"title": "All Things Bright and Beautiful", "midi_url": "https://bitmidi.com/uploads/112707.mid",
-        "lyrics": ["All things bright and beautiful, all creatures great and small,", "All things wise and wonderful, the Lord God made them all."]},
-    "he_has_whole": {"title": "He's Got the Whole World", "midi_url": "https://bitmidi.com/uploads/112703.mid",
-        "lyrics": ["He's got the whole world in His hands,", "He's got the whole world in His hands."]},
-    "i_may_morning": {"title": "I May Morning", "midi_url": "https://bitmidi.com/uploads/112708.mid",
-        "lyrics": ["I may morning, I may evening,", "I will praise Thee ever."]},
-    "praise_him": {"title": "Praise Him All Ye Little Children", "midi_url": "https://bitmidi.com/uploads/112709.mid",
-        "lyrics": ["Praise Him, praise Him, all ye little children,", "God is love, God is love."]},
-    "zambeel": {"title": "The Bird of the Forest (Zambeel)", "midi_url": "https://bitmidi.com/uploads/112710.mid",
-        "lyrics": ["Zambeel, zambeel, the bird of the forest,", "Singing so sweetly, telling the story."]},
+    "jesus_loves_me": {
+        "title": "Jesus Loves Me",
+        "midi_url": "https://bitmidi.com/uploads/34522.mid",
+        "lyrics": [
+            "Jesus loves me, this I know,",
+            "For the Bible tells me so.",
+            "Little ones to Him belong,",
+            "They are weak but He is strong.",
+            "Yes, Jesus loves me, yes, Jesus loves me,",
+            "Yes, Jesus loves me, the Bible tells me so.",
+        ],
+    },
+    "this_little_light": {
+        "title": "This Little Light of Mine",
+        "midi_url": "https://bitmidi.com/uploads/112703.mid",
+        "lyrics": [
+            "This little light of mine, I'm gonna let it shine,",
+            "This little light of mine, I'm gonna let it shine,",
+            "Let it shine, let it shine, let it shine.",
+        ],
+    },
+    "rise_shine": {
+        "title": "Rise and Shine (Arky Arky)",
+        "midi_url": "https://bitmidi.com/uploads/112704.mid",
+        "lyrics": [
+            "The Lord said to Noah, there's gonna be a floody floody,",
+            "The Lord said to Noah, there's gonna be a floody floody.",
+            "Get those children out of the muddy muddy,",
+            "Children of the Lord.",
+        ],
+    },
+    "who_made_ocean": {
+        "title": "Who Made the Ocean",
+        "midi_url": "https://bitmidi.com/uploads/112705.mid",
+        "lyrics": [
+            "Who made the ocean, who made the trees?",
+            "Who made the mountains, who made the breeze?",
+            "God made the ocean, God made the trees,",
+            "God made the mountains, God made the breeze.",
+        ],
+    },
+    "father_we_thank": {
+        "title": "Father We Thank Thee",
+        "midi_url": "https://bitmidi.com/uploads/112706.mid",
+        "lyrics": [
+            "Father we thank thee for the night,",
+            "And for the pleasant morning light.",
+            "For rest and food and loving care,",
+            "And all that makes the world so fair.",
+        ],
+    },
+    "all_things_bright": {
+        "title": "All Things Bright and Beautiful",
+        "midi_url": "https://bitmidi.com/uploads/112707.mid",
+        "lyrics": [
+            "All things bright and beautiful, all creatures great and small,",
+            "All things wise and wonderful, the Lord God made them all.",
+        ],
+    },
+    "he_has_whole": {
+        "title": "He's Got the Whole World",
+        "midi_url": "https://bitmidi.com/uploads/112703.mid",
+        "lyrics": [
+            "He's got the whole world in His hands,",
+            "He's got the whole world in His hands.",
+        ],
+    },
+    "i_may_morning": {
+        "title": "I May Morning",
+        "midi_url": "https://bitmidi.com/uploads/112708.mid",
+        "lyrics": ["I may morning, I may evening,", "I will praise Thee ever."],
+    },
+    "praise_him": {
+        "title": "Praise Him All Ye Little Children",
+        "midi_url": "https://bitmidi.com/uploads/112709.mid",
+        "lyrics": [
+            "Praise Him, praise Him, all ye little children,",
+            "God is love, God is love.",
+        ],
+    },
+    "zambeel": {
+        "title": "The Bird of the Forest (Zambeel)",
+        "midi_url": "https://bitmidi.com/uploads/112710.mid",
+        "lyrics": [
+            "Zambeel, zambeel, the bird of the forest,",
+            "Singing so sweetly, telling the story.",
+        ],
+    },
 }
 
 # ── SECTION 12: CAMP & SCOUT SONGS (20) ──
 
 CAMP_SONGS = {
-    "campfire": {"title": "The Campfire Song", "midi_url": "https://bitmidi.com/uploads/65312.mid",
-        "lyrics": ["The campfire, the campfire, it burns so bright tonight,", "We gather round and sing our songs by the firelight."]},
-    "john_jacob": {"title": "John Jacob Jingleheimer Schmidt", "midi_url": "https://bitmidi.com/uploads/65313.mid",
-        "lyrics": ["John Jacob Jingleheimer Schmidt, that's my name too!", "Whenever I go out, the people always shout,", "John Jacob Jingleheimer Schmidt!"]},
-    "baby_bumblebee": {"title": "I'm Bringing Home a Baby Bumblebee", "midi_url": "https://bitmidi.com/uploads/65314.mid",
-        "lyrics": ["I'm bringing home a baby bumblebee,", "Won't my mommy be so proud of me?"]},
-    "boom_boom": {"title": "Boom Boom Ain't It Great", "midi_url": "https://bitmidi.com/uploads/65315.mid",
-        "lyrics": ["Boom boom, ain't it great to be crazy?", "Boom boom, ain't it great to be crazy?", "Giddy and foolish all day long,", "Boom boom, ain't it great to be crazy?"]},
-    "do_your_ears": {"title": "Do Your Ears Hang Low", "midi_url": "https://bitmidi.com/uploads/65316.mid",
-        "lyrics": ["Do your ears hang low? Do they wobble to and fro?", "Can you tie 'em in a knot? Can you tie 'em in a bow?"]},
-    "found_peanut": {"title": "Found a Peanut", "midi_url": "https://bitmidi.com/uploads/65317.mid",
-        "lyrics": ["Found a peanut, found a peanut, found a peanut last night.", "Last night I found a peanut, found a peanut last night."]},
-    "gopher_guts": {"title": "Great Green Gobs of Greasy Grimey Gopher Guts", "midi_url": "https://bitmidi.com/uploads/65318.mid",
-        "lyrics": ["Great green gobs of greasy grimey gopher guts,", "Mutilated monkey meat, little birdies' dirty feet."]},
-    "baby_shark_camp": {"title": "Baby Shark (Camp Version)", "midi_url": "https://bitmidi.com/uploads/65319.mid",
-        "lyrics": ["Baby shark, doo doo doo doo doo doo,", "Baby shark, doo doo doo doo doo doo,", "Baby shark!"]},
-    "princess_pat": {"title": "Princess Pat", "midi_url": "https://bitmidi.com/uploads/65320.mid",
-        "lyrics": ["The Princess Pat lived in a tree,", "She sailed across the seven seas.", "She sailed across the channel too,", "And she took with her a rickabamboo."]},
+    "campfire": {
+        "title": "The Campfire Song",
+        "midi_url": "https://bitmidi.com/uploads/65312.mid",
+        "lyrics": [
+            "The campfire, the campfire, it burns so bright tonight,",
+            "We gather round and sing our songs by the firelight.",
+        ],
+    },
+    "john_jacob": {
+        "title": "John Jacob Jingleheimer Schmidt",
+        "midi_url": "https://bitmidi.com/uploads/65313.mid",
+        "lyrics": [
+            "John Jacob Jingleheimer Schmidt, that's my name too!",
+            "Whenever I go out, the people always shout,",
+            "John Jacob Jingleheimer Schmidt!",
+        ],
+    },
+    "baby_bumblebee": {
+        "title": "I'm Bringing Home a Baby Bumblebee",
+        "midi_url": "https://bitmidi.com/uploads/65314.mid",
+        "lyrics": [
+            "I'm bringing home a baby bumblebee,",
+            "Won't my mommy be so proud of me?",
+        ],
+    },
+    "boom_boom": {
+        "title": "Boom Boom Ain't It Great",
+        "midi_url": "https://bitmidi.com/uploads/65315.mid",
+        "lyrics": [
+            "Boom boom, ain't it great to be crazy?",
+            "Boom boom, ain't it great to be crazy?",
+            "Giddy and foolish all day long,",
+            "Boom boom, ain't it great to be crazy?",
+        ],
+    },
+    "do_your_ears": {
+        "title": "Do Your Ears Hang Low",
+        "midi_url": "https://bitmidi.com/uploads/65316.mid",
+        "lyrics": [
+            "Do your ears hang low? Do they wobble to and fro?",
+            "Can you tie 'em in a knot? Can you tie 'em in a bow?",
+        ],
+    },
+    "found_peanut": {
+        "title": "Found a Peanut",
+        "midi_url": "https://bitmidi.com/uploads/65317.mid",
+        "lyrics": [
+            "Found a peanut, found a peanut, found a peanut last night.",
+            "Last night I found a peanut, found a peanut last night.",
+        ],
+    },
+    "gopher_guts": {
+        "title": "Great Green Gobs of Greasy Grimey Gopher Guts",
+        "midi_url": "https://bitmidi.com/uploads/65318.mid",
+        "lyrics": [
+            "Great green gobs of greasy grimey gopher guts,",
+            "Mutilated monkey meat, little birdies' dirty feet.",
+        ],
+    },
+    "baby_shark_camp": {
+        "title": "Baby Shark (Camp Version)",
+        "midi_url": "https://bitmidi.com/uploads/65319.mid",
+        "lyrics": [
+            "Baby shark, doo doo doo doo doo doo,",
+            "Baby shark, doo doo doo doo doo doo,",
+            "Baby shark!",
+        ],
+    },
+    "princess_pat": {
+        "title": "Princess Pat",
+        "midi_url": "https://bitmidi.com/uploads/65320.mid",
+        "lyrics": [
+            "The Princess Pat lived in a tree,",
+            "She sailed across the seven seas.",
+            "She sailed across the channel too,",
+            "And she took with her a rickabamboo.",
+        ],
+    },
 }
 
 # ── SECTION 13: ACTION & MOVEMENT SONGS (20) ──
 
 ACTION_SONGS = {
-    "wheels_bus_extended": {"title": "Wheels on the Bus (Extended)", "midi_url": "https://bitmidi.com/uploads/65321.mid",
-        "lyrics": ["The wheels on the bus go round and round,", "Round and round, round and round.", "The wipers on the bus go swish swish swish,", "The horn on the bus goes beep beep beep."]},
-    "teddy_bear": {"title": "Teddy Bear Teddy Bear", "midi_url": "https://bitmidi.com/uploads/65322.mid",
-        "lyrics": ["Teddy bear, teddy bear, turn around,", "Teddy bear, teddy bear, touch the ground.", "Teddy bear, teddy bear, show your shoe,", "Teddy bear, teddy bear, that will do."]},
-    "im_dancer": {"title": "I'm a Little Dancer", "midi_url": "https://bitmidi.com/uploads/65323.mid",
-        "lyrics": ["I'm a little dancer, I dance all day,", "I wiggle and I giggle in every way.", "I'm a little dancer, watch me go,", "I'm the best dancer that you know."]},
-    "clap_clap": {"title": "Clap Clap Clap Your Hands", "midi_url": "https://bitmidi.com/uploads/65324.mid",
-        "lyrics": ["Clap, clap, clap your hands, clap your hands together.", "Clap, clap, clap your hands, clap your hands together."]},
-    "stomp_stomp": {"title": "Stomp Your Feet", "midi_url": "https://bitmidi.com/uploads/65325.mid",
-        "lyrics": ["Stomp, stomp, stomp your feet, stomp them on the ground.", "Stomp, stomp, stomp your feet, make a happy sound."]},
-    "shake_shake": {"title": "Shake Your Sillies Out", "midi_url": "https://bitmidi.com/uploads/65326.mid",
-        "lyrics": ["I gotta shake, shake, shake my sillies out,", "Shake, shake, shake my sillies out,", "Shake, shake, shake my sillies out,", "And wiggle my waggles away."]},
-    "open_shut": {"title": "Open Shut Them", "midi_url": "https://bitmidi.com/uploads/65327.mid",
-        "lyrics": ["Open, shut them, open, shut them, give a little clap.", "Open, shut them, open, shut them, lay them in your lap."]},
-    "wheels_bicycle": {"title": "The Wheels of the Bicycle", "midi_url": "https://bitmidi.com/uploads/65328.mid",
-        "lyrics": ["The wheels of the bicycle go round and round,", "Round and round, round and round.", "The bell on the bicycle goes ring ring ring,", "All through the town."]},
-    "im_singing": {"title": "I'm Singing in the Rain", "midi_url": "https://bitmidi.com/uploads/65329.mid",
-        "lyrics": ["I'm singing in the rain, just singing in the rain,", "What a glorious feeling, I'm happy again."]},
-    "walking_walking": {"title": "Walking Walking", "midi_url": "https://bitmidi.com/uploads/65330.mid",
-        "lyrics": ["Walking, walking, walking, walking,", "Hop, hop, hop, hop, hop, hop.", "Running, running, running, running,", "Now let's stop, now let's stop."]},
+    "wheels_bus_extended": {
+        "title": "Wheels on the Bus (Extended)",
+        "midi_url": "https://bitmidi.com/uploads/65321.mid",
+        "lyrics": [
+            "The wheels on the bus go round and round,",
+            "Round and round, round and round.",
+            "The wipers on the bus go swish swish swish,",
+            "The horn on the bus goes beep beep beep.",
+        ],
+    },
+    "teddy_bear": {
+        "title": "Teddy Bear Teddy Bear",
+        "midi_url": "https://bitmidi.com/uploads/65322.mid",
+        "lyrics": [
+            "Teddy bear, teddy bear, turn around,",
+            "Teddy bear, teddy bear, touch the ground.",
+            "Teddy bear, teddy bear, show your shoe,",
+            "Teddy bear, teddy bear, that will do.",
+        ],
+    },
+    "im_dancer": {
+        "title": "I'm a Little Dancer",
+        "midi_url": "https://bitmidi.com/uploads/65323.mid",
+        "lyrics": [
+            "I'm a little dancer, I dance all day,",
+            "I wiggle and I giggle in every way.",
+            "I'm a little dancer, watch me go,",
+            "I'm the best dancer that you know.",
+        ],
+    },
+    "clap_clap": {
+        "title": "Clap Clap Clap Your Hands",
+        "midi_url": "https://bitmidi.com/uploads/65324.mid",
+        "lyrics": [
+            "Clap, clap, clap your hands, clap your hands together.",
+            "Clap, clap, clap your hands, clap your hands together.",
+        ],
+    },
+    "stomp_stomp": {
+        "title": "Stomp Your Feet",
+        "midi_url": "https://bitmidi.com/uploads/65325.mid",
+        "lyrics": [
+            "Stomp, stomp, stomp your feet, stomp them on the ground.",
+            "Stomp, stomp, stomp your feet, make a happy sound.",
+        ],
+    },
+    "shake_shake": {
+        "title": "Shake Your Sillies Out",
+        "midi_url": "https://bitmidi.com/uploads/65326.mid",
+        "lyrics": [
+            "I gotta shake, shake, shake my sillies out,",
+            "Shake, shake, shake my sillies out,",
+            "Shake, shake, shake my sillies out,",
+            "And wiggle my waggles away.",
+        ],
+    },
+    "open_shut": {
+        "title": "Open Shut Them",
+        "midi_url": "https://bitmidi.com/uploads/65327.mid",
+        "lyrics": [
+            "Open, shut them, open, shut them, give a little clap.",
+            "Open, shut them, open, shut them, lay them in your lap.",
+        ],
+    },
+    "wheels_bicycle": {
+        "title": "The Wheels of the Bicycle",
+        "midi_url": "https://bitmidi.com/uploads/65328.mid",
+        "lyrics": [
+            "The wheels of the bicycle go round and round,",
+            "Round and round, round and round.",
+            "The bell on the bicycle goes ring ring ring,",
+            "All through the town.",
+        ],
+    },
+    "im_singing": {
+        "title": "I'm Singing in the Rain",
+        "midi_url": "https://bitmidi.com/uploads/65329.mid",
+        "lyrics": [
+            "I'm singing in the rain, just singing in the rain,",
+            "What a glorious feeling, I'm happy again.",
+        ],
+    },
+    "walking_walking": {
+        "title": "Walking Walking",
+        "midi_url": "https://bitmidi.com/uploads/65330.mid",
+        "lyrics": [
+            "Walking, walking, walking, walking,",
+            "Hop, hop, hop, hop, hop, hop.",
+            "Running, running, running, running,",
+            "Now let's stop, now let's stop.",
+        ],
+    },
 }
 
 # ── SECTION 14: STORY SONGS & BALLADS (20) ──
 
 STORY_SONGS = {
-    "waltzing_matilda": {"title": "Waltzing Matilda", "midi_url": "https://bitmidi.com/uploads/65331.mid",
-        "lyrics": ["Once a jolly swagman camped by a billabong,", "Under the shade of a coolibah tree.", "And he sang as he watched and waited till his billy boiled,", "You'll come a-waltzing Matilda with me."]},
-    "frog_prince": {"title": "The Frog Prince", "midi_url": "https://bitmidi.com/uploads/65332.mid",
-        "lyrics": ["A prince was turned into a frog by a witch's spell,", "A princess kissed him and he broke the spell."]},
-    "gingerbread": {"title": "The Gingerbread Man", "midi_url": "https://bitmidi.com/uploads/65333.mid",
-        "lyrics": ["Run, run as fast as you can,", "You can't catch me, I'm the gingerbread man!"]},
-    "three_bears": {"title": "Goldilocks and the Three Bears", "midi_url": "https://bitmidi.com/uploads/65334.mid",
-        "lyrics": ["Who's been sitting in my chair? said Papa Bear.", "Who's been sitting in my chair? said Mama Bear.", "Who's been sitting in my chair and broke it? cried Baby Bear."]},
-    "old_woman_shoe": {"title": "There Was an Old Woman Who Lived in a Shoe", "midi_url": "https://bitmidi.com/uploads/65335.mid",
-        "lyrics": ["There was an old woman who lived in a shoe,", "She had so many children she didn't know what to do."]},
-    "peter_rabbit": {"title": "Peter Rabbit", "midi_url": "https://bitmidi.com/uploads/65336.mid",
-        "lyrics": ["Peter Rabbit, Peter Rabbit, in the garden so green,", "Sneaking past the farmer, the sneakiest you've ever seen."]},
-    "three_pigs": {"title": "The Three Little Pigs", "midi_url": "https://bitmidi.com/uploads/65337.mid",
-        "lyrics": ["I'll huff and I'll puff and I'll blow your house in!", "Said the big bad wolf with a terrible grin."]},
-    "little_red_hen": {"title": "The Little Red Hen", "midi_url": "https://bitmidi.com/uploads/65338.mid",
-        "lyrics": ["Not I said the dog, not I said the cat,", "Not I said the mouse, said the little red hen."]},
+    "waltzing_matilda": {
+        "title": "Waltzing Matilda",
+        "midi_url": "https://bitmidi.com/uploads/65331.mid",
+        "lyrics": [
+            "Once a jolly swagman camped by a billabong,",
+            "Under the shade of a coolibah tree.",
+            "And he sang as he watched and waited till his billy boiled,",
+            "You'll come a-waltzing Matilda with me.",
+        ],
+    },
+    "frog_prince": {
+        "title": "The Frog Prince",
+        "midi_url": "https://bitmidi.com/uploads/65332.mid",
+        "lyrics": [
+            "A prince was turned into a frog by a witch's spell,",
+            "A princess kissed him and he broke the spell.",
+        ],
+    },
+    "gingerbread": {
+        "title": "The Gingerbread Man",
+        "midi_url": "https://bitmidi.com/uploads/65333.mid",
+        "lyrics": [
+            "Run, run as fast as you can,",
+            "You can't catch me, I'm the gingerbread man!",
+        ],
+    },
+    "three_bears": {
+        "title": "Goldilocks and the Three Bears",
+        "midi_url": "https://bitmidi.com/uploads/65334.mid",
+        "lyrics": [
+            "Who's been sitting in my chair? said Papa Bear.",
+            "Who's been sitting in my chair? said Mama Bear.",
+            "Who's been sitting in my chair and broke it? cried Baby Bear.",
+        ],
+    },
+    "old_woman_shoe": {
+        "title": "There Was an Old Woman Who Lived in a Shoe",
+        "midi_url": "https://bitmidi.com/uploads/65335.mid",
+        "lyrics": [
+            "There was an old woman who lived in a shoe,",
+            "She had so many children she didn't know what to do.",
+        ],
+    },
+    "peter_rabbit": {
+        "title": "Peter Rabbit",
+        "midi_url": "https://bitmidi.com/uploads/65336.mid",
+        "lyrics": [
+            "Peter Rabbit, Peter Rabbit, in the garden so green,",
+            "Sneaking past the farmer, the sneakiest you've ever seen.",
+        ],
+    },
+    "three_pigs": {
+        "title": "The Three Little Pigs",
+        "midi_url": "https://bitmidi.com/uploads/65337.mid",
+        "lyrics": [
+            "I'll huff and I'll puff and I'll blow your house in!",
+            "Said the big bad wolf with a terrible grin.",
+        ],
+    },
+    "little_red_hen": {
+        "title": "The Little Red Hen",
+        "midi_url": "https://bitmidi.com/uploads/65338.mid",
+        "lyrics": [
+            "Not I said the dog, not I said the cat,",
+            "Not I said the mouse, said the little red hen.",
+        ],
+    },
 }
 
 # ── SECTION 15: MORE INTERNATIONAL FOLK (25) ──
 
 MORE_INTERNATIONAL = {
-    "molly_malone": {"title": "Cockles and Mussels", "midi_url": "https://bitmidi.com/uploads/112736.mid",
-        "lyrics": ["In Dublin's fair city, where girls are so pretty,", "I first set my eyes on sweet Molly Malone."]},
-    "o_canada": {"title": "O Canada", "midi_url": "https://bitmidi.com/uploads/65339.mid",
-        "lyrics": ["O Canada, our home and native land,", "True patriot love in all of us command."]},
-    "land_hope": {"title": "Land of Hope and Glory", "midi_url": "https://bitmidi.com/uploads/65340.mid",
-        "lyrics": ["Land of hope and glory, mother of the free,", "How shall we extol thee who are born of thee?"]},
-    "japanese_lullaby": {"title": "Japanese Lullaby (Itsuki no Komoriuta)", "midi_url": "https://bitmidi.com/uploads/65341.mid",
-        "lyrics": ["Itsuki no komoriuta, sing to me softly,", "Close your eyes and dream with me."]},
-    "african_lullaby": {"title": "African Lullaby (Thula Baba)", "midi_url": "https://bitmidi.com/uploads/65342.mid",
-        "lyrics": ["Thula baba, thula sana,", "Hush little baby, don't you cry."]},
-    "mexican_cradle": {"title": "Mexican Cradle Song", "midi_url": "https://bitmidi.com/uploads/65343.mid",
-        "lyrics": ["Duerme mi niño, duerme mi sol,", "Sleep my baby, sleep my sunshine."]},
-    "czech_polka": {"title": "Czech Polka", "midi_url": "https://bitmidi.com/uploads/65344.mid",
-        "lyrics": ["Dance the polka, dance it right,", "Spin around with all your might."]},
-    "polish_lullaby": {"title": "Polish Lullaby", "midi_url": "https://bitmidi.com/uploads/65345.mid",
-        "lyrics": ["Aaa kotki dwa, szare bure obydwa,", "Sleep my little one, the night is here."]},
-    "greek_folk": {"title": "Greek Folk Dance", "midi_url": "https://bitmidi.com/uploads/65346.mid",
-        "lyrics": ["Sto pa pa, sto pa pa,", "Dance around and join the fun."]},
-    "israeli_folk": {"title": "Israeli Folk (Hava Nagila)", "midi_url": "https://bitmidi.com/uploads/65347.mid",
-        "lyrics": ["Hava nagila, hava nagila,", "Hava nagila ve nismecha."]},
-    "irish_jig": {"title": "Irish Jig", "midi_url": "https://bitmidi.com/uploads/65348.mid",
-        "lyrics": ["With a hop and a skip and a jump so high,", "The Irish jig makes you want to fly."]},
-    "scottish_lullaby": {"title": "Scottish Lullaby", "midi_url": "https://bitmidi.com/uploads/65349.mid",
-        "lyrics": ["Hush now my bonnie lass, the evening is nigh,", "Close your sweet eyes and dream till the sky."]},
-    "indian_folk": {"title": "Indian Folk Song", "midi_url": "https://bitmidi.com/uploads/65350.mid",
-        "lyrics": ["Nani teri morni, mori ko bole,", "The peacock dances in the rain so free."]},
-    "philippine_lullaby": {"title": "Philippine Lullaby (Sa Ugoy ng Duyan)", "midi_url": "https://bitmidi.com/uploads/65351.mid",
-        "lyrics": ["Sa ugoy ng duyan, sa himig ng awit,", "Rocking in the cradle, hearing the sweet song."]},
-    "australian_folk": {"title": "Australian Folk Song", "midi_url": "https://bitmidi.com/uploads/65352.mid",
-        "lyrics": ["The kookaburra laughs in the old gum tree,", "Happy and free as can be."]},
-    "brazilian_lullaby": {"title": "Brazilian Lullaby (Dorme Nene)", "midi_url": "https://bitmidi.com/uploads/65353.mid",
-        "lyrics": ["Dorme nenê, que a cuca vem pegar,", "Sleep baby, sleep, the night is deep."]},
+    "molly_malone": {
+        "title": "Cockles and Mussels",
+        "midi_url": "https://bitmidi.com/uploads/112736.mid",
+        "lyrics": [
+            "In Dublin's fair city, where girls are so pretty,",
+            "I first set my eyes on sweet Molly Malone.",
+        ],
+    },
+    "o_canada": {
+        "title": "O Canada",
+        "midi_url": "https://bitmidi.com/uploads/65339.mid",
+        "lyrics": [
+            "O Canada, our home and native land,",
+            "True patriot love in all of us command.",
+        ],
+    },
+    "land_hope": {
+        "title": "Land of Hope and Glory",
+        "midi_url": "https://bitmidi.com/uploads/65340.mid",
+        "lyrics": [
+            "Land of hope and glory, mother of the free,",
+            "How shall we extol thee who are born of thee?",
+        ],
+    },
+    "japanese_lullaby": {
+        "title": "Japanese Lullaby (Itsuki no Komoriuta)",
+        "midi_url": "https://bitmidi.com/uploads/65341.mid",
+        "lyrics": [
+            "Itsuki no komoriuta, sing to me softly,",
+            "Close your eyes and dream with me.",
+        ],
+    },
+    "african_lullaby": {
+        "title": "African Lullaby (Thula Baba)",
+        "midi_url": "https://bitmidi.com/uploads/65342.mid",
+        "lyrics": ["Thula baba, thula sana,", "Hush little baby, don't you cry."],
+    },
+    "mexican_cradle": {
+        "title": "Mexican Cradle Song",
+        "midi_url": "https://bitmidi.com/uploads/65343.mid",
+        "lyrics": [
+            "Duerme mi niño, duerme mi sol,",
+            "Sleep my baby, sleep my sunshine.",
+        ],
+    },
+    "czech_polka": {
+        "title": "Czech Polka",
+        "midi_url": "https://bitmidi.com/uploads/65344.mid",
+        "lyrics": [
+            "Dance the polka, dance it right,",
+            "Spin around with all your might.",
+        ],
+    },
+    "polish_lullaby": {
+        "title": "Polish Lullaby",
+        "midi_url": "https://bitmidi.com/uploads/65345.mid",
+        "lyrics": [
+            "Aaa kotki dwa, szare bure obydwa,",
+            "Sleep my little one, the night is here.",
+        ],
+    },
+    "greek_folk": {
+        "title": "Greek Folk Dance",
+        "midi_url": "https://bitmidi.com/uploads/65346.mid",
+        "lyrics": ["Sto pa pa, sto pa pa,", "Dance around and join the fun."],
+    },
+    "israeli_folk": {
+        "title": "Israeli Folk (Hava Nagila)",
+        "midi_url": "https://bitmidi.com/uploads/65347.mid",
+        "lyrics": ["Hava nagila, hava nagila,", "Hava nagila ve nismecha."],
+    },
+    "irish_jig": {
+        "title": "Irish Jig",
+        "midi_url": "https://bitmidi.com/uploads/65348.mid",
+        "lyrics": [
+            "With a hop and a skip and a jump so high,",
+            "The Irish jig makes you want to fly.",
+        ],
+    },
+    "scottish_lullaby": {
+        "title": "Scottish Lullaby",
+        "midi_url": "https://bitmidi.com/uploads/65349.mid",
+        "lyrics": [
+            "Hush now my bonnie lass, the evening is nigh,",
+            "Close your sweet eyes and dream till the sky.",
+        ],
+    },
+    "indian_folk": {
+        "title": "Indian Folk Song",
+        "midi_url": "https://bitmidi.com/uploads/65350.mid",
+        "lyrics": [
+            "Nani teri morni, mori ko bole,",
+            "The peacock dances in the rain so free.",
+        ],
+    },
+    "philippine_lullaby": {
+        "title": "Philippine Lullaby (Sa Ugoy ng Duyan)",
+        "midi_url": "https://bitmidi.com/uploads/65351.mid",
+        "lyrics": [
+            "Sa ugoy ng duyan, sa himig ng awit,",
+            "Rocking in the cradle, hearing the sweet song.",
+        ],
+    },
+    "australian_folk": {
+        "title": "Australian Folk Song",
+        "midi_url": "https://bitmidi.com/uploads/65352.mid",
+        "lyrics": [
+            "The kookaburra laughs in the old gum tree,",
+            "Happy and free as can be.",
+        ],
+    },
+    "brazilian_lullaby": {
+        "title": "Brazilian Lullaby (Dorme Nene)",
+        "midi_url": "https://bitmidi.com/uploads/65353.mid",
+        "lyrics": [
+            "Dorme nenê, que a cuca vem pegar,",
+            "Sleep baby, sleep, the night is deep.",
+        ],
+    },
 }
 
 # Merge all song sections

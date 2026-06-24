@@ -1,0 +1,30 @@
+{
+  "title": "The Farmer in the Dell",
+  "description": "MIDI 112641 from bitmidi.com",
+  "tags": [
+    "nursery rhyme"
+  ],
+  "lyrics": [
+    {
+      "text": "The farmer in the dell",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "The farmer in the dell",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Hi-ho the derry-o",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "The farmer in the dell",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ],
+  "source_id": 112641
+}

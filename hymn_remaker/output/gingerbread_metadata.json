@@ -1,0 +1,21 @@
+{
+  "title": "The Gingerbread Man",
+  "description": "A delightful rendition of The Gingerbread Man for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Run, run as fast as you can,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "You can't catch me, I'm the gingerbread man!",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

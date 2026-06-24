@@ -1,0 +1,31 @@
+{
+  "title": "Frog Went A-Courtin",
+  "description": "A delightful rendition of Frog Went A-Courtin for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Frog went a-courtin' and he did ride,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Uh-huh, uh-huh.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Frog went a-courtin' and he did ride,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "With a sword and a pistol by his side, uh-huh, uh-huh.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

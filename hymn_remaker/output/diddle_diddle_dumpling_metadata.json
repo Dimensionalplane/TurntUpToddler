@@ -1,0 +1,31 @@
+{
+  "title": "Diddle Diddle Dumpling",
+  "description": "A delightful rendition of Diddle Diddle Dumpling for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Diddle, diddle, dumpling, my son John,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Went to bed with his trousers on;",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "One shoe off and one shoe on,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Diddle, diddle, dumpling, my son John.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "title": "Baby Shark (Camp Version)",
+  "description": "A delightful rendition of Baby Shark (Camp Version) for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Baby shark, doo doo doo doo doo doo,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Baby shark, doo doo doo doo doo doo,",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Baby shark!",
+      "start": 15.0,
+      "end": 19.0
+    }
+  ]
+}

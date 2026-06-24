@@ -1,0 +1,21 @@
+{
+  "title": "Sakura Sakura",
+  "description": "MIDI 112744 from bitmidi.com",
+  "tags": [
+    "japanese",
+    "folk"
+  ],
+  "lyrics": [
+    {
+      "text": "Sakura Sakura",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Cherry blossoms everywhere",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ],
+  "source_id": 112744
+}

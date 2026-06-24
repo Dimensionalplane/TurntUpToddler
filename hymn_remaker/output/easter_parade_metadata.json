@@ -1,0 +1,21 @@
+{
+  "title": "Easter Parade",
+  "description": "A delightful rendition of Easter Parade for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "In your Easter bonnet with all the frills upon it,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "You'll be the grandest lady in the Easter parade.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

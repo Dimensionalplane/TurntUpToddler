@@ -1,0 +1,31 @@
+{
+  "title": "Boil Them Cabbage Down",
+  "description": "A delightful rendition of Boil Them Cabbage Down for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Boil them cabbage down, boys,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Turn the hoe-cake 'round, boys.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Boil them cabbage down,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "I'm Alabama bound.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

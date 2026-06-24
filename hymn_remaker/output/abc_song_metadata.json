@@ -1,0 +1,41 @@
+{
+  "title": "The ABC Song",
+  "description": "A delightful rendition of The ABC Song for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "A-B-C-D-E-F-G,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "H-I-J-K-LMNOP,",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Q-R-S, T-U-V,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "W-X, Y and Z.",
+      "start": 20.0,
+      "end": 24.0
+    },
+    {
+      "text": "Now I know my ABCs,",
+      "start": 25.0,
+      "end": 29.0
+    },
+    {
+      "text": "Next time won't you sing with me?",
+      "start": 30.0,
+      "end": 34.0
+    }
+  ]
+}

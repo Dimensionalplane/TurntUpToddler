@@ -1,0 +1,31 @@
+{
+  "title": "Little Fishes",
+  "description": "A delightful rendition of Little Fishes for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Little fishes swimming in the sea,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Swimming and a-swimming, happy as can be.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Little fishes swimming in a row,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Watch them as they come and go.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

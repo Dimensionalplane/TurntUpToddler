@@ -1,0 +1,51 @@
+{
+  "title": "Baa Baa Black Sheep",
+  "description": "A delightful rendition of Baa Baa Black Sheep for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Baa, baa, black sheep,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Have you any wool?",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Yes, sir, yes, sir,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Three bags full;",
+      "start": 20.0,
+      "end": 24.0
+    },
+    {
+      "text": "One for the master,",
+      "start": 25.0,
+      "end": 29.0
+    },
+    {
+      "text": "And one for the dame,",
+      "start": 30.0,
+      "end": 34.0
+    },
+    {
+      "text": "And one for the little boy",
+      "start": 35.0,
+      "end": 39.0
+    },
+    {
+      "text": "Who lives down the lane.",
+      "start": 40.0,
+      "end": 44.0
+    }
+  ]
+}

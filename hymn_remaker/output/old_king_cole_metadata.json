@@ -1,0 +1,31 @@
+{
+  "title": "Old King Cole",
+  "description": "A delightful rendition of Old King Cole for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Old King Cole was a merry old soul,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "And a merry old soul was he;",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "He called for his pipe, and he called for his bowl,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "And he called for his fiddlers three.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

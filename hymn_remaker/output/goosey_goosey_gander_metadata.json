@@ -1,0 +1,31 @@
+{
+  "title": "Goosey Goosey Gander",
+  "description": "A delightful rendition of Goosey Goosey Gander for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Goosey goosey gander,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Whither shall I wander?",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Upstairs and downstairs,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "And in my lady's chamber.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

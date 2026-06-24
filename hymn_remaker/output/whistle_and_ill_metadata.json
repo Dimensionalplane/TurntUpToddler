@@ -1,0 +1,21 @@
+{
+  "title": "Whistle and I'll Come to You",
+  "description": "A delightful rendition of Whistle and I'll Come to You for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Oh whistle and I'll come to you my lad,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Oh whistle and I'll come to you my lad.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

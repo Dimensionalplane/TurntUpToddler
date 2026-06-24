@@ -1,0 +1,31 @@
+{
+  "title": "Princess Pat",
+  "description": "A delightful rendition of Princess Pat for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "The Princess Pat lived in a tree,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "She sailed across the seven seas.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "She sailed across the channel too,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "And she took with her a rickabamboo.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

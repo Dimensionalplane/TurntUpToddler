@@ -1,0 +1,21 @@
+{
+  "title": "Danny Boy (Londonderry Air)",
+  "description": "A delightful rendition of Danny Boy (Londonderry Air) for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Oh Danny boy, the pipes, the pipes are calling,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "From glen to glen, and down the mountain side.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

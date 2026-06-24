@@ -1,0 +1,21 @@
+{
+  "title": "Philippine Lullaby (Sa Ugoy ng Duyan)",
+  "description": "A delightful rendition of Philippine Lullaby (Sa Ugoy ng Duyan) for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Sa ugoy ng duyan, sa himig ng awit,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Rocking in the cradle, hearing the sweet song.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

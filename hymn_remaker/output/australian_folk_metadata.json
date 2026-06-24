@@ -1,0 +1,21 @@
+{
+  "title": "Australian Folk Song",
+  "description": "A delightful rendition of Australian Folk Song for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "The kookaburra laughs in the old gum tree,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Happy and free as can be.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

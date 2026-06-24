@@ -1,0 +1,31 @@
+{
+  "title": "Golden Slumbers",
+  "description": "A delightful rendition of Golden Slumbers for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Golden slumbers kiss your eyes,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Smiles awake you when you rise.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Sleep pretty darling do not cry,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "And I will sing a lullaby.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

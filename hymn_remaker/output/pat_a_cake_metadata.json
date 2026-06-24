@@ -1,0 +1,31 @@
+{
+  "title": "Pat a Cake",
+  "description": "A delightful rendition of Pat a Cake for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Pat a cake, pat a cake, baker's man,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Bake me a cake as fast as you can;",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Pat it and prick it, and mark it with B,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "And put it in the oven for baby and me.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

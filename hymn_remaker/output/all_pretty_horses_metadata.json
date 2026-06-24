@@ -1,0 +1,21 @@
+{
+  "title": "All the Pretty Little Horses",
+  "description": "A delightful rendition of All the Pretty Little Horses for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Hush-a-bye, don't you cry, go to sleepy little baby.",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "When you wake you shall have all the pretty little horses.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

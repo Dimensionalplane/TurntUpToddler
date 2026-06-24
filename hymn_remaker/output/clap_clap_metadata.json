@@ -1,0 +1,21 @@
+{
+  "title": "Clap Clap Clap Your Hands",
+  "description": "A delightful rendition of Clap Clap Clap Your Hands for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Clap, clap, clap your hands, clap your hands together.",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Clap, clap, clap your hands, clap your hands together.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

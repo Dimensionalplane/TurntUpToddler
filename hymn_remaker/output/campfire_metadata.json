@@ -1,0 +1,21 @@
+{
+  "title": "The Campfire Song",
+  "description": "A delightful rendition of The Campfire Song for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "The campfire, the campfire, it burns so bright tonight,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "We gather round and sing our songs by the firelight.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

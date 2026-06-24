@@ -1,0 +1,31 @@
+{
+  "title": "The Green Grass Grows All Around",
+  "description": "A delightful rendition of The Green Grass Grows All Around for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "There was a tree stood in the ground,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "The prettiest tree that ever was found.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "And the green grass grew all around, all around,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "And the green grass grew all around.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

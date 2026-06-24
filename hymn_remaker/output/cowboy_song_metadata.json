@@ -1,0 +1,31 @@
+{
+  "title": "The Cowboy Song",
+  "description": "A delightful rendition of The Cowboy Song for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "I'm a lonely cowboy,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Riding on the plain,",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Singing to the starlight,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "In the midnight rain.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "title": "Michael Row the Boat Ashore",
+  "description": "A delightful rendition of Michael Row the Boat Ashore for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Michael row the boat ashore, hallelujah,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Michael row the boat ashore, hallelujah.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

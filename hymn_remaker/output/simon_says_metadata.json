@@ -1,0 +1,31 @@
+{
+  "title": "Simon Says",
+  "description": "A delightful rendition of Simon Says for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Simon says touch your nose,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Simon says touch your toes.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Simon says stand up tall,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Simon says don't you fall.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

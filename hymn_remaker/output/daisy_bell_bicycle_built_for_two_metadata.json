@@ -1,0 +1,21 @@
+{
+  "title": "Daisy Bell (Bicycle Built for Two)",
+  "description": "MIDI 112638 from bitmidi.com",
+  "tags": [
+    "nursery rhyme",
+    "classic"
+  ],
+  "lyrics": [
+    {
+      "text": "Daisy, Daisy, give me your answer do",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "I'm half crazy all for the love of you",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ],
+  "source_id": 112638
+}

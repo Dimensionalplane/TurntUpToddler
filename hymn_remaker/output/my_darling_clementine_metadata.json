@@ -1,0 +1,21 @@
+{
+  "title": "My Darling Clementine",
+  "description": "MIDI 112661 from bitmidi.com",
+  "tags": [
+    "folk",
+    "american"
+  ],
+  "lyrics": [
+    {
+      "text": "In a cavern in a canyon excavating for a mine",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Dwelt a miner forty-niner and his daughter Clementine",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ],
+  "source_id": 112661
+}

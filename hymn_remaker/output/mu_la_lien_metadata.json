@@ -1,0 +1,31 @@
+{
+  "title": "Mù Lián Huā (China)",
+  "description": "A delightful rendition of Mù Lián Huā (China) for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Mù lián huā, mù lián huā,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Beautiful flowers in the sun so bright.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Mù lián huā, mù lián huā,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Blooming with joy and delight.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "title": "Rise and Shine",
+  "description": "MIDI 112704 from bitmidi.com",
+  "tags": [
+    "spiritual",
+    "children"
+  ],
+  "lyrics": [
+    {
+      "text": "The Lord said to Noah there's gonna be a floody floody",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Get those children out of the muddy muddy",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ],
+  "source_id": 112704
+}

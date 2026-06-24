@@ -1,0 +1,31 @@
+{
+  "title": "Rain Rain Go Away",
+  "description": "A delightful rendition of Rain Rain Go Away for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Rain, rain, go away,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Come again another day.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Little children want to play,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Rain, rain, go away.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

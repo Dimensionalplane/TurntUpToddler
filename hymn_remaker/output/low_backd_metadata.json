@@ -1,0 +1,21 @@
+{
+  "title": "The Low Back'd Car",
+  "description": "A delightful rendition of The Low Back'd Car for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "When first I saw sweet Peggy, 'twas on a market day.",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "A low back'd car she drove, and sat upon a load of hay.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

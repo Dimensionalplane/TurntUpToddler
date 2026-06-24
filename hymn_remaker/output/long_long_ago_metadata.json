@@ -1,0 +1,21 @@
+{
+  "title": "The Long Long Ago",
+  "description": "A delightful rendition of The Long Long Ago for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "When the evening shadows fall, and the day is done,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "I remember happy hours long long ago.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

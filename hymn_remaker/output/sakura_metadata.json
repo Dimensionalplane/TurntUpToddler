@@ -1,0 +1,31 @@
+{
+  "title": "Sakura Sakura (Japan)",
+  "description": "A delightful rendition of Sakura Sakura (Japan) for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Sakura, Sakura,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Cherry blossoms everywhere.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Sakura, Sakura,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Floating on the springtime air.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

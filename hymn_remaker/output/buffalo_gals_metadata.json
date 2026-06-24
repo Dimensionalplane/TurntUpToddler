@@ -1,0 +1,31 @@
+{
+  "title": "Buffalo Gals",
+  "description": "A delightful rendition of Buffalo Gals for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Buffalo gals, won't you come out tonight,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Won't you come out tonight, won't you come out tonight?",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Buffalo gals, won't you come out tonight,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "And dance by the light of the moon?",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

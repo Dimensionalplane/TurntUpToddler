@@ -1,0 +1,31 @@
+{
+  "title": "Colors of the Rainbow",
+  "description": "A delightful rendition of Colors of the Rainbow for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Red and yellow and pink and green,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Purple and orange and blue,",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "I can sing a rainbow, sing a rainbow,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Sing a rainbow too.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

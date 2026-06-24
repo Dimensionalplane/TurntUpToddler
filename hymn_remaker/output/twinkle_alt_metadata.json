@@ -1,0 +1,31 @@
+{
+  "title": "Twinkle Twinkle (Lullaby Version)",
+  "description": "A delightful rendition of Twinkle Twinkle (Lullaby Version) for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Twinkle twinkle little star,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "How I wonder what you are.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Up above the world so high,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Like a diamond in the sky.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

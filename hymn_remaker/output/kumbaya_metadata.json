@@ -1,0 +1,26 @@
+{
+  "title": "Kumbaya",
+  "description": "A delightful rendition of Kumbaya for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Kumbaya, my Lord, kumbaya,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Kumbaya, my Lord, kumbaya.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Oh, Lord, kumbaya.",
+      "start": 15.0,
+      "end": 19.0
+    }
+  ]
+}

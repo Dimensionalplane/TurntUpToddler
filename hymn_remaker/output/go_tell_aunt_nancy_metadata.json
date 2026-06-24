@@ -1,0 +1,21 @@
+{
+  "title": "Go Tell Aunt Nancy",
+  "description": "A delightful rendition of Go Tell Aunt Nancy for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Go tell Aunt Nancy, go tell Aunt Nancy,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Go tell Aunt Nancy, the old grey goose is dead.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

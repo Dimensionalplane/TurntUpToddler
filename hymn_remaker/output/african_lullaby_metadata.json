@@ -1,0 +1,21 @@
+{
+  "title": "African Lullaby (Thula Baba)",
+  "description": "A delightful rendition of African Lullaby (Thula Baba) for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Thula baba, thula sana,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Hush little baby, don't you cry.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

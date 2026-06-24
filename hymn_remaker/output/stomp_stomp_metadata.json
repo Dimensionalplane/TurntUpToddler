@@ -1,0 +1,21 @@
+{
+  "title": "Stomp Your Feet",
+  "description": "A delightful rendition of Stomp Your Feet for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Stomp, stomp, stomp your feet, stomp them on the ground.",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Stomp, stomp, stomp your feet, make a happy sound.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

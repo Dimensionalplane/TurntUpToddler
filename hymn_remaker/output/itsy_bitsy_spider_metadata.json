@@ -1,0 +1,31 @@
+{
+  "title": "Itsy Bitsy Spider",
+  "description": "A delightful rendition of Itsy Bitsy Spider for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "The itsy bitsy spider climbed up the waterspout.",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Down came the rain and washed the spider out.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Out came the sun and dried up all the rain,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "And the itsy bitsy spider climbed up the spout again.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

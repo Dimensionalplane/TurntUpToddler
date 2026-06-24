@@ -1,0 +1,31 @@
+{
+  "title": "Five Currant Buns",
+  "description": "A delightful rendition of Five Currant Buns for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Five currant buns in a baker's shop,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Round and fat with a cherry on the top.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Along came a boy with a penny one day,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Bought a currant bun and took it away.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

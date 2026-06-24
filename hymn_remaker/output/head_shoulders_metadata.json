@@ -1,0 +1,41 @@
+{
+  "title": "Head Shoulders Knees and Toes",
+  "description": "A delightful rendition of Head Shoulders Knees and Toes for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Head, shoulders, knees and toes,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Knees and toes.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Head, shoulders, knees and toes,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Knees and toes.",
+      "start": 20.0,
+      "end": 24.0
+    },
+    {
+      "text": "And eyes and ears and mouth and nose,",
+      "start": 25.0,
+      "end": 29.0
+    },
+    {
+      "text": "Head, shoulders, knees and toes.",
+      "start": 30.0,
+      "end": 34.0
+    }
+  ]
+}

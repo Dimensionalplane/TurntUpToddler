@@ -1,0 +1,31 @@
+{
+  "title": "Deck the Halls",
+  "description": "A delightful rendition of Deck the Halls for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Deck the halls with boughs of holly,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Fa la la la la, la la la la.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Tis the season to be jolly,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Fa la la la la, la la la la.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

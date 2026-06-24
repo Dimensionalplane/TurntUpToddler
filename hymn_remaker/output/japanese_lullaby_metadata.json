@@ -1,0 +1,21 @@
+{
+  "title": "Japanese Lullaby (Itsuki no Komoriuta)",
+  "description": "A delightful rendition of Japanese Lullaby (Itsuki no Komoriuta) for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Itsuki no komoriuta, sing to me softly,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Close your eyes and dream with me.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

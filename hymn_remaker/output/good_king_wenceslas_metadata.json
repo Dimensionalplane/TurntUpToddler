@@ -1,0 +1,21 @@
+{
+  "title": "Good King Wenceslas",
+  "description": "A delightful rendition of Good King Wenceslas for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Good King Wenceslas looked out on the feast of Stephen,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "When the snow lay round about, deep and crisp and even.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "title": "Pussycat Pussycat",
+  "description": "A delightful rendition of Pussycat Pussycat for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Pussycat, pussycat, where have you been?",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "I've been to London to visit the Queen.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Pussycat, pussycat, what did you there?",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "I frightened a little mouse under the chair.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

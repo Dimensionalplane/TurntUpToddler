@@ -1,0 +1,21 @@
+{
+  "title": "Brazilian Lullaby (Dorme Nene)",
+  "description": "A delightful rendition of Brazilian Lullaby (Dorme Nene) for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Dorme nenê, que a cuca vem pegar,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Sleep baby, sleep, the night is deep.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

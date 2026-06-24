@@ -1,0 +1,31 @@
+{
+  "title": "Punchinello",
+  "description": "A delightful rendition of Punchinello for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Punchinello, Punchinello,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Tell me what you have to do.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Punchinello, Punchinello,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "I will do the same as you.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

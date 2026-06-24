@@ -1,0 +1,21 @@
+{
+  "title": "The Water Is Wide",
+  "description": "MIDI 112718 from bitmidi.com",
+  "tags": [
+    "folk",
+    "ballad"
+  ],
+  "lyrics": [
+    {
+      "text": "The water is wide I cannot get o'er",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Neither have I wings to fly",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ],
+  "source_id": 112718
+}

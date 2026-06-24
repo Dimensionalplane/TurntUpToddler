@@ -1,0 +1,31 @@
+{
+  "title": "Nursery Rhyme Medley",
+  "description": "A delightful rendition of Nursery Rhyme Medley for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "La la la, sing a song,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "All the day long.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Happy voices everywhere,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Fill the air with care.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

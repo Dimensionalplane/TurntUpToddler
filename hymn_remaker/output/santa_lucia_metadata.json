@@ -1,0 +1,21 @@
+{
+  "title": "Santa Lucia",
+  "description": "A delightful rendition of Santa Lucia for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Oh Santa Lucia, the star is shining bright,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "The sea is calm and clear, with gentle breeze tonight.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

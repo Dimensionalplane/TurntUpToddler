@@ -1,0 +1,31 @@
+{
+  "title": "Ten Green Bottles",
+  "description": "A delightful rendition of Ten Green Bottles for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Ten green bottles hanging on the wall,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Ten green bottles hanging on the wall,",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "And if one green bottle should accidentally fall,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "There'll be nine green bottles hanging on the wall.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

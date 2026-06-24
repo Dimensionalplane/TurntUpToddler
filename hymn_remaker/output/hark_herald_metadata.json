@@ -1,0 +1,31 @@
+{
+  "title": "Hark the Herald Angels Sing",
+  "description": "A delightful rendition of Hark the Herald Angels Sing for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Hark the herald angels sing,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Glory to the newborn King!",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Peace on earth and mercy mild,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "God and sinners reconciled.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}

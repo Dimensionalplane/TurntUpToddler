@@ -1,0 +1,21 @@
+{
+  "title": "The Dove at the Door",
+  "description": "A delightful rendition of The Dove at the Door for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "A white dove sits at my door,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "Cooing evermore, evermore.",
+      "start": 10.0,
+      "end": 14.0
+    }
+  ]
+}

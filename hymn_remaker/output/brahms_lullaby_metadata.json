@@ -1,0 +1,31 @@
+{
+  "title": "Brahms' Lullaby",
+  "description": "A delightful rendition of Brahms' Lullaby for children.",
+  "tags": [
+    "kids",
+    "children",
+    "music"
+  ],
+  "lyrics": [
+    {
+      "text": "Lullaby and goodnight, with roses bedight,",
+      "start": 5.0,
+      "end": 9.0
+    },
+    {
+      "text": "With lilies o'er spread is baby's wee bed.",
+      "start": 10.0,
+      "end": 14.0
+    },
+    {
+      "text": "Lay you down now and rest, may your slumber be blessed,",
+      "start": 15.0,
+      "end": 19.0
+    },
+    {
+      "text": "Lay you down now and rest, may your slumber be blessed.",
+      "start": 20.0,
+      "end": 24.0
+    }
+  ]
+}
