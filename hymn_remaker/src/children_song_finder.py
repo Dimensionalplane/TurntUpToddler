@@ -11,7 +11,17 @@ class ChildrenSongFinder:
         "mary_had_a_little_lamb": "https://raw.githubusercontent.com/vishnubob/python-midi/master/mary.mid",
         "itsy_bitsy_spider": "https://bitmidi.com/uploads/21307.mid",
         "row_row_row_your_boat": "https://bitmidi.com/uploads/86438.mid",
-        "wheels_on_the_bus": "https://bitmidi.com/uploads/112674.mid"
+        "wheels_on_the_bus": "https://bitmidi.com/uploads/112674.mid",
+        "baa_baa_black_sheep": "https://bitmidi.com/uploads/112648.mid",
+        "london_bridge_is_falling_down": "https://bitmidi.com/uploads/106317.mid",
+        "old_macdonald_had_a_farm": "https://bitmidi.com/uploads/112658.mid",
+        "hickory_dickory_dock": "https://bitmidi.com/uploads/112649.mid",
+        "jack_and_jill": "https://bitmidi.com/uploads/112650.mid",
+        "yankee_doodle": "https://bitmidi.com/uploads/112675.mid",
+        "oh_susanna": "https://bitmidi.com/uploads/112660.mid",
+        "home_on_the_range": "https://bitmidi.com/uploads/112662.mid",
+        "clementine": "https://bitmidi.com/uploads/112661.mid",
+        "amazing_grace": "https://bitmidi.com/uploads/34522.mid"
     }
 
     def download_all(self, output_dir):

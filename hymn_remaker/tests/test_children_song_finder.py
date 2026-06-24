@@ -31,7 +31,7 @@ class TestChildrenSongFinder(unittest.TestCase):
         downloaded = self.finder.download_all(self.output_dir)
         
         # Verify that all songs are downloaded
-        self.assertEqual(len(downloaded), 5)
+        self.assertEqual(len(downloaded), len(self.finder.SONGS))
         for path in downloaded:
             self.assertTrue(os.path.exists(path))
             with open(path, "rb") as f:
@@ -51,7 +51,7 @@ class TestChildrenSongFinder(unittest.TestCase):
 
         downloaded = self.finder.download_all(self.output_dir)
         
-        self.assertEqual(len(downloaded), 5)
+        self.assertEqual(len(downloaded), len(self.finder.SONGS))
         # Check that the existing file was NOT overwritten
         with open(existing_file, "rb") as f:
             self.assertEqual(f.read(), b"existing content")
