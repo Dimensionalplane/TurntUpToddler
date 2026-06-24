@@ -1,6 +1,7 @@
 """
 Tests for ChildrenSongFinder.
 """
+
 import unittest
 import os
 import tempfile
@@ -45,8 +46,9 @@ class TestChildrenSongFinder(unittest.TestCase):
         finder = ChildrenSongFinder()
         songs = finder.SONGS
         # Should find all the downloaded songs
-        self.assertGreaterEqual(len(songs), 100, 
-            f"Expected 100+ songs in input dir, found {len(songs)}")
+        self.assertGreaterEqual(
+            len(songs), 100, f"Expected 100+ songs in input dir, found {len(songs)}"
+        )
 
 
 if __name__ == "__main__":
