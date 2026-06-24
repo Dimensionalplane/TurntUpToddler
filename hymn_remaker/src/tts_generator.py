@@ -54,7 +54,7 @@ class TTSGenerator:
         return shifted_sound
 
     @retry_request(max_retries=3, delay=2, backoff=2)
-    def generate_vocals(self, lyrics, output_path, voice_id="21m00Tcm4TlvDq8ikWAM", model="eleven_multilingual_v2", **kwargs):
+    def generate_vocals(self, lyrics, output_path, voice_id="21m00Tcm4TlvDq8ikWAM", model="eleven_multilingual_v2", status_callback=None, **kwargs):
         """
         Generate a single synchronized vocal track from a list of lyrics and timestamps.
 
@@ -92,7 +92,10 @@ class TTSGenerator:
                 continue
 
             start_ms = int(float(line.get('start', i * 5)) * 1000)
-            logger.info(f"Generating primary TTS for line {i+1}: '{text}' at {start_ms}ms using {primary_voice}")
+            msg = f"Generating primary TTS for line {i+1}: '{text}' at {start_ms}ms using {primary_voice}"
+            logger.info(msg)
+            if status_callback:
+                status_callback(msg, int((i+1)/len(lyrics)*100))
 
             # Generate the audio clip for primary voice
             audio_generator = self.client.generate(
