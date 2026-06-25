@@ -24,3 +24,5 @@ This list tracks immediate, actionable tasks, bug fixes, and minor feature reque
 
 ## Low Priority / Polish
 - [ ] **UI Loading States:** Add Streamlit `st.spinner` or progress bars to the DALL-E, Demucs, and ElevenLabs API calls to improve user experience during long processing stages in the interactive UI wizard.
+## Future Exploration
+- [ ] Port `app.py` UI to a Next.js frontend with FastAPI backend.
