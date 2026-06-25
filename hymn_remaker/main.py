@@ -432,7 +432,6 @@ def process_single_midi(
                     update_status(f"Resuming pipeline...", 78)
 
         # Generate the actual image using the (potentially edited) prompt
-        update_status(f"Generating cover art via DALL-E...", 78)
         art_url = content_gen.generate_art(art_prompt)
 
         # Optional: Generate Vocals via ElevenLabs
@@ -441,7 +440,7 @@ def process_single_midi(
             update_status(f"Step 3.5/4: Generating Vocals via ElevenLabs ({filename})...", 80)
             vocal_track_path = os.path.join(output_dir, f"{name_no_ext}_vocals.wav")
             try:
-                tts_generator.generate_vocals(lyrics, vocal_track_path, voice_id=voice_id, model=model, status_callback=lambda msg, prog: update_status(msg, int(80 + prog * 0.02)))
+                tts_generator.generate_vocals(lyrics, vocal_track_path, voice_id=voice_id, model=model)
             except Exception as e:
                 logger.error(f"Failed to generate vocals: {e}")
                 vocal_track_path = None
@@ -453,7 +452,6 @@ def process_single_midi(
                 update_status(f"Running AI Stem Separation for smart vocal ducking ({filename})...", 83)
                 stem_out_dir = os.path.join(output_dir, f"{name_no_ext}_stems")
                 try:
-                    update_status(f"Separating audio stems with Demucs...", 83)
                     stems = stem_separator.separate(remake_audio_path, stem_out_dir)
                 except Exception as e:
                     logger.warning(f"Stem separation failed, falling back to basic ducking: {e}")
