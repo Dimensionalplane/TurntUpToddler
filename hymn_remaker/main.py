@@ -136,9 +136,7 @@ def main():
             logger.info("Kids Mode is enabled and input directory is empty. Downloading curated nursery rhymes...")
             finder = ChildrenSongFinder()
             downloaded = finder.download_all(args.input_dir)
-            # Dynamically fetch additional content from BitMidi
-            dynamic = finder.search_and_download_bitmidi("nursery rhyme", args.input_dir, limit=5)
-            logger.info(f"Downloaded {len(downloaded) + len(dynamic)} children's songs in total.")
+            logger.info(f"Downloaded {len(downloaded)} children's songs.")
 
     initial_midi_files = (
         glob.glob(os.path.join(args.input_dir, "*.mid")) +
