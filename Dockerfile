@@ -32,12 +32,12 @@ RUN apt-get update && apt-get install -y \
 
 COPY hymn_remaker/requirements.txt .
 RUN pip install --no-cache-dir \
-    torch==2.4.0 \
-    torchaudio==2.4.0 \
+    torch==2.7.1 \
+    torchaudio==2.7.1 \
     oemer==0.1.8 \
     demucs==4.0.1 \
-    opencv-python-headless==4.13.0.92 \
-    onnxruntime-gpu==1.19.0
+    opencv-python-headless==4.11.0.86 \
+    onnxruntime==1.22.0
 
 # --- Stage 3: Runtime Environment (slim) ---
 FROM python:3.12-slim
@@ -51,9 +51,6 @@ RUN apt-get update && apt-get install -y \
     fluid-soundfont-gm \
     rubberband-cli \
     && rm -rf /var/lib/apt/lists/*
-
-# Copy ML packages from ml-deps stage (PyTorch, oemer, demucs, OpenCV, ONNX)
-COPY --from=ml-deps /usr/local/lib/python3.12/site-packages/ /usr/local/lib/python3.12/site-packages/
 
 # Install lightweight Python dependencies only
 COPY hymn_remaker/requirements.txt .
@@ -89,6 +86,9 @@ RUN pip install --no-cache-dir --no-deps \
 
 # Copy compiled C++ extension from builder
 COPY --from=builder /build/hymn_player_ext*.so ./
+
+# Copy ML packages from ml-deps stage (PyTorch, oemer, demucs, OpenCV, ONNX)
+COPY --from=ml-deps /usr/local/lib/python3.12/site-packages/ /usr/local/lib/python3.12/site-packages/
 
 # Copy the rest of the application
 COPY . .

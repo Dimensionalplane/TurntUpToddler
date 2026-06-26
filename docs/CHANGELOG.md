@@ -1,119 +1,20 @@
-# CHANGELOG - HYMN REMAKER
+# Changelog
 
-## [1.52.0] - 2024-06-05
-### Added
-- **Live Collaborative Editing:** Backend support for real-time synchronization between multiple dashboard users during the interactive review phase. Added `POST /api/v1/jobs/{job_id}/review/update` and Redis Pub/Sub broadcasting.
+All notable changes to this project will be documented in this file.
 
-## [1.51.0] - 2024-06-04
-### Added
-- **Social Media Auto-Posting (Stub):** Implemented `SocialMediaPoster` in `hymn_remaker/src/social_media_poster.py` for automated TikTok and Instagram Reels posting.
-- **Enhanced Arrangement Styles:** Improved `Swing` arrangement with position-dependent timing and added `Arpeggio` arrangement stub in `OMRProcessor`.
-
-## [1.50.0] - 2024-06-03
-### Fixed
-- **Atomic Job Updates:** Transitioned from separate Redis keys to Hash-based storage (`job:{id}`) for status, progress, and messages. This eliminates race conditions where status could be polled while progress was being updated independently.
-- **Redis Connection Pooling:** Implemented a global connection pool in the FastAPI backend to improve concurrent performance under high load.
-- **AI Video Robustness:** Fixed functional regression in `process_single_midi` when AI video generation returns None; system now gracefully falls back to static album art.
-
-## [1.49.0] - 2024-06-02
-### Added
-- **Subtitle Customization:** Users can now specify the font size and primary color for burned-in subtitles via the Next.js dashboard.
-- **Enhanced API Schemas:** Updated generation endpoints to support granular visual styling parameters.
-
+## [1.26.1] - Current
 ### Changed
-- Propagated visual styling preferences through the distributed render worker cluster.
+- **Submodule Renaming**: Renamed the submodule directory and all internal/external configurations from `hymnmania` to `TUT` to match the new naming scheme.
+- **Branch Merging**: Fast-forwarded and merged all development branches (including `origin/master`) into the `main` branch.
+- **Reference Updates**: Renamed all instances of `hymnmania` in docs and inventory manifests to `TUT`.
 
-## [1.48.0] - 2024-06-01
+## [1.26.0] - 2026-05-20
 ### Added
-- **Auto-Detect Style:** New intelligent style detection based on MIDI BPM and note density.
-- **Enhanced MIDI Analysis:** `MidiAnalyzer` now calculates complex metrics to suggest appropriate genres (e.g., Ambient for slow/sparse tracks, Techno for fast/dense tracks).
-- **Default Style Automation:** The pipeline now defaults to "Auto", reducing the need for manual configuration.
+- **Multi-Voice Spatial Expansion via PyRubberband**: Upgraded the ElevenLabs choral harmony algorithm. By replacing crude framerate shifting with high-fidelity `pyrubberband` pitch-shifting, parallel vocal tracks are now perfectly pitch-shifted (+4 and +7 semitones) without altering their temporal duration. This results in significantly clearer, crisper multi-part harmonies.
 
-### Fixed
-- Corrected a race condition where the `update_status` callback was accessed before definition in `process_single_midi`.
-
-## [1.47.0] - 2024-05-30
+## [1.25.1] - Previous
 ### Added
-- **Algorithmic Style Transfer:** Integrated `Music21` into `OMRProcessor` to allow for score-level modifications. Supports initial 'Swing' and 'Lullaby' arrangement styles.
-- **Arrangement Selection:** Added "Arrangement (OMR)" dropdown to the Next.js dashboard.
-
-### Fixed
-- Improved file extension handling during score modification to support both `.mxl` and `.musicxml` reliably.
-
-## [1.46.0] - 2024-05-29
-### Added
-- **Multi-Channel Webhooks:** `WebhookNotifier` now supports multiple Discord/Slack channels via a configuration dictionary.
-- **Style-Transfer Placeholder:** Added hook in `OMRProcessor` for future algorithmic score modifications.
-
-### Fixed
-- **Frontend URL Wiring:** Fixed a hardcoded backend URL in the dashboard to support dynamic deployment environments.
-
-## [1.45.0] - 2024-05-28
-### Added
-- **YouTube Live Radio:** Added full support for streaming to YouTube Live RTMP endpoints.
-- **Improved Stream Monitoring:** The radio worker now verifies the health of the streaming thread before reporting status to Redis.
-
-### Fixed
-- **RTMP Compatibility:** Added `-flvflags no_duration_filesize` to `RadioStreamer` for better compatibility with YouTube's RTMP ingest servers.
-- **UI UX:** Improved radio control labels and added loading states to the dashboard.
-
-## [1.44.0] - 2024-05-27
-### Added
-- **AI Video Caching:** Implemented Redis-based caching for AI-generated video URLs (Sora/Runway) to prevent redundant generation costs.
-- **Enhanced Lyric Normalization:** Added Unicode NFKD normalization to `VideoProducer` to preserve accented characters by converting them to their ASCII equivalents (e.g., ñ -> n) rather than deleting them.
-
-### Changed
-- Distributed workers and API now share the same Redis-backed module state for `ContentGenerator`.
-
-## [1.43.0] - 2024-05-26
-### Added
-- **4K UHD Rendering:** Added support for ultra-high-definition 4K video output (3840x2160) across the pipeline.
-- **Resolution Selection:** New dropdown in Next.js dashboard to toggle between 1080p and 4K.
-- **Improved AI Video Looping:** Enhanced Sora/Runway prompting logic to encourage seamless infinite background loops.
-
-### Fixed
-- **API Modularization:** Fixed a gap where `SunoRemaker` was missing from the backend module registry, improving task reliability.
-
-## [1.42.0] - 2024-05-25
-### Added
-- **Musical Style Presets:** Introduced a system for genre presets (Deep House, Lofi, Synthwave, etc.) to simplify generation.
-- **Config API:** New `/api/v1/config/presets` endpoint to serve dynamic configuration to the frontend.
-- **Style Dropdown:** Added a searchable preset dropdown to the Next.js `GenerateForm`.
-
-### Fixed
-- **Lyric Sanitization:** Implemented regex filtering for non-standard characters in SRT generation to prevent FFmpeg burning failures.
-- **SRT Encoding:** Enforced UTF-8 encoding for subtitle files.
-
-### Changed
-- Refactored `settings.py` to centralize style configurations.
-
-## [1.41.0] - 2024-05-24
-### Added
-- **Job Retry Mechanism:** Users can now re-trigger failed generation jobs with a single click from the dashboard.
-- **Enhanced UI Telemetry:** Status cards now show job completion percentage and sub-step messages more prominently.
-- **Adaptive Progress Bars:** Progress bar color changes to amber (warning) when a job is awaiting user review.
-
-### Changed
-- Refactored `api.py` to store job configurations in Redis for persistence.
-- Updated Next.js dashboard with improved task visibility and underscored status formatting.
-
-## [1.40.0] - 2024-05-23
-### Added
-- **Dynamic AI Video Overlay:** Support for dynamic video backgrounds (Sora/Runway) in the rendering pipeline.
-- **Looped Video Support:** Implemented `-stream_loop -1` FFmpeg filtering for seamless background looping.
-- **Frontend Toggles:** Added "Dynamic AI Video Overlay" checkbox to `GenerateForm.js`.
-- **Enhanced Review:** Added `video_prompt` editing to the `ReviewModal.js` interactive loop.
-
-### Fixed
-- FFmpeg command generation for video-based background assets.
-- Temporary file extension preservation for background assets.
-
-### Changed
-- Integrated video generation step into `process_single_midi` pipeline.
-- Updated project documentation (VISION, MEMORY, ROADMAP, TODO, DEPLOY, IDEAS).
-
-## [1.39.0] - 2024-05-22
-### Added
-- **Interactive Review System:** Distributed blocking/approval loop via Redis.
-- **Kubernetes Orchestration:** Complete Kustomize manifests for cluster deployment.
-- **FastAPI Migration:** Decomposed monolith into microservices.
+- **Redis Render Polling System**: Connected the Streamlit UI to a Redis state store to actively poll and reflect the status of tasks queued in the RabbitMQ render cluster.
+- **Headless Worker Microservice**: Added `worker.py` daemon capable of pulling from RabbitMQ and updating Redis.
+- **Exhaustive Documentation Pivot**: Massively expanded `VISION.md`, `ROADMAP.md`, `TODO.md`, `LIBRARIES.md`, and `HANDOFF.md` to capture the new microservices architecture and absolute autonomous generation goals.
+- **Universal LLM Agent Rules**: Prepared rollout of universal instruction sets (`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `GPT.md`, `copilot-instructions.md`) to standardize documentation, versioning, and feature progression across all future AI agent sessions.

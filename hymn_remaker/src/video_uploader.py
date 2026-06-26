@@ -40,23 +40,11 @@ class VideoProducer:
             return False
 
         try:
-            import re
-            import unicodedata
-            with open(srt_path, 'w', encoding='utf-8') as f:
+            with open(srt_path, 'w') as f:
                 for i, line in enumerate(lyrics):
                     start = float(line.get('start', i * 5))
                     end = float(line.get('end', start + 4))
                     text = line.get('text', '')
-
-                    # Normalize unicode (decompose accents)
-                    text = unicodedata.normalize('NFKD', text)
-                    # Convert to ASCII, ignoring errors (effectively strips accents)
-                    text = text.encode('ascii', 'ignore').decode('ascii')
-
-                    # Sanitize text: Remove characters that break ffmpeg/ass burning
-                    # Keep basic alphanumeric, spaces, and essential punctuation
-                    text = re.sub(r'[^\w\s.,!?\'"-]', '', text)
-                    text = text.strip()
 
                     # Convert seconds to SRT timestamp: HH:MM:SS,mmm
                     def format_time(seconds):
@@ -79,7 +67,7 @@ class VideoProducer:
             logger.error(f"Failed to create SRT: {e}")
             return False
 
-    def create_video(self, audio_path, image_url, output_path, lyrics=None, video_format="Standard 16:9", resolution="1080p", sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True, enable_visualizer=False, visualizer_mode="cline"):
+    def create_video(self, audio_path, image_url, output_path, lyrics=None, video_format="Standard 16:9", sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True, enable_visualizer=False, visualizer_mode="cline"):
         """
         Create an MP4 video from an audio file, image URL, and optional lyrics using ffmpeg.
 
@@ -89,33 +77,15 @@ class VideoProducer:
             output_path (str): Path to the output video file.
             lyrics (list): Optional list of synced lyrics dicts.
             video_format (str): The aspect ratio of the output video.
-            resolution (str): "1080p" or "4K".
         """
-        logger.info(f"Creating {resolution} video from {audio_path}...")
+        logger.info(f"Creating video from {audio_path}...")
 
         import uuid
         unique_id = uuid.uuid4().hex
-
-        # Determine the extension for the temporary background file
-        if not image_url:
-             logger.warning("No image_url provided, using placeholder art.")
-             image_url = "https://via.placeholder.com/1024.png"
-
-        ext = ".png"
-        if image_url.startswith(('http://', 'https://')):
-            # Basic attempt to get extension from URL
-            from urllib.parse import urlparse
-            path = urlparse(image_url).path
-            if any(path.lower().endswith(e) for e in ('.mp4', '.mov', '.avi', '.mkv', '.jpg', '.jpeg', '.png', '.webp')):
-                ext = os.path.splitext(path)[1]
-        else:
-            ext = os.path.splitext(image_url)[1] or ".png"
-
-        temp_image_path = f"temp_art_{unique_id}{ext}"
+        temp_image_path = f"temp_art_{unique_id}.png"
         temp_srt_path = f"{output_path}.srt"
-        # 1. Download the image/video to a temporary file, or copy if local
+        # 1. Download the image to a temporary file, or copy if local
         try:
-            is_video_bg = False
             if image_url.startswith('http://') or image_url.startswith('https://'):
                 response = requests.get(image_url)
                 response.raise_for_status()
@@ -124,58 +94,44 @@ class VideoProducer:
             else:
                 # Assume it's a local file path
                 if not os.path.exists(image_url):
-                    raise FileNotFoundError(f"Local image/video file not found: {image_url}")
+                    raise FileNotFoundError(f"Local image file not found: {image_url}")
                 shutil.copy2(image_url, temp_image_path)
-
-            # Detect if the background asset is a video
-            if temp_image_path.lower().endswith(('.mp4', '.mov', '.avi', '.mkv')):
-                is_video_bg = True
-                logger.info("Detected video background asset.")
 
             # 2. Prepare SRT if lyrics are provided
             has_subtitles = False
             if lyrics:
                 has_subtitles = self._create_srt_file(lyrics, temp_srt_path)
 
-            # 3. Use ffmpeg to combine background and audio (and burn subtitles if available)
-            cmd = [settings.FFMPEG_BIN, "-y"]
-            if is_video_bg:
-                cmd.extend(["-stream_loop", "-1", "-i", temp_image_path])
-            else:
-                cmd.extend(["-loop", "1", "-i", temp_image_path])
-
-            cmd.extend(["-i", audio_path])
+            # 3. Use ffmpeg to combine image and audio (and burn subtitles if available)
+            cmd = [
+                settings.FFMPEG_BIN,
+                "-y", # Overwrite output
+                "-loop", "1",
+                "-i", temp_image_path,
+                "-i", audio_path,
+            ]
 
             # Helper to execute ffmpeg
             def run_ffmpeg(subtitles_enabled):
                 ffmpeg_cmd = cmd.copy()
 
-                # Determine base filters depending on format and resolution
+                # Determine base filters depending on format
                 base_vf = ""
-
-                if resolution == "4K":
-                    target_w, target_h = (2160, 3840) if video_format == "Vertical 9:16 (TikTok/Reels)" else (3840, 2160)
-                    scale_dim = 2160
-                else:
-                    target_w, target_h = (1080, 1920) if video_format == "Vertical 9:16 (TikTok/Reels)" else (1920, 1080)
-                    scale_dim = 1080
+                target_w, target_h = (1080, 1920) if video_format == "Vertical 9:16 (TikTok/Reels)" else (1920, 1080)
                 
                 if video_format == "Vertical 9:16 (TikTok/Reels)":
-                    # Scale to target width, then pad to target height, ensuring even dimensions
-                    base_vf = f"[0:v]scale={target_w}:trunc({target_w}/a/2)*2,pad={target_w}:{target_h}:(ow-iw)/2:(oh-ih)/2:black[v_base]"
+                    # Scale to 1080 width, then pad to 1080x1920, ensuring even dimensions
+                    base_vf = f"[0:v]scale=1080:trunc(1080/a/2)*2,pad={target_w}:{target_h}:(ow-iw)/2:(oh-ih)/2:black[v_base]"
                 else:
-                    # Standard 16:9, scale to target height, then pad to target width, ensuring even dimensions
-                    base_vf = f"[0:v]scale=trunc({scale_dim}*a/2)*2:{scale_dim},pad={target_w}:{target_h}:(ow-iw)/2:(oh-ih)/2:black[v_base]"
+                    # Standard 16:9, scale to 1080 height, then pad to 1920x1080, ensuring even dimensions
+                    base_vf = f"[0:v]scale=trunc(1080*a/2)*2:1080,pad={target_w}:{target_h}:(ow-iw)/2:(oh-ih)/2:black[v_base]"
 
                 # Build filter complex
                 filters = [base_vf]
 
                 # Add Audio-Reactive Visualizer
                 if enable_visualizer:
-                    if resolution == "4K":
-                        w_viz, h_viz = (2160, 300) if video_format == "Vertical 9:16 (TikTok/Reels)" else (3840, 400)
-                    else:
-                        w_viz, h_viz = (1080, 150) if video_format == "Vertical 9:16 (TikTok/Reels)" else (1920, 200)
+                    w_viz, h_viz = (1080, 150) if video_format == "Vertical 9:16 (TikTok/Reels)" else (1920, 200)
                     y_pos = "(H-h)/2" # Center vertically
 
                     if visualizer_mode == "avectorscope":

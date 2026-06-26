@@ -1,55 +1,76 @@
-"""
-Tests for ChildrenSongFinder.
-"""
-
 import unittest
 import os
-import tempfile
-from src.children_song_finder import ChildrenSongFinder
+import shutil
+import sys
+from unittest.mock import patch, MagicMock
 
+# Adjust path so we can import src
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+
+from hymn_remaker.src.children_song_finder import ChildrenSongFinder
 
 class TestChildrenSongFinder(unittest.TestCase):
-    """Test the ChildrenSongFinder class."""
-
     def setUp(self):
-        # Create temp input dir with some fake .mid files
-        self.test_dir = tempfile.mkdtemp()
-        for name in ["twinkle_twinkle_little_star", "mary_had_a_little_lamb"]:
-            path = os.path.join(self.test_dir, f"{name}.mid")
-            with open(path, "wb") as f:
-                f.write(b"fake midi content")
+        self.test_dir = os.path.dirname(__file__)
+        self.output_dir = os.path.join(self.test_dir, "temp_finder_input")
+        os.makedirs(self.output_dir, exist_ok=True)
+        self.finder = ChildrenSongFinder()
 
-    def test_finder_scans_directory(self):
-        """Finder should find all .mid files in the input directory."""
-        finder = ChildrenSongFinder(input_dir=self.test_dir)
-        songs = finder.SONGS
-        self.assertEqual(len(songs), 2)
-        self.assertIn("twinkle_twinkle_little_star", songs)
-        self.assertIn("mary_had_a_little_lamb", songs)
+    def tearDown(self):
+        if os.path.exists(self.output_dir):
+            shutil.rmtree(self.output_dir)
 
-    def test_finder_returns_paths(self):
-        """download_all should return full file paths."""
-        finder = ChildrenSongFinder(input_dir=self.test_dir)
-        paths = finder.download_all()
-        self.assertEqual(len(paths), 2)
-        for p in paths:
-            self.assertTrue(os.path.exists(p))
+    @patch('hymn_remaker.src.children_song_finder.requests.get')
+    def test_download_all_success(self, mock_get):
+        # Setup mock response
+        mock_response = MagicMock()
+        mock_response.content = b"fake midi content"
+        mock_response.status_code = 200
+        mock_get.return_value = mock_response
 
-    def test_finder_no_directory(self):
-        """Finder should handle missing directory gracefully."""
-        finder = ChildrenSongFinder(input_dir="/nonexistent/path")
-        self.assertEqual(len(finder.SONGS), 0)
+        downloaded = self.finder.download_all(self.output_dir)
 
-    def test_finder_real_input(self):
-        """Finder should work with the real input directory."""
-        # Try the actual project input dir
-        finder = ChildrenSongFinder()
-        songs = finder.SONGS
-        # Should find all the downloaded songs
-        self.assertGreaterEqual(
-            len(songs), 100, f"Expected 100+ songs in input dir, found {len(songs)}"
-        )
+        # Verify that all songs are downloaded
+        self.assertEqual(len(downloaded), 5)
+        for path in downloaded:
+            self.assertTrue(os.path.exists(path))
+            with open(path, "rb") as f:
+                self.assertEqual(f.read(), b"fake midi content")
 
+    @patch('hymn_remaker.src.children_song_finder.requests.get')
+    def test_download_all_skips_existing(self, mock_get):
+        # Create one file beforehand
+        existing_file = os.path.join(self.output_dir, "twinkle_twinkle_little_star.midi")
+        with open(existing_file, "wb") as f:
+            f.write(b"existing content")
 
-if __name__ == "__main__":
+        mock_response = MagicMock()
+        mock_response.content = b"new content"
+        mock_response.status_code = 200
+        mock_get.return_value = mock_response
+
+        downloaded = self.finder.download_all(self.output_dir)
+
+        self.assertEqual(len(downloaded), 5)
+        # Check that the existing file was NOT overwritten
+        with open(existing_file, "rb") as f:
+            self.assertEqual(f.read(), b"existing content")
+
+        # Check that the other file was downloaded with new content
+        other_file = os.path.join(self.output_dir, "mary_had_a_little_lamb.mid")
+        self.assertTrue(os.path.exists(other_file))
+        with open(other_file, "rb") as f:
+            self.assertEqual(f.read(), b"new content")
+
+    @patch('hymn_remaker.src.children_song_finder.requests.get')
+    def test_download_all_handles_error(self, mock_get):
+        # Mock requests.get to raise an exception
+        mock_get.side_effect = Exception("Connection refused")
+
+        downloaded = self.finder.download_all(self.output_dir)
+
+        # None should have downloaded successfully since it raises an exception
+        self.assertEqual(len(downloaded), 0)
+
+if __name__ == '__main__':
     unittest.main()
