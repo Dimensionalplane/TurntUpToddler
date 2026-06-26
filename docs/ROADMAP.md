@@ -15,7 +15,7 @@
 - [x] Implement global, file-based version tracking referencing the omni-workspace `VERSION` file.
 
 ## Phase 3: Scaling & Platform Expansion
-- [ ] Support for multiple input formats beyond MIDI (MusicXML, sheet music PDFs via OMR).
+- [x] Support for multiple input formats beyond MIDI (MusicXML, sheet music PDFs via OMR).
 - [x] TikTok/Instagram Reels native vertical video formatting.
 - [x] Automated short-form clip extraction from the main video.
 - [ ] Integration with advanced video generation AI (e.g., Runway Gen-2, Sora) to replace static DALL-E album art with dynamic, reactive music videos.
@@ -63,4 +63,5 @@ This document outlines the high-level trajectory of the Hymn Remaker project, tr
 ## Phase 6: Cloud Native Polish & App Ecosystem (Current Focus)
 - [x] **Interactive Radio Controls:** Expose the `RadioStreamer` background thread to the Streamlit UI's sidebar, allowing users to start broadcasts, view the current playing song, and manually "Skip Track" or "Kill Stream" via robust Python `Event` flags.
 - [x] **Expanded Kids Mode Pipeline:** Integrated additional curated public domain children's songs (e.g., itsy_bitsy_spider) to the automated nursery rhyme downloader and reinforced child-friendly metadata parsing.
-- [ ] **Distroless/Alpine Docker Image:** The massive dependencies of PyTorch (`demucs`), OpenCV, and ONNX Runtime (`oemer`) bloat the `hymn_remaker:latest` container. A multi-stage Docker build separating the AI inference models from the Streamlit UI web container will drastically cut deployment size.
+- [x] **Distroless/Alpine Docker Image:** The massive dependencies of PyTorch (`demucs`), OpenCV, and ONNX Runtime (`oemer`) bloat the `hymn_remaker:latest` container. A multi-stage Docker build separating the AI inference models from the Streamlit UI web container will drastically cut deployment size.
+- [ ] **Frontend Refactoring:** Porting `app.py` away from Streamlit into a Next.js / React application, while exposing the python logic through a `FastAPI` backend.
