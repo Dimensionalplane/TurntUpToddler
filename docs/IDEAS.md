@@ -19,4 +19,4 @@ This document captures creative expansions, "blue sky" thinking, and potential p
 
 ## Infrastructure & Distribution
 - **"Infinite Stream" Mode (Live DJ):** Implement an Icecast server or HLS stream. As the daemon processes new hymns, it dynamically crossfades them into a continuous 24/7 internet radio broadcast.
-- **Automated Social Distribution:** Extend `video_uploader.py` beyond YouTube. Integrate the TikTok and Instagram Graph APIs to automatically publish the extracted shorts directly to those platforms.
+- **Automated Social Distribution:** Extend `video_uploader.py` beyond YouTube. Integrate the TikTok and Instagram Graph APIs to automatically publish the extracted shorts directly to those platforms.- **Dynamic Nursery Rhyme Scraping:** Expand the `ChildrenSongFinder` to dynamically scrape huge MIDI archives (like BitMidi) based on a query parameter or keyword list, allowing an infinite loop of diverse children's content rather than a hardcoded dict of 5 songs.
