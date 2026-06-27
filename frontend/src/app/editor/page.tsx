@@ -3,7 +3,6 @@
 import React, { useState, useRef } from 'react';
 import { Upload, Play, FileMusic, Loader2 } from 'lucide-react';
 import axios from 'axios';
-import Player from '@/components/Player';
 
 export default function EditorPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -102,7 +101,12 @@ export default function EditorPage() {
           </button>
 
           {previewUrl && (
-            <Player url={previewUrl} type="audio" title="Preview Audio" />
+            <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-sm font-medium text-gray-700 mb-2">Preview Audio:</p>
+              <audio controls className="w-full" src={previewUrl}>
+                Your browser does not support the audio element.
+              </audio>
+            </div>
           )}
         </div>
 

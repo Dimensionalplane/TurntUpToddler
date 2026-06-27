@@ -41,7 +41,7 @@ class AdvancedVideoGenerator:
             # Create a 5 second slow moving color gradient video to simulate dynamic AI background
             cmd = [
                 "ffmpeg", "-y", "-f", "lavfi",
-                f"-i", "testsrc=duration={duration_sec}:size=1280x720:rate=30",
+                "-i", f"testsrc=duration={duration_sec}:size=1280x720:rate=30",
                 "-vf", "hue=s=0",
                 "-pix_fmt", "yuv420p",
                 output_path

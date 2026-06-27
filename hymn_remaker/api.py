@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import asyncio
+from fastapi.concurrency import run_in_threadpool
 import logging
 
 from hymn_remaker.main import process_single_midi
@@ -94,6 +95,8 @@ async def generate_hymn(
     fade_in_ms: int = Form(0),
     fade_out_ms: int = Form(0),
     use_advanced_video: bool = Form(False),
+    kids_mode: bool = Form(False),
+    interactive_mode: bool = Form(False),
 ):
     """
     Upload a MIDI file and asynchronously generate the hymn remake.
@@ -135,6 +138,8 @@ async def generate_hymn(
         generate_vocals=generate_vocals,
         use_advanced_video=use_advanced_video,
         advanced_video_gen=mods["advanced_video_gen"],
+        kids_mode=kids_mode,
+        interactive_callback=None, # TBD: Hook up websockets for interactive review pause
         status_callback=lambda msg, prog: asyncio.run_coroutine_threadsafe(manager.broadcast({"message": msg, "progress": prog}), loop)
     )
 
@@ -165,7 +170,7 @@ async def start_radio(rtmp_url: str = Form(...)):
     if _radio_streamer and _radio_streamer.is_alive():
         return JSONResponse(status_code=400, content={"status": "error", "message": "Radio is already streaming"})
 
-    _radio_streamer = RadioStreamer(output_dir="hymn_remaker/output", rtmp_url=rtmp_url)
+    _radio_streamer = RadioStreamer(rtmp_url=rtmp_url, input_dir="hymn_remaker/output")
     _radio_streamer.start()
     return {"status": "success", "message": "Radio streaming started."}
 
@@ -210,7 +215,9 @@ async def editor_preview(file: UploadFile = File(...)):
         target_path = os.path.join("hymn_remaker/output", "edit_preview.mid")
         mods["mxl_parser"].process(file_path, target_path)
 
-    renderer.render(target_path, out_audio)
+    # Run the heavy C++ render operation in a background thread to prevent blocking the async loop
+    await run_in_threadpool(renderer.render, target_path, out_audio)
+
     return {"status": "success", "preview_url": f"/output/edit_preview.wav"}
 
 @app.get("/api/v1/history")

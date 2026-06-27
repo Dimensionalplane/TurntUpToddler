@@ -1,8 +1,20 @@
+"use client";
+
 import React from 'react';
 import { Home, Music, Settings, Radio } from 'lucide-react';
 import Link from 'next/link';
+import { useSettings } from '@/context/SettingsContext';
 
 export default function Sidebar() {
+  const {
+    generateVocals, setGenerateVocals,
+    normalizeAudio, setNormalizeAudio,
+    kidsMode, setKidsMode,
+    useAdvancedVideo, setUseAdvancedVideo,
+    stylePrompt, setStylePrompt,
+    interactiveMode, setInteractiveMode
+  } = useSettings();
+
   return (
     <div className="w-64 h-screen bg-gray-900 text-white flex flex-col p-4">
       <div className="mb-8">
@@ -32,20 +44,59 @@ export default function Sidebar() {
         <h2 className="text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wider">Quick Settings</h2>
 
         <div className="space-y-3">
+          <label className="flex flex-col gap-1 text-sm mb-4">
+            <span className="text-gray-400">Style Prompt</span>
+            <textarea
+              className="rounded bg-gray-800 border-gray-700 p-2 text-white outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+              rows={2}
+              value={stylePrompt}
+              onChange={(e) => setStylePrompt(e.target.value)}
+              placeholder="e.g. Deep House, high quality..."
+            />
+          </label>
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" className="rounded bg-gray-800 border-gray-700" />
+            <input
+              type="checkbox"
+              className="rounded bg-gray-800 border-gray-700"
+              checked={interactiveMode}
+              onChange={(e) => setInteractiveMode(e.target.checked)}
+            />
+            Interactive Review Mode
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              className="rounded bg-gray-800 border-gray-700"
+              checked={generateVocals}
+              onChange={(e) => setGenerateVocals(e.target.checked)}
+            />
             Generate Vocals
           </label>
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" className="rounded bg-gray-800 border-gray-700" defaultChecked />
+            <input
+              type="checkbox"
+              className="rounded bg-gray-800 border-gray-700"
+              checked={normalizeAudio}
+              onChange={(e) => setNormalizeAudio(e.target.checked)}
+            />
             Normalize Audio
           </label>
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" className="rounded bg-gray-800 border-gray-700" />
+            <input
+              type="checkbox"
+              className="rounded bg-gray-800 border-gray-700"
+              checked={kidsMode}
+              onChange={(e) => setKidsMode(e.target.checked)}
+            />
             Kids Mode 👶
           </label>
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" className="rounded bg-gray-800 border-gray-700" />
+            <input
+              type="checkbox"
+              className="rounded bg-gray-800 border-gray-700"
+              checked={useAdvancedVideo}
+              onChange={(e) => setUseAdvancedVideo(e.target.checked)}
+            />
             Advanced AI Video
           </label>
         </div>

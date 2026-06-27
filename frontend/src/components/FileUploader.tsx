@@ -3,8 +3,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Upload, Play, CheckCircle } from 'lucide-react';
 import axios from 'axios';
+import { useSettings } from '@/context/SettingsContext';
 
 export default function FileUploader() {
+  const { generateVocals, normalizeAudio, useAdvancedVideo, kidsMode, stylePrompt, interactiveMode } = useSettings();
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -62,9 +64,12 @@ export default function FileUploader() {
 
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("style", "Deep House, high quality, electronic");
-    formData.append("generate_vocals", "false");
-    formData.append("normalize_audio", "true");
+    formData.append("style", stylePrompt);
+    formData.append("generate_vocals", generateVocals ? "true" : "false");
+    formData.append("normalize_audio", normalizeAudio ? "true" : "false");
+    formData.append("use_advanced_video", useAdvancedVideo ? "true" : "false");
+    formData.append("kids_mode", kidsMode ? "true" : "false");
+    formData.append("interactive_mode", interactiveMode ? "true" : "false");
 
     try {
       await axios.post("http://localhost:8000/api/v1/generate", formData, {
