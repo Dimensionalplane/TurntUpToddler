@@ -18,6 +18,7 @@ from hymn_remaker.src.musicxml_parser import MusicXMLParser
 from hymn_remaker.src.omr_processor import OMRProcessor
 from hymn_remaker.src.stem_separator import StemSeparator
 from hymn_remaker.src.radio_streamer import RadioStreamer
+from hymn_remaker.src.video_generator import AdvancedVideoGenerator
 
 logger = logging.getLogger("HymnRemakerAPI")
 logging.basicConfig(level=logging.INFO)
@@ -75,6 +76,7 @@ def get_modules():
                 "mxl_parser": MusicXMLParser(),
                 "omr_processor": OMRProcessor(),
                 "stem_separator": StemSeparator(),
+                "advanced_video_gen": AdvancedVideoGenerator(),
             }
         except Exception as e:
             logger.error(f"Failed to initialize modules: {e}")
@@ -91,6 +93,7 @@ async def generate_hymn(
     normalize_audio: bool = Form(True),
     fade_in_ms: int = Form(0),
     fade_out_ms: int = Form(0),
+    use_advanced_video: bool = Form(False),
 ):
     """
     Upload a MIDI file and asynchronously generate the hymn remake.
@@ -130,6 +133,8 @@ async def generate_hymn(
         fade_in_ms=fade_in_ms,
         fade_out_ms=fade_out_ms,
         generate_vocals=generate_vocals,
+        use_advanced_video=use_advanced_video,
+        advanced_video_gen=mods["advanced_video_gen"],
         status_callback=lambda msg, prog: asyncio.run_coroutine_threadsafe(manager.broadcast({"message": msg, "progress": prog}), loop)
     )
 

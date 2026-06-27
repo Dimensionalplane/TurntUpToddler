@@ -44,6 +44,10 @@ export default function Sidebar() {
             <input type="checkbox" className="rounded bg-gray-800 border-gray-700" />
             Kids Mode 👶
           </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" className="rounded bg-gray-800 border-gray-700" />
+            Advanced AI Video
+          </label>
         </div>
       </div>
     </div>

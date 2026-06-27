@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [5.38.0] - 2026-06-22
 ### Added
+- **Frontend Refactoring**: Scaffolded a Next.js (React) frontend and a robust FastAPI backend to decouple the user interface from the core generation pipeline.
+- **WebSocket Progress Streaming**: Implemented real-time progress logging via WebSockets to synchronize backend background tasks with the React UI.
+- **Docker Stack Orchestration**: Updated `docker-compose.yml` to support multi-container deployments (FastAPI backend + Next.js frontend).
+- **Streamlit Deprecation**: Fully removed the legacy monolithic `app.py` Streamlit application.
 - **Executive Sync Protocol**: Handled dual-direction intelligent merge engine, reconciling main and resolving upstream history drift.
 
 ## [5.37.0] - 2026-06-22

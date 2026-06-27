@@ -23,6 +23,7 @@ from hymn_remaker.src.stem_separator import StemSeparator
 from hymn_remaker.src.radio_streamer import RadioStreamer
 from hymn_remaker.src.utils import process_audio
 from hymn_remaker.src.children_song_finder import ChildrenSongFinder
+from hymn_remaker.src.video_generator import AdvancedVideoGenerator
 
 # Load environment variables
 load_dotenv()
@@ -225,7 +226,9 @@ def process_single_midi(
     enable_visualizer=False,
     visualizer_mode="cline",
     interactive_callback=None,
-    kids_mode=False):
+    kids_mode=False,
+    use_advanced_video=False,
+    advanced_video_gen=None):
 
     base_audio_path = remake_audio_path = metadata_path = vocal_track_path = None
     try:
@@ -431,8 +434,19 @@ def process_single_midi(
                         json.dump(metadata, f, indent=4)
                     update_status(f"Resuming pipeline...", 78)
 
-        # Generate the actual image using the (potentially edited) prompt
-        art_url = content_gen.generate_art(art_prompt)
+        # Generate the actual image using the (potentially edited) prompt or Advanced AI Video
+        art_url = None
+        background_video_path = None
+        if use_advanced_video and advanced_video_gen:
+            update_status(f"Generating advanced AI video background for {filename}...", 79)
+            background_video_path = os.path.join(output_dir, f"{name_no_ext}_bg.mp4")
+            advanced_video_gen.generate_video(art_prompt, background_video_path)
+            # If the generation fails, we fallback to static art
+            if not os.path.exists(background_video_path):
+                background_video_path = None
+                art_url = content_gen.generate_art(art_prompt)
+        else:
+            art_url = content_gen.generate_art(art_prompt)
 
         # Optional: Generate Vocals via ElevenLabs
         vocal_track_path = None
@@ -477,7 +491,8 @@ def process_single_midi(
             sub_back_color=sub_back_color,
             sub_box=sub_box,
             enable_visualizer=enable_visualizer,
-            visualizer_mode=visualizer_mode
+            visualizer_mode=visualizer_mode,
+            background_video_path=background_video_path
         )
 
         if create_shorts:

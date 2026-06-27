@@ -67,9 +67,9 @@ class VideoProducer:
             logger.error(f"Failed to create SRT: {e}")
             return False
 
-    def create_video(self, audio_path, image_url, output_path, lyrics=None, video_format="Standard 16:9", sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True, enable_visualizer=False, visualizer_mode="cline"):
+    def create_video(self, audio_path, image_url, output_path, lyrics=None, video_format="Standard 16:9", sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True, enable_visualizer=False, visualizer_mode="cline", background_video_path=None):
         """
-        Create an MP4 video from an audio file, image URL, and optional lyrics using ffmpeg.
+        Create an MP4 video from an audio file, an image URL (or a background video), and optional lyrics using ffmpeg.
 
         Args:
             audio_path (str): Path to the input audio file.
@@ -84,32 +84,38 @@ class VideoProducer:
         unique_id = uuid.uuid4().hex
         temp_image_path = f"temp_art_{unique_id}.png"
         temp_srt_path = f"{output_path}.srt"
-        # 1. Download the image to a temporary file, or copy if local
+        # 1. Download the image to a temporary file, or use background video
         try:
-            if image_url.startswith('http://') or image_url.startswith('https://'):
-                response = requests.get(image_url)
-                response.raise_for_status()
-                with open(temp_image_path, 'wb') as f:
-                    f.write(response.content)
-            else:
-                # Assume it's a local file path
-                if not os.path.exists(image_url):
-                    raise FileNotFoundError(f"Local image file not found: {image_url}")
-                shutil.copy2(image_url, temp_image_path)
+            is_video_bg = bool(background_video_path and os.path.exists(background_video_path))
+            if not is_video_bg:
+                if image_url.startswith('http://') or image_url.startswith('https://'):
+                    response = requests.get(image_url)
+                    response.raise_for_status()
+                    with open(temp_image_path, 'wb') as f:
+                        f.write(response.content)
+                else:
+                    # Assume it's a local file path
+                    if not os.path.exists(image_url):
+                        raise FileNotFoundError(f"Local image file not found: {image_url}")
+                    shutil.copy2(image_url, temp_image_path)
 
             # 2. Prepare SRT if lyrics are provided
             has_subtitles = False
             if lyrics:
                 has_subtitles = self._create_srt_file(lyrics, temp_srt_path)
 
-            # 3. Use ffmpeg to combine image and audio (and burn subtitles if available)
+            # 3. Use ffmpeg to combine image/video and audio (and burn subtitles if available)
             cmd = [
                 settings.FFMPEG_BIN,
                 "-y", # Overwrite output
-                "-loop", "1",
-                "-i", temp_image_path,
-                "-i", audio_path,
             ]
+
+            if is_video_bg:
+                cmd.extend(["-stream_loop", "-1", "-i", background_video_path])
+            else:
+                cmd.extend(["-loop", "1", "-i", temp_image_path])
+
+            cmd.extend(["-i", audio_path])
 
             # Helper to execute ffmpeg
             def run_ffmpeg(subtitles_enabled):
