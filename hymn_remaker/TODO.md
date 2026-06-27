@@ -6,8 +6,8 @@
 - [x] Implement `status_callback` deep into `tts_generator` for per-line progress updates.
 - [x] Add Submodules Dashboard tracking version compatibility to `app.py`.
 - [x] Kids Mode with COPPA compliance and automated nursery rhyme downloads.
-- [ ] Port `app.py` UI to a Next.js frontend with FastAPI backend.
-  - [ ] Initialize Next.js project.
-  - [ ] Add `RadioStreamer` and `Editor` API endpoints to `api.py`.
-  - [ ] Implement WebSocket logging for generation progress.
-  - [ ] Build React components (Sidebar, Dashboard, FileUploader, Player).
+- [x] Port `app.py` UI to a Next.js frontend with FastAPI backend.
+  - [x] Initialize Next.js project.
+  - [x] Add `RadioStreamer` and `Editor` API endpoints to `api.py`.
+  - [x] Implement WebSocket logging for generation progress.
+  - [x] Build React components (Sidebar, Dashboard, FileUploader, Player).

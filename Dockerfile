@@ -64,7 +64,6 @@ RUN pip install --no-cache-dir --no-deps \
     python-dotenv==1.1.1 \
     Pillow==11.3.0 \
     pydub==0.25.1 \
-    streamlit==1.57.0 \
     elevenlabs==2.46.0 \
     watchdog==6.0.0 \
     soundfile==0.12.1 \
@@ -72,17 +71,20 @@ RUN pip install --no-cache-dir --no-deps \
     music21==9.9.1 \
     pybind11==3.0.4 \
     redis==5.0.3 \
-    streamlit-autorefresh==1.0.1 \
     playwright-stealth==2.0.3 \
     pyrubberband==0.4.0 \
+    fastapi \
+    httpx \
+    pika \
+    websockets>=14.0 \
     && pip install --no-cache-dir \
     google-auth>=2.41 \
     google-api-core>=2.30 \
     elevenlabs>=2.46 \
-    streamlit>=1.57 \
     requests>=2.32 \
     numpy>=1.26 \
-    scipy>=1.14
+    scipy>=1.14 \
+    uvicorn
 
 # Copy compiled C++ extension from builder
 COPY --from=builder /build/hymn_player_ext*.so ./
@@ -93,8 +95,8 @@ COPY --from=ml-deps /usr/local/lib/python3.12/site-packages/ /usr/local/lib/pyth
 # Copy the rest of the application
 COPY . .
 
-# Expose Streamlit port
-EXPOSE 8501
+# Expose FastAPI port
+EXPOSE 8000
 
-# Default to running the Streamlit UI, but can be overridden in docker-compose for daemon mode
-CMD ["python", "-m", "streamlit", "run", "hymn_remaker/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# Default to running the FastAPI backend
+CMD ["uvicorn", "hymn_remaker.api:app", "--host", "0.0.0.0", "--port", "8000"]

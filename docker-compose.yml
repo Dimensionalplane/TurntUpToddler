@@ -1,11 +1,11 @@
 version: '3.8'
 
 services:
-  streamlit_ui:
+  backend:
     build: .
-    container_name: hymn_remaker_ui
+    container_name: hymn_remaker_backend
     ports:
-      - "8501:8501"
+      - "8000:8000"
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - REPLICATE_API_TOKEN=${REPLICATE_API_TOKEN}
@@ -15,6 +15,15 @@ services:
       - ./hymn_remaker/output:/app/hymn_remaker/output
       - ./.cache:/app/.cache
       - ./client_secrets.json:/app/client_secrets.json
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: hymn_remaker_frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
     restart: unless-stopped
 
   daemon:

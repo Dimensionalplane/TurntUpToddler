@@ -2,6 +2,8 @@ import os
 import sys
 from fastapi import FastAPI, File, UploadFile, Form, BackgroundTasks, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 import asyncio
 import logging
 
@@ -20,12 +22,22 @@ from hymn_remaker.src.radio_streamer import RadioStreamer
 logger = logging.getLogger("HymnRemakerAPI")
 logging.basicConfig(level=logging.INFO)
 
-app = FastAPI(title="Hymn Remaker API", version="1.26.0")
+app = FastAPI(title="Hymn Remaker API", version="5.38.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Ensure directories and DB exist
 os.makedirs("hymn_remaker/input", exist_ok=True)
 os.makedirs("hymn_remaker/output", exist_ok=True)
 init_db()
+
+app.mount("/output", StaticFiles(directory="hymn_remaker/output"), name="output")
 
 # Lazy load modules to prevent initialization errors on startup if keys are missing
 _modules = None
@@ -179,7 +191,8 @@ async def radio_status():
 @app.post("/api/v1/editor/preview")
 async def editor_preview(file: UploadFile = File(...)):
     file_bytes = await file.read()
-    file_path = os.path.join("hymn_remaker/input", f"edit_{file.filename}")
+    safe_filename = os.path.basename(file.filename)
+    file_path = os.path.join("hymn_remaker/input", f"edit_{safe_filename}")
     with open(file_path, "wb") as f:
         f.write(file_bytes)
 
