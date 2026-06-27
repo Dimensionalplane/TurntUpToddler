@@ -13,18 +13,29 @@ export default function RadioPage() {
   const fetchStatus = async () => {
     try {
       const res = await axios.get("http://localhost:8000/api/v1/radio/status");
-      setIsStreaming(res.data.status === "streaming");
-      setCurrentTrack(res.data.current_track);
+      return res.data;
     } catch (err) {
       console.error("Failed to fetch radio status", err);
+      return null;
     }
   };
 
   useEffect(() => {
-    fetchStatus();
-    // Poll status every 5 seconds
-    const interval = setInterval(fetchStatus, 5000);
-    return () => clearInterval(interval);
+    let isMounted = true;
+    const updateStatus = async () => {
+      const data = await fetchStatus();
+      if (isMounted && data) {
+        setIsStreaming(data.status === "streaming");
+        setCurrentTrack(data.current_track);
+      }
+    };
+
+    updateStatus();
+    const interval = setInterval(updateStatus, 5000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   const handleStart = async () => {
@@ -40,9 +51,17 @@ export default function RadioPage() {
     try {
       await axios.post("http://localhost:8000/api/v1/radio/start", formData);
       setIsStreaming(true);
-      fetchStatus();
-    } catch (err: any) {
-      setErrorMsg(err.response?.data?.message || "Failed to start radio stream");
+      // Wait a moment then fetch the new track playing status
+      setTimeout(async () => {
+        const data = await fetchStatus();
+        if (data) setCurrentTrack(data.current_track);
+      }, 1000);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setErrorMsg(err.response?.data?.message || "Failed to start radio stream");
+      } else {
+        setErrorMsg("Failed to start radio stream");
+      }
     }
   };
 
