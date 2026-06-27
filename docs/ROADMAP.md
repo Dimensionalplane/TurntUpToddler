@@ -65,3 +65,6 @@ This document outlines the high-level trajectory of the Hymn Remaker project, tr
 - [x] **Expanded Kids Mode Pipeline:** Integrated additional curated public domain children's songs (e.g., itsy_bitsy_spider) to the automated nursery rhyme downloader and reinforced child-friendly metadata parsing.
 - [x] **Distroless/Alpine Docker Image:** The massive dependencies of PyTorch (`demucs`), OpenCV, and ONNX Runtime (`oemer`) bloat the `hymn_remaker:latest` container. A multi-stage Docker build separating the AI inference models from the Streamlit UI web container will drastically cut deployment size.
 - [ ] **Frontend Refactoring:** Porting `app.py` away from Streamlit into a Next.js / React application, while exposing the python logic through a `FastAPI` backend.
+  - [ ] Implement robust REST APIs and WebSocket endpoints in `api.py`.
+  - [ ] Scaffold Next.js project with TailwindCSS.
+  - [ ] Migrate Streamlit UI components into reusable React components.
