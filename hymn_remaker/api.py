@@ -21,6 +21,9 @@ from hymn_remaker.src.omr_processor import OMRProcessor
 from hymn_remaker.src.stem_separator import StemSeparator
 from hymn_remaker.src.radio_streamer import RadioStreamer
 from hymn_remaker.src.video_generator import AdvancedVideoGenerator
+from hymn_remaker.src.suno_remaker import SunoRemaker
+from hymn_remaker.src.children_song_finder import ChildrenSongFinder
+import glob
 
 logger = logging.getLogger("HymnRemakerAPI")
 logging.basicConfig(level=logging.INFO)
@@ -105,6 +108,7 @@ def get_modules():
                 "omr_processor": OMRProcessor(),
                 "stem_separator": StemSeparator(),
                 "advanced_video_gen": AdvancedVideoGenerator(),
+                "suno_remaker": SunoRemaker(),
             }
         except Exception as e:
             logger.error(f"Failed to initialize modules: {e}")
@@ -115,7 +119,7 @@ def get_modules():
 @app.post("/api/v1/generate")
 async def generate_hymn(
     background_tasks: BackgroundTasks,
-    file: UploadFile = File(...),
+    file: UploadFile = File(None),
     style: str = Form("Deep House, high quality, electronic"),
     generate_vocals: bool = Form(False),
     normalize_audio: bool = Form(True),
@@ -124,20 +128,44 @@ async def generate_hymn(
     use_advanced_video: bool = Form(False),
     kids_mode: bool = Form(False),
     interactive_mode: bool = Form(False),
+    remake_priority: str = Form("suno"),
 ):
     """
     Upload a MIDI file and asynchronously generate the hymn remake.
     """
-    file_bytes = await file.read()
 
-    # Strict validation
-    if len(file_bytes) < 4 or file_bytes[:4] != b'MThd':
-        raise HTTPException(status_code=400, detail="Invalid MIDI file uploaded. Missing MThd header.")
+    file_path = None
+    safe_filename = "kids_mode_fallback.mid"
 
-    safe_filename = os.path.basename(file.filename)
-    file_path = os.path.join("hymn_remaker/input", safe_filename)
-    with open(file_path, "wb") as f:
-        f.write(file_bytes)
+    if file:
+        file_bytes = await file.read()
+        # Strict validation
+        if not (len(file_bytes) >= 4 and (file_bytes[:4] == b'MThd' or file_bytes[:4] == b'<?xm' or b'<score-partwise' in file_bytes[:100])):
+            raise HTTPException(status_code=400, detail="Invalid MIDI/XML file uploaded.")
+
+        safe_filename = os.path.basename(file.filename)
+        file_path = os.path.join("hymn_remaker/input", safe_filename)
+        with open(file_path, "wb") as f:
+            f.write(file_bytes)
+    elif kids_mode:
+        # If Kids mode is on and no file was provided, trigger the fallback downloader
+        existing_inputs = (
+            glob.glob(os.path.join("hymn_remaker/input", "*.mid")) +
+            glob.glob(os.path.join("hymn_remaker/input", "*.midi"))
+        )
+        if not existing_inputs:
+            logger.info("Kids Mode is enabled and input directory is empty. Downloading curated nursery rhymes...")
+            finder = ChildrenSongFinder()
+            downloaded = finder.download_all("hymn_remaker/input")
+            if downloaded:
+                file_path = downloaded[0]
+                safe_filename = os.path.basename(file_path)
+        else:
+            file_path = existing_inputs[0]
+            safe_filename = os.path.basename(file_path)
+
+    if not file_path:
+        raise HTTPException(status_code=400, detail="No file uploaded and Kids Mode fallback failed.")
 
     # Load modules
     mods = get_modules()
