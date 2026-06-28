@@ -18,7 +18,7 @@
 - [x] Support for multiple input formats beyond MIDI (MusicXML, sheet music PDFs via OMR).
 - [x] TikTok/Instagram Reels native vertical video formatting.
 - [x] Automated short-form clip extraction from the main video.
-- [ ] Integration with advanced video generation AI (e.g., Runway Gen-2, Sora) to replace static DALL-E album art with dynamic, reactive music videos.
+- [x] Integration with advanced video generation AI (e.g., Runway Gen-2, Sora) to replace static DALL-E album art with dynamic, reactive music videos.
 
 ## Phase 4: Autonomy
 - [x] "Always-on" daemon mode that monitors an inbox, generates content overnight, and schedules uploads without user invocation.

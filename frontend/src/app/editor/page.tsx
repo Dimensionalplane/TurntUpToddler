@@ -25,13 +25,11 @@ export default function EditorPage() {
     formData.append("file", file);
 
     try {
-      // Assuming you have your fastapi server running on 8000
-      // In a real app this url would be an env var
-      const res = await axios.post("http://localhost:8000/api/v1/editor/preview", formData, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const res = await axios.post(`${apiUrl}/api/v1/editor/preview`, formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
-      // Assuming backend serves the output dir statically at /output
-      setPreviewUrl(`http://localhost:8000${res.data.preview_url}`);
+      setPreviewUrl(`${apiUrl}${res.data.preview_url}`);
     } catch (err) {
       console.error(err);
       alert("Failed to render preview");
@@ -114,6 +112,12 @@ export default function EditorPage() {
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 opacity-60">
           <h2 className="text-xl font-bold mb-4">3. Metadata Extraction (Coming Soon)</h2>
           <p className="text-gray-600 mb-4">Extract precise note-by-note synchronization from MusicXML files.</p>
+        </div>
+
+        {/* Cluster Rendering */}
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 opacity-60">
+          <h2 className="text-xl font-bold mb-4">4. Cluster Rendering (RabbitMQ)</h2>
+          <p className="text-gray-600 mb-4">Submit generation jobs to a RabbitMQ render cluster.</p>
         </div>
       </div>
     </div>

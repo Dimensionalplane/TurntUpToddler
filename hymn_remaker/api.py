@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import asyncio
 from fastapi.concurrency import run_in_threadpool
 import logging
+import json
 
 from hymn_remaker.main import process_single_midi
 from hymn_remaker.src.db import get_history, init_db
@@ -49,6 +50,7 @@ _radio_streamer = None
 class ConnectionManager:
     def __init__(self):
         self.active_connections: list[WebSocket] = []
+        self.pending_interactions = {}
 
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
@@ -60,7 +62,32 @@ class ConnectionManager:
 
     async def broadcast(self, message: dict):
         for connection in self.active_connections:
-            await connection.send_json(message)
+            try:
+                await connection.send_json(message)
+            except Exception:
+                pass
+
+    async def request_interactive_review(self, data: dict):
+        # We broadcast the request and wait for a response
+        job_id = data.get("job_id", "default")
+        self.pending_interactions[job_id] = asyncio.Future()
+
+        await self.broadcast({
+            "type": "interactive_review_request",
+            "job_id": job_id,
+            "data": data
+        })
+
+        # Wait until the frontend sends back the updated payload
+        try:
+            # Add a timeout so background thread doesn't hang forever if user closes tab
+            result = await asyncio.wait_for(self.pending_interactions[job_id], timeout=300) # 5 min timeout
+            return result
+        except asyncio.TimeoutError:
+            logger.warning(f"Interactive review timeout for {job_id}")
+            return None
+        finally:
+            self.pending_interactions.pop(job_id, None)
 
 manager = ConnectionManager()
 
@@ -107,7 +134,8 @@ async def generate_hymn(
     if len(file_bytes) < 4 or file_bytes[:4] != b'MThd':
         raise HTTPException(status_code=400, detail="Invalid MIDI file uploaded. Missing MThd header.")
 
-    file_path = os.path.join("hymn_remaker/input", file.filename)
+    safe_filename = os.path.basename(file.filename)
+    file_path = os.path.join("hymn_remaker/input", safe_filename)
     with open(file_path, "wb") as f:
         f.write(file_bytes)
 
@@ -116,6 +144,14 @@ async def generate_hymn(
 
     # Run the pipeline in the background so the HTTP request doesn't timeout
     loop = asyncio.get_running_loop()
+
+    def sync_interactive_callback(data):
+        if not interactive_mode:
+            return None
+        data["job_id"] = safe_filename
+        future = asyncio.run_coroutine_threadsafe(manager.request_interactive_review(data), loop)
+        return future.result()
+
     background_tasks.add_task(
         process_single_midi,
         midi_path=file_path,
@@ -139,13 +175,13 @@ async def generate_hymn(
         use_advanced_video=use_advanced_video,
         advanced_video_gen=mods["advanced_video_gen"],
         kids_mode=kids_mode,
-        interactive_callback=None, # TBD: Hook up websockets for interactive review pause
+        interactive_callback=sync_interactive_callback,
         status_callback=lambda msg, prog: asyncio.run_coroutine_threadsafe(manager.broadcast({"message": msg, "progress": prog}), loop)
     )
 
     return JSONResponse(content={
         "status": "accepted",
-        "message": f"File {file.filename} is being processed in the background.",
+        "message": f"File {safe_filename} is being processed in the background.",
         "configuration": {
             "style": style,
             "generate_vocals": generate_vocals,
@@ -159,8 +195,14 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_text()
-            # Handle incoming WebSocket messages if needed, otherwise just keep alive
-            await websocket.send_text(f"Message text was: {data}")
+            try:
+                msg = json.loads(data)
+                if msg.get("type") == "interactive_review_response":
+                    job_id = msg.get("job_id", "default")
+                    if job_id in manager.pending_interactions and not manager.pending_interactions[job_id].done():
+                        manager.pending_interactions[job_id].set_result(msg.get("data"))
+            except Exception:
+                pass
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 
@@ -208,24 +250,23 @@ async def editor_preview(file: UploadFile = File(...)):
 
     mods = get_modules()
     renderer = mods["renderer"]
-    out_audio = os.path.join("hymn_remaker/output", "edit_preview.wav")
+    out_audio = os.path.join("hymn_remaker/output", f"edit_preview_{safe_filename}.wav")
 
     target_path = file_path
     if file_path.lower().endswith('.mxl') or file_path.lower().endswith('.xml'):
-        target_path = os.path.join("hymn_remaker/output", "edit_preview.mid")
+        target_path = os.path.join("hymn_remaker/output", f"edit_preview_{safe_filename}.mid")
         mods["mxl_parser"].process(file_path, target_path)
 
     # Run the heavy C++ render operation in a background thread to prevent blocking the async loop
     await run_in_threadpool(renderer.render, target_path, out_audio)
 
-    return {"status": "success", "preview_url": f"/output/edit_preview.wav"}
+    return {"status": "success", "preview_url": f"/output/edit_preview_{safe_filename}.wav"}
 
 @app.get("/api/v1/history")
 def get_generation_history():
     """Retrieve all successfully generated hymns from the SQLite database."""
     history = get_history()
     return {"status": "success", "data": history}
-
 
 @app.get("/api/v1/system")
 def get_system_status():

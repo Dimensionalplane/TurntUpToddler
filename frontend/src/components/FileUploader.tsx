@@ -18,7 +18,10 @@ export default function FileUploader() {
     let ws: WebSocket;
     if (isUploading) {
       // Connect to WebSocket for progress updates
-      ws = new WebSocket("ws://localhost:8000/api/v1/ws");
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      // Convert http:// to ws://
+      const wsUrl = apiUrl.replace(/^http/, 'ws') + "/api/v1/ws";
+      ws = new WebSocket(wsUrl);
 
       ws.onmessage = (event) => {
         try {
@@ -72,7 +75,8 @@ export default function FileUploader() {
     formData.append("interactive_mode", interactiveMode ? "true" : "false");
 
     try {
-      await axios.post("http://localhost:8000/api/v1/generate", formData, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      await axios.post(`${apiUrl}/api/v1/generate`, formData, {
         headers: {
           "Content-Type": "multipart/form-data"
         }

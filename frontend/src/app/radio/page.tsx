@@ -12,7 +12,8 @@ export default function RadioPage() {
 
   const fetchStatus = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/v1/radio/status");
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const res = await axios.get(`${apiUrl}/api/v1/radio/status`);
       return res.data;
     } catch (err) {
       console.error("Failed to fetch radio status", err);
@@ -49,7 +50,8 @@ export default function RadioPage() {
     formData.append("rtmp_url", rtmpUrl);
 
     try {
-      await axios.post("http://localhost:8000/api/v1/radio/start", formData);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      await axios.post(`${apiUrl}/api/v1/radio/start`, formData);
       setIsStreaming(true);
       // Wait a moment then fetch the new track playing status
       setTimeout(async () => {
@@ -67,7 +69,8 @@ export default function RadioPage() {
 
   const handleStop = async () => {
     try {
-      await axios.post("http://localhost:8000/api/v1/radio/stop");
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      await axios.post(`${apiUrl}/api/v1/radio/stop`);
       setIsStreaming(false);
       setCurrentTrack(null);
     } catch (err) {
@@ -77,7 +80,8 @@ export default function RadioPage() {
 
   const handleSkip = async () => {
     try {
-      await axios.post("http://localhost:8000/api/v1/radio/skip");
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      await axios.post(`${apiUrl}/api/v1/radio/skip`);
       // Status polling will catch the update shortly
     } catch (err) {
       console.error(err);
