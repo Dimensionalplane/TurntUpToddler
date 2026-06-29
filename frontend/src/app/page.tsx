@@ -1,4 +1,5 @@
 import FileUploader from "@/components/FileUploader";
+import HistoryList from "@/components/HistoryList";
 import { Info } from "lucide-react";
 
 export default function Home() {
@@ -32,9 +33,7 @@ export default function Home() {
 
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <h3 className="font-semibold text-gray-800 mb-4">Recent Generations</h3>
-            <div className="text-sm text-gray-500 space-y-3">
-              <p>Loading history...</p>
-            </div>
+            <HistoryList />
           </div>
         </div>
       </div>
