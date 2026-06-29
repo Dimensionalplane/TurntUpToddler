@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Upload, Play, CheckCircle } from 'lucide-react';
 import axios from 'axios';
 import { useSettings } from '@/context/SettingsContext';
+import InteractiveReviewModal from './InteractiveReviewModal';
 
 export default function FileUploader() {
   const { generateVocals, normalizeAudio, useAdvancedVideo, kidsMode, stylePrompt, interactiveMode } = useSettings();
@@ -12,6 +13,9 @@ export default function FileUploader() {
   const [progress, setProgress] = useState(0);
   const [statusMsg, setStatusMsg] = useState("");
   const [isComplete, setIsComplete] = useState(false);
+  const [reviewRequest, setReviewRequest] = useState<any>(null);
+  const [activeWs, setActiveWs] = useState<WebSocket | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -22,19 +26,26 @@ export default function FileUploader() {
       // Convert http:// to ws://
       const wsUrl = apiUrl.replace(/^http/, 'ws') + "/api/v1/ws";
       ws = new WebSocket(wsUrl);
+      setActiveWs(ws);
 
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          if (data.progress !== undefined) {
-            setProgress(data.progress);
-          }
-          if (data.message) {
-            setStatusMsg(data.message);
-          }
-          if (data.progress === 100) {
-            setIsComplete(true);
-            setIsUploading(false);
+
+          if (data.type === "interactive_review_request") {
+             setReviewRequest(data);
+             setStatusMsg("Paused for interactive review...");
+          } else {
+              if (data.progress !== undefined) {
+                setProgress(data.progress);
+              }
+              if (data.message) {
+                setStatusMsg(data.message);
+              }
+              if (data.progress === 100) {
+                setIsComplete(true);
+                setIsUploading(false);
+              }
           }
         } catch (e) {
           console.error("Failed to parse websocket message", e);
@@ -45,7 +56,10 @@ export default function FileUploader() {
     }
 
     return () => {
-      if (ws) ws.close();
+      if (ws) {
+          ws.close();
+          setActiveWs(null);
+      }
     };
   }, [isUploading]);
 
@@ -90,72 +104,82 @@ export default function FileUploader() {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-      <h2 className="text-xl font-bold mb-4">Start Pipeline</h2>
+    <>
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <h2 className="text-xl font-bold mb-4">Start Pipeline</h2>
 
-      <div
-        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition ${file ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}`}
-        onClick={() => fileInputRef.current?.click()}
-      >
-        <input
-          type="file"
-          ref={fileInputRef}
-          className="hidden"
-          accept=".mid,.midi,.mxl,.xml"
-          onChange={handleFileChange}
-        />
+        <div
+          className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition ${file ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}`}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept=".mid,.midi,.mxl,.xml"
+            onChange={handleFileChange}
+          />
 
-        <Upload className={`w-10 h-10 mx-auto mb-3 ${file ? 'text-blue-500' : 'text-gray-400'}`} />
+          <Upload className={`w-10 h-10 mx-auto mb-3 ${file ? 'text-blue-500' : 'text-gray-400'}`} />
 
-        {file ? (
-          <div>
-            <p className="font-semibold text-blue-700">{file.name}</p>
-            <p className="text-sm text-blue-500 mt-1">{(file.size / 1024).toFixed(2)} KB</p>
-          </div>
-        ) : (
-          <div>
-            <p className="font-medium text-gray-700">Click to upload MIDI or MusicXML file</p>
-            <p className="text-sm text-gray-500 mt-1">Drag and drop is supported</p>
+          {file ? (
+            <div>
+              <p className="font-semibold text-blue-700">{file.name}</p>
+              <p className="text-sm text-blue-500 mt-1">{(file.size / 1024).toFixed(2)} KB</p>
+            </div>
+          ) : (
+            <div>
+              <p className="font-medium text-gray-700">Click to upload MIDI or MusicXML file</p>
+              <p className="text-sm text-gray-500 mt-1">Drag and drop is supported</p>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-6">
+          <button
+            onClick={handleUpload}
+            disabled={!file || isUploading}
+            className={`w-full py-3 rounded-lg flex items-center justify-center gap-2 font-medium transition ${!file || isUploading ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+          >
+            {isUploading ? (
+              <span>Processing...</span>
+            ) : (
+              <>
+                <Play className="w-5 h-5" />
+                Generate Hymn
+              </>
+            )}
+          </button>
+        </div>
+
+        {(isUploading || isComplete || statusMsg) && (
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+            <div className="flex justify-between text-sm mb-2">
+              <span className="font-medium text-gray-700">Status: {statusMsg}</span>
+              <span className="text-gray-500">{progress}%</span>
+            </div>
+
+            <div className="w-full bg-gray-200 rounded-full h-2.5">
+              <div className="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
+            </div>
+
+            {isComplete && (
+              <div className="mt-4 flex items-center gap-2 text-green-600 font-medium">
+                <CheckCircle className="w-5 h-5" />
+                Generation Complete!
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      <div className="mt-6">
-        <button
-          onClick={handleUpload}
-          disabled={!file || isUploading}
-          className={`w-full py-3 rounded-lg flex items-center justify-center gap-2 font-medium transition ${!file || isUploading ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
-        >
-          {isUploading ? (
-            <span>Processing...</span>
-          ) : (
-            <>
-              <Play className="w-5 h-5" />
-              Generate Hymn
-            </>
-          )}
-        </button>
-      </div>
-
-      {(isUploading || isComplete || statusMsg) && (
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <div className="flex justify-between text-sm mb-2">
-            <span className="font-medium text-gray-700">Status: {statusMsg}</span>
-            <span className="text-gray-500">{progress}%</span>
-          </div>
-
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
-            <div className="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
-          </div>
-
-          {isComplete && (
-            <div className="mt-4 flex items-center gap-2 text-green-600 font-medium">
-              <CheckCircle className="w-5 h-5" />
-              Generation Complete!
-            </div>
-          )}
-        </div>
+      {reviewRequest && (
+        <InteractiveReviewModal
+          ws={activeWs}
+          requestData={reviewRequest}
+          onClose={() => setReviewRequest(null)}
+        />
       )}
-    </div>
+    </>
   );
 }
