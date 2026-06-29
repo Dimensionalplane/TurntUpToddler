@@ -12,7 +12,8 @@ export default function Sidebar() {
     kidsMode, setKidsMode,
     useAdvancedVideo, setUseAdvancedVideo,
     stylePrompt, setStylePrompt,
-    interactiveMode, setInteractiveMode
+    interactiveMode, setInteractiveMode,
+    remakePriority, setRemakePriority
   } = useSettings();
 
   return (
@@ -40,7 +41,7 @@ export default function Sidebar() {
         </Link>
       </nav>
 
-      <div className="mt-auto border-t border-gray-800 pt-4">
+      <div className="mt-auto border-t border-gray-800 pt-4 overflow-y-auto">
         <h2 className="text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wider">Quick Settings</h2>
 
         <div className="space-y-3">
@@ -53,6 +54,17 @@ export default function Sidebar() {
               onChange={(e) => setStylePrompt(e.target.value)}
               placeholder="e.g. Deep House, high quality..."
             />
+          </label>
+          <label className="flex flex-col gap-1 text-sm mb-4">
+            <span className="text-gray-400">Remake AI Engine</span>
+            <select
+              className="rounded bg-gray-800 border-gray-700 p-2 text-white outline-none focus:ring-1 focus:ring-blue-500"
+              value={remakePriority}
+              onChange={(e) => setRemakePriority(e.target.value as "suno" | "replicate")}
+            >
+              <option value="suno">Suno AI (v3)</option>
+              <option value="replicate">Replicate (MusicGen)</option>
+            </select>
           </label>
           <label className="flex items-center gap-2 text-sm">
             <input

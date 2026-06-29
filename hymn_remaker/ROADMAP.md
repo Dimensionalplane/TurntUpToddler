@@ -13,4 +13,5 @@
 - [x] Kids Mode pipeline (automated nursery rhyme search, COPPA youtube uploader compliance, children storybook prompting).
 - [x] Expanded Kids Mode Pipeline (added more curated public domain songs to the automated downloader).
 - [x] Frontend Refactoring (Next.js / React UI with FastAPI backend).
-
+- [ ] Docker Optimization (shrink image, transition heavy ML into microservices).
+- [ ] Suno.ai / Udio TTS Integration.

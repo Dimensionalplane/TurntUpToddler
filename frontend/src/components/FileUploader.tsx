@@ -7,7 +7,7 @@ import { useSettings } from '@/context/SettingsContext';
 import InteractiveReviewModal from './InteractiveReviewModal';
 
 export default function FileUploader() {
-  const { generateVocals, normalizeAudio, useAdvancedVideo, kidsMode, stylePrompt, interactiveMode } = useSettings();
+  const { generateVocals, normalizeAudio, useAdvancedVideo, kidsMode, stylePrompt, interactiveMode, remakePriority } = useSettings();
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -87,6 +87,7 @@ export default function FileUploader() {
     formData.append("use_advanced_video", useAdvancedVideo ? "true" : "false");
     formData.append("kids_mode", kidsMode ? "true" : "false");
     formData.append("interactive_mode", interactiveMode ? "true" : "false");
+    formData.append("remake_priority", remakePriority);
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";

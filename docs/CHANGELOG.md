@@ -2,19 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.26.1] - Current
+## [5.38.1] - 2026-06-29
+### Added
+- Implemented `InteractiveReviewModal.tsx` React component, re-enabling pipeline pausing and live metadata edits during generation.
+- Integrated `InteractiveReviewModal` into `FileUploader.tsx`.
+
 ### Changed
-- **Submodule Renaming**: Renamed the submodule directory and all internal/external configurations from `hymnmania` to `TUT` to match the new naming scheme.
-- **Branch Merging**: Fast-forwarded and merged all development branches (including `origin/master`) into the `main` branch.
-- **Reference Updates**: Renamed all instances of `hymnmania` in docs and inventory manifests to `TUT`.
-
-## [1.26.0] - 2026-05-20
-### Added
-- **Multi-Voice Spatial Expansion via PyRubberband**: Upgraded the ElevenLabs choral harmony algorithm. By replacing crude framerate shifting with high-fidelity `pyrubberband` pitch-shifting, parallel vocal tracks are now perfectly pitch-shifted (+4 and +7 semitones) without altering their temporal duration. This results in significantly clearer, crisper multi-part harmonies.
-
-## [1.25.1] - Previous
-### Added
-- **Redis Render Polling System**: Connected the Streamlit UI to a Redis state store to actively poll and reflect the status of tasks queued in the RabbitMQ render cluster.
-- **Headless Worker Microservice**: Added `worker.py` daemon capable of pulling from RabbitMQ and updating Redis.
-- **Exhaustive Documentation Pivot**: Massively expanded `VISION.md`, `ROADMAP.md`, `TODO.md`, `LIBRARIES.md`, and `HANDOFF.md` to capture the new microservices architecture and absolute autonomous generation goals.
-- **Universal LLM Agent Rules**: Prepared rollout of universal instruction sets (`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `GPT.md`, `copilot-instructions.md`) to standardize documentation, versioning, and feature progression across all future AI agent sessions.
+- Expanded `ChildrenSongFinder` to dynamically scrape BitMidi, removing the limit of only 5 hardcoded public domain songs.
+- Updated Next.js application frontend.
+- Updated `Player.tsx` interface to accept `url` properly.

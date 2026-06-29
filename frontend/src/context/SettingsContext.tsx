@@ -15,6 +15,8 @@ interface SettingsContextType {
   setStylePrompt: (val: string) => void;
   interactiveMode: boolean;
   setInteractiveMode: (val: boolean) => void;
+  remakePriority: "suno" | "replicate";
+  setRemakePriority: (val: "suno" | "replicate") => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -26,6 +28,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [useAdvancedVideo, setUseAdvancedVideo] = useState(false);
   const [stylePrompt, setStylePrompt] = useState("Deep House, high quality, electronic");
   const [interactiveMode, setInteractiveMode] = useState(false);
+  const [remakePriority, setRemakePriority] = useState<"suno" | "replicate">("suno");
 
   return (
     <SettingsContext.Provider value={{
@@ -34,7 +37,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       kidsMode, setKidsMode,
       useAdvancedVideo, setUseAdvancedVideo,
       stylePrompt, setStylePrompt,
-      interactiveMode, setInteractiveMode
+      interactiveMode, setInteractiveMode,
+      remakePriority, setRemakePriority
     }}>
       {children}
     </SettingsContext.Provider>

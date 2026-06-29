@@ -11,3 +11,4 @@
   - [x] Add `RadioStreamer` and `Editor` API endpoints to `api.py`.
   - [x] Implement WebSocket logging for generation progress.
   - [x] Build React components (Sidebar, Dashboard, FileUploader, Player).
+  - [x] Interactive Review Modal component.
