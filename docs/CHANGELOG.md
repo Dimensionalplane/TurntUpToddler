@@ -2,7 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.26.1] - Current
+## [5.39.0] - Current
+### Added
+- **Editor Metadata API**: Implemented `/api/v1/editor/metadata` endpoint in `hymn_remaker/api.py` to extract note-by-note synchronization from MusicXML files.
+- **Cluster Rendering API**: Implemented `/api/v1/editor/cluster` endpoint in `hymn_remaker/api.py` to submit generation jobs to a RabbitMQ render cluster.
+- **Editor Frontend Integration**: Updated `frontend/src/app/editor/page.tsx` to include interactive UI elements for Metadata Extraction and Cluster Rendering jobs, including descriptive tooltips.
+
+## [1.26.1] - Previous
 ### Changed
 - **Submodule Renaming**: Renamed the submodule directory and all internal/external configurations from `hymnmania` to `TUT` to match the new naming scheme.
 - **Branch Merging**: Fast-forwarded and merged all development branches (including `origin/master`) into the `main` branch.

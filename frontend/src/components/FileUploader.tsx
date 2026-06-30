@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, Play, CheckCircle, Download } from 'lucide-react';
+import { Upload, Play, CheckCircle, Download, Info } from 'lucide-react';
 import axios from 'axios';
 import { useSettings } from '@/context/SettingsContext';
 import InteractiveReviewModal from './InteractiveReviewModal';
@@ -165,7 +165,7 @@ export default function FileUploader() {
             ) : (
               <>
                 <Play className="w-5 h-5" />
-                Generate Hymn
+                Generate Hymn <span title="Starts the automated pipeline for the uploaded file using current sidebar settings."><Info className="w-4 h-4 text-white opacity-70 cursor-help" /></span>
               </>
             )}
           </button>
@@ -181,7 +181,7 @@ export default function FileUploader() {
               ) : (
                 <>
                   <Download className="w-5 h-5" />
-                  Auto-Scrape BitMidi
+                  Auto-Scrape BitMidi <span title="Dynamically searches BitMidi for public domain nursery rhymes and automatically queues them for generation (only visible when Kids Mode is active)."><Info className="w-4 h-4 text-white opacity-70 cursor-help" /></span>
                 </>
               )}
             </button>
