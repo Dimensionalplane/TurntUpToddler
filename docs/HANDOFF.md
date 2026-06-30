@@ -1,14 +1,12 @@
 # HANDOFF.md: Project Architecture, History, and Next Steps
-**Version:** 5.38.1
-**Date:** 2026-06-29
+**Version:** 5.38.0
+**Date:** 2026-06-22
 
 ## Session Overview & Merges
 During this synchronization session, I performed an "EXECUTIVE PROTOCOL: REPOSITORY SYNCHRONIZATION & INTELLIGENT MERGE".
-1. Synchronized the local `main` branch with the upstream active progress branch.
-2. Completed frontend refactoring, completely removing `app.py` Streamlit logic in favor of a modern, responsive React 19/Next.js 15 application connected to a new `api.py` FastAPI backend.
-3. Addressed frontend technical debt by building out the Interactive Review Modal, allowing real-time interception of AI generation using WebSockets.
-4. Expanded Kids Mode by incorporating a dynamic BitMidi scraper, removing the reliance on a hardcoded list of songs.
-5. All roadmap tasks have been successfully completed.
+1. Synchronized the local `main` branch with the upstream active progress branch `origin/main-12830181781022804878`. This safely brought in the `Kids Mode` expansion, unit test validations, and the `5.37.0` version bumps.
+2. Evaluated other remote branches (`origin/feat/comprehensive-docs-and-tts-params-16556208438382467677` and `origin/jules-v1-27-0-docker-optimization-988672604789333865`). These branches had completely "unrelated histories" and massive tree-wide conflicts on every file resulting from a bad repository initialization state. As per the directive to "prevent regressions," I aborted these destructive merges.
+3. Updated the global `VERSION` to `5.38.0` to finalize this sync session.
 
 ## Current State
 The `hymn_remaker` project is an incredibly robust, automated AI pipeline for transforming public domain `.mid` files into modern, YouTube-ready music videos. It features parallel processing, Web UI, dynamic audio processing, and professional AI integrations (OpenAI, Replicate, ElevenLabs).
@@ -20,4 +18,5 @@ Based on the `ROADMAP.md` and `IDEAS.md`, the pipeline is extremely robust and f
 
 The next recommended frontier is:
 1. **Docker Optimization:** The multi-stage build is currently bloated by heavy ML dependencies (`oemer`, PyTorch for `demucs`, OpenCV). Future architectural work should focus on shrinking the runtime container (e.g., Alpine/Distroless) and potentially isolating ML inference into microservices.
-2. **Suno.ai / Udio TTS Integration:** Attempting to pivot from ElevenLabs (spoken word/choral TTS) into true generated "singing" by exploring unofficial/official APIs for Suno.ai or Udio. The `suno_api.py`, `suno_browser.py`, and `suno_remaker.py` files have been implemented or stubbed, and require deep testing to fully integrate into the active pipeline.
+2. **Frontend Refactoring:** Porting `app.py` away from Streamlit into a Next.js / React application, while exposing the python logic through a `FastAPI` backend.
+3. **Suno.ai / Udio TTS Integration:** Attempting to pivot from ElevenLabs (spoken word/choral TTS) into true generated "singing" by exploring unofficial/official APIs for Suno.ai or Udio.

@@ -2,10 +2,14 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Play, Pause, Volume2, SkipBack, SkipForward } from 'lucide-react';
 
 interface PlayerProps {
-  src: string;
+  url?: string;
+  src?: string;
+  type?: string;
+  title?: string;
 }
 
-export default function Player({ src }: PlayerProps) {
+export default function Player({ url, src, type, title }: PlayerProps) {
+  const mediaUrl = url || src;
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -13,7 +17,7 @@ export default function Player({ src }: PlayerProps) {
   useEffect(() => {
     setIsPlaying(false);
     setProgress(0);
-  }, [src]);
+  }, [mediaUrl]);
 
   const togglePlay = () => {
     if (audioRef.current) {
@@ -42,11 +46,14 @@ export default function Player({ src }: PlayerProps) {
     }
   };
 
+  if (!mediaUrl) return null;
+
   return (
     <div className="bg-gray-900 text-white p-4 rounded-lg flex flex-col gap-3">
+      {title && <h4 className="text-sm text-gray-400 font-medium mb-1">{title}</h4>}
       <audio
         ref={audioRef}
-        src={src}
+        src={mediaUrl}
         onTimeUpdate={handleTimeUpdate}
         onEnded={() => setIsPlaying(false)}
       />

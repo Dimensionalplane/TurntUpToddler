@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, Play, CheckCircle } from 'lucide-react';
+import { Upload, Play, CheckCircle, Download } from 'lucide-react';
 import axios from 'axios';
 import { useSettings } from '@/context/SettingsContext';
 import InteractiveReviewModal from './InteractiveReviewModal';
@@ -10,6 +10,7 @@ export default function FileUploader() {
   const { generateVocals, normalizeAudio, useAdvancedVideo, kidsMode, stylePrompt, interactiveMode, remakePriority } = useSettings();
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isScraping, setIsScraping] = useState(false);
   const [progress, setProgress] = useState(0);
   const [statusMsg, setStatusMsg] = useState("");
   const [isComplete, setIsComplete] = useState(false);
@@ -20,7 +21,7 @@ export default function FileUploader() {
 
   useEffect(() => {
     let ws: WebSocket;
-    if (isUploading) {
+    if (isUploading || isScraping) {
       // Connect to WebSocket for progress updates
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       // Convert http:// to ws://
@@ -45,6 +46,7 @@ export default function FileUploader() {
               if (data.progress === 100) {
                 setIsComplete(true);
                 setIsUploading(false);
+                setIsScraping(false);
               }
           }
         } catch (e) {
@@ -61,7 +63,7 @@ export default function FileUploader() {
           setActiveWs(null);
       }
     };
-  }, [isUploading]);
+  }, [isUploading, isScraping]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -69,6 +71,22 @@ export default function FileUploader() {
       setIsComplete(false);
       setProgress(0);
       setStatusMsg("");
+    }
+  };
+
+  const handleScrape = async () => {
+    setIsScraping(true);
+    setProgress(5);
+    setStatusMsg("Scraping BitMidi for nursery rhymes...");
+
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      await axios.post(`${apiUrl}/api/v1/kids/scrape`);
+      setStatusMsg("Scraping requested successfully. Pipeline will start automatically.");
+    } catch (err) {
+      console.error(err);
+      setStatusMsg("Scraping failed.");
+      setIsScraping(false);
     }
   };
 
@@ -136,11 +154,11 @@ export default function FileUploader() {
           )}
         </div>
 
-        <div className="mt-6">
+        <div className="mt-6 flex flex-col sm:flex-row gap-3">
           <button
             onClick={handleUpload}
-            disabled={!file || isUploading}
-            className={`w-full py-3 rounded-lg flex items-center justify-center gap-2 font-medium transition ${!file || isUploading ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+            disabled={!file || isUploading || isScraping}
+            className={`flex-1 py-3 rounded-lg flex items-center justify-center gap-2 font-medium transition ${!file || isUploading || isScraping ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
           >
             {isUploading ? (
               <span>Processing...</span>
@@ -151,9 +169,26 @@ export default function FileUploader() {
               </>
             )}
           </button>
+
+          {kidsMode && !file && (
+            <button
+              onClick={handleScrape}
+              disabled={isUploading || isScraping}
+              className={`flex-1 py-3 rounded-lg flex items-center justify-center gap-2 font-medium transition ${isUploading || isScraping ? 'bg-green-200 text-green-500 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700'}`}
+            >
+              {isScraping ? (
+                <span>Scraping...</span>
+              ) : (
+                <>
+                  <Download className="w-5 h-5" />
+                  Auto-Scrape BitMidi
+                </>
+              )}
+            </button>
+          )}
         </div>
 
-        {(isUploading || isComplete || statusMsg) && (
+        {(isUploading || isScraping || isComplete || statusMsg) && (
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
             <div className="flex justify-between text-sm mb-2">
               <span className="font-medium text-gray-700">Status: {statusMsg}</span>

@@ -305,3 +305,60 @@ def get_system_status():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+@app.post("/api/v1/kids/scrape")
+async def kids_scrape(background_tasks: BackgroundTasks):
+    """
+    Scrape BitMidi for nursery rhymes and process them.
+    """
+    from hymn_remaker.src.children_song_finder import ChildrenSongFinder
+
+    loop = asyncio.get_running_loop()
+    asyncio.run_coroutine_threadsafe(manager.broadcast({"message": "Starting BitMidi dynamic scraper...", "progress": 5}), loop)
+
+    def scrape_and_process():
+        finder = ChildrenSongFinder()
+        downloaded = finder.download_all("hymn_remaker/input")
+
+        asyncio.run_coroutine_threadsafe(manager.broadcast({"message": f"Downloaded {len(downloaded)} files. Starting pipeline...", "progress": 10}), loop)
+
+        if downloaded:
+            mods = get_modules()
+            # Just process the first one for the demo/UI
+            file_path = downloaded[0]
+            safe_filename = os.path.basename(file_path)
+
+            process_single_midi(
+                midi_path=file_path,
+                output_dir="hymn_remaker/output",
+                style="nursery rhyme, playful, happy, glockenspiel, toy piano, acoustic guitar, kids music, upbeat, high quality",
+                skip_render=False,
+                skip_remake=False,
+                upload=False,
+                renderer=mods["renderer"],
+                remaker=mods["remaker"],
+                content_gen=mods["content_gen"],
+                video_producer=mods["video_producer"],
+                mxl_parser=mods["mxl_parser"],
+                omr_processor=mods["omr_processor"],
+                tts_generator=mods["tts_generator"],
+                stem_separator=mods["stem_separator"],
+                normalize_audio=True,
+                fade_in_ms=0,
+                fade_out_ms=0,
+                generate_vocals=False,
+                use_advanced_video=False,
+                advanced_video_gen=mods["advanced_video_gen"],
+                kids_mode=True,
+                interactive_callback=None,
+                status_callback=lambda msg, prog: asyncio.run_coroutine_threadsafe(manager.broadcast({"message": msg, "progress": prog}), loop)
+            )
+        else:
+            asyncio.run_coroutine_threadsafe(manager.broadcast({"message": "Scraping completed, no new files found.", "progress": 100}), loop)
+
+    background_tasks.add_task(scrape_and_process)
+
+    return JSONResponse(content={
+        "status": "accepted",
+        "message": "Scraping and processing started in background."
+    })

@@ -8,6 +8,7 @@ export default function Home() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Automated Pipeline</h1>
         <p className="text-gray-600">Upload MIDI files to convert them into modern music videos using AI generation.</p>
+        <p className="text-sm text-gray-500 mt-1">Check "Kids Mode 👶" in the sidebar to enforce child-friendly metadata and styling.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
