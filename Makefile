@@ -17,3 +17,8 @@ tests/run_tests: tests/HymnPlayerTests.cpp src/engine/HymnPlayer.cpp
 clean:
 	rm -f tests/run_tests
 	rm -f hymn_player_ext*.so
+
+
+.PHONY: test
+test:
+	PYTHONPATH=. python -m pytest hymn_remaker/tests/ tests/

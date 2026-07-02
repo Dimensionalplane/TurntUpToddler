@@ -262,6 +262,71 @@ async def editor_preview(file: UploadFile = File(...)):
 
     return {"status": "success", "preview_url": f"/output/edit_preview_{safe_filename}.wav"}
 
+
+@app.post("/api/v1/editor/metadata")
+async def editor_metadata(file: UploadFile = File(...)):
+    file_bytes = await file.read()
+    safe_filename = os.path.basename(file.filename)
+    file_path = os.path.join("hymn_remaker/input", f"meta_{safe_filename}")
+    with open(file_path, "wb") as f:
+        f.write(file_bytes)
+
+    mods = get_modules()
+    mxl_parser = mods["mxl_parser"]
+
+    if file_path.lower().endswith('.mxl') or file_path.lower().endswith('.xml'):
+        output_midi = os.path.join("hymn_remaker/output", f"meta_output_{safe_filename}.mid")
+        try:
+            metadata = mxl_parser.process(file_path, output_midi)
+            return {"status": "success", "metadata": metadata}
+        except Exception as e:
+            return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
+    else:
+        return JSONResponse(status_code=400, content={"status": "error", "message": "Only .mxl and .xml files are supported for metadata extraction."})
+
+
+
+@app.post("/api/v1/editor/cluster")
+async def editor_cluster(file: UploadFile = File(...)):
+    import pika
+    import json
+    import uuid
+    import os
+
+    file_bytes = await file.read()
+    safe_filename = os.path.basename(file.filename)
+    job_id = str(uuid.uuid4())
+    file_path = os.path.join("hymn_remaker/input", f"cluster_{job_id}_{safe_filename}")
+    with open(file_path, "wb") as f:
+        f.write(file_bytes)
+
+    try:
+        rabbitmq_host = os.environ.get('RABBITMQ_HOST', 'localhost')
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host=rabbitmq_host))
+        channel = connection.channel()
+        channel.queue_declare(queue='render_jobs', durable=True)
+
+        message = {
+            "job_id": job_id,
+            "file_path": file_path,
+            "filename": safe_filename
+        }
+
+        channel.basic_publish(
+            exchange='',
+            routing_key='render_jobs',
+            body=json.dumps(message),
+            properties=pika.BasicProperties(
+                delivery_mode=2,  # make message persistent
+            )
+        )
+        connection.close()
+
+        return {"status": "success", "job_id": job_id, "message": "Job queued successfully to RabbitMQ."}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"status": "error", "message": f"Failed to queue job: {str(e)}"})
+
+
 @app.get("/api/v1/history")
 def get_generation_history():
     """Retrieve all successfully generated hymns from the SQLite database."""
