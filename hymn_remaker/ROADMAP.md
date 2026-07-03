@@ -13,3 +13,5 @@
 - [x] Kids Mode pipeline (automated nursery rhyme search, COPPA youtube uploader compliance, children storybook prompting).
 - [x] Expanded Kids Mode Pipeline (added more curated public domain songs to the automated downloader).
 - [x] Frontend Refactoring (Next.js / React UI with FastAPI backend).
+- [x] Verified Post-Merge Stability (Kids Mode Dynamic Scraping and Interactive Modal UX workflows).
+- [x] Comprehensive Playwright Testing (Ensuring UI Tooltip integrations and visual elements render flawlessly across the refactored frontend).

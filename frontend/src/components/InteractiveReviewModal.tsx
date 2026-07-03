@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check } from 'lucide-react';
+import { X, Check, Info } from 'lucide-react';
 
 interface InteractiveReviewModalProps {
   ws: WebSocket | null;
@@ -41,7 +41,7 @@ export default function InteractiveReviewModal({ ws, requestData, onClose }: Int
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
         <div className="p-4 border-b flex justify-between items-center bg-gray-50 rounded-t-lg">
-          <h2 className="text-lg font-semibold text-gray-800">Interactive Review Mode</h2>
+          <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">Interactive Review Mode <span title="Modify the extracted metadata or generated lyrics before they are sent to the AI rendering engines."><Info className="w-4 h-4 text-gray-400 cursor-help" /></span></h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
             <X className="w-5 h-5" />
           </button>

@@ -79,9 +79,16 @@ export default function FileUploader() {
     setProgress(5);
     setStatusMsg("Scraping BitMidi for nursery rhymes...");
 
+    const formData = new FormData();
+    formData.append("interactive_mode", interactiveMode ? "true" : "false");
+
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-      await axios.post(`${apiUrl}/api/v1/kids/scrape`);
+      await axios.post(`${apiUrl}/api/v1/kids/scrape`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      });
       setStatusMsg("Scraping requested successfully. Pipeline will start automatically.");
     } catch (err) {
       console.error(err);

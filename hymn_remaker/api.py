@@ -372,7 +372,7 @@ if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
 @app.post("/api/v1/kids/scrape")
-async def kids_scrape(background_tasks: BackgroundTasks):
+async def kids_scrape(background_tasks: BackgroundTasks, interactive_mode: bool = Form(False)):
     """
     Scrape BitMidi for nursery rhymes and process them.
     """
@@ -392,6 +392,13 @@ async def kids_scrape(background_tasks: BackgroundTasks):
             # Just process the first one for the demo/UI
             file_path = downloaded[0]
             safe_filename = os.path.basename(file_path)
+
+            def sync_interactive_callback(data):
+                if not interactive_mode:
+                    return None
+                data["job_id"] = safe_filename
+                future = asyncio.run_coroutine_threadsafe(manager.request_interactive_review(data), loop)
+                return future.result()
 
             process_single_midi(
                 midi_path=file_path,
@@ -415,7 +422,7 @@ async def kids_scrape(background_tasks: BackgroundTasks):
                 use_advanced_video=False,
                 advanced_video_gen=mods["advanced_video_gen"],
                 kids_mode=True,
-                interactive_callback=None,
+                interactive_callback=sync_interactive_callback,
                 status_callback=lambda msg, prog: asyncio.run_coroutine_threadsafe(manager.broadcast({"message": msg, "progress": prog}), loop)
             )
         else:

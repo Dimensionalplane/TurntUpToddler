@@ -16,7 +16,10 @@ export default function Home() {
           <FileUploader />
 
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-lg font-semibold mb-4">Pipeline Queue</h3>
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              Pipeline Queue
+              <span title="Monitors the real-time status of the Python backend orchestrator. Files dropped in the uploader above will appear here as they are processed through rendering, style transfer, TTS generation, and final video compilation."><Info className="w-4 h-4 text-gray-400 cursor-help" /></span>
+            </h3>
             <div className="text-center py-8 text-gray-500">
               No jobs currently running. Upload a file above to begin.
             </div>
@@ -33,7 +36,10 @@ export default function Home() {
           </div>
 
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="font-semibold text-gray-800 mb-4">Recent Generations</h3>
+            <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              Recent Generations
+              <span title="A historical log of successfully processed tracks pulled from the SQLite tracking database. Clicking YouTube will open the uploaded video if publishing was enabled."><Info className="w-4 h-4 text-gray-400 cursor-help" /></span>
+            </h3>
             <HistoryList />
           </div>
         </div>
