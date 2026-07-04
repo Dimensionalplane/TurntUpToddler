@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.39.0] - 2026-07-02
+### Added
+- **Kids Mode Integration Tests**: Added comprehensive backend `pytest` coverage to validate Kids Mode web-socket pausing and BitMidi scraper execution.
+- **InteractiveReviewModal Tooltips**: Added helpful `Info` icon tooltips with native `title` descriptions across the `InteractiveReviewModal` component to guide users on modifying extracted metadata.
+
 ## [5.38.0] - 2026-06-22
 ### Added
 - **Frontend Refactoring**: Scaffolded a Next.js (React) frontend and a robust FastAPI backend to decouple the user interface from the core generation pipeline.

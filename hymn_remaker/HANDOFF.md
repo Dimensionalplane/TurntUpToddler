@@ -20,3 +20,14 @@ The next recommended frontier is:
 1. **Docker Optimization:** The multi-stage build is currently bloated by heavy ML dependencies (`oemer`, PyTorch for `demucs`, OpenCV). Future architectural work should focus on shrinking the runtime container (e.g., Alpine/Distroless) and potentially isolating ML inference into microservices.
 2. **Frontend Refactoring:** Porting `app.py` away from Streamlit into a Next.js / React application, while exposing the python logic through a `FastAPI` backend.
 3. **Suno.ai / Udio TTS Integration:** Attempting to pivot from ElevenLabs (spoken word/choral TTS) into true generated "singing" by exploring unofficial/official APIs for Suno.ai or Udio.
+
+
+## Handoff 5.39.0
+
+### Accomplishments
+- Verified that backend E2E logic successfully launches background children song scraping routines via `fastapi` and successfully hits the Interactive Review WebSocket breakpoint (100% test passing locally via Pytest in `test_kids_interactive.py` and `test_children_song_finder.py`).
+- Added informative `lucide-react` `Info` tooltips to the `InteractiveReviewModal` component to guide users on modifying the extracted metadata.
+- Generated a scoping document evaluating Docker Optimization and ML Microservices as the highest priority next step for the roadmap.
+
+### Next Steps / Tips for Successors
+- **Docker Optimization & ML Service Isolation** is the most pressing architectural need based on the `ROADMAP.md` instructions. With the RabbitMQ cluster rendering endpoints already merged into the FastAPI backend (`/api/v1/editor/cluster`), the groundwork for asynchronous, distributed ML workers is laid. Begin isolating heavy ML dependencies into a separate `worker.Dockerfile` and update `docker-compose.yml`.

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Radio, Play, Square, SkipForward, AlertCircle } from 'lucide-react';
+import { Radio, Play, Square, SkipForward, AlertCircle, Info } from 'lucide-react';
 import axios from 'axios';
 
 export default function RadioPage() {
@@ -124,8 +124,9 @@ export default function RadioPage() {
         {/* Controls */}
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="flex items-center gap-1 text-sm font-medium text-gray-700 mb-2">
               RTMP URL (e.g., YouTube Live)
+              <span title="The secure RTMP server URL and stream key provided by YouTube Studio, Twitch, or your custom streaming server. Example: rtmp://a.rtmp.youtube.com/live2/XXXX-XXXX"><Info className="w-4 h-4 text-gray-400 cursor-help" /></span>
             </label>
             <input
               type="text"
@@ -161,6 +162,7 @@ export default function RadioPage() {
                 >
                   <Square className="w-5 h-5" />
                   Kill Stream
+                  <span title="Hard stops the FFmpeg streaming process immediately."><Info className="w-4 h-4 opacity-70 cursor-help" /></span>
                 </button>
                 <button
                   onClick={handleSkip}
@@ -168,6 +170,7 @@ export default function RadioPage() {
                 >
                   <SkipForward className="w-5 h-5" />
                   Skip Track
+                  <span title="Kills the currently playing loop and advances to the next rendered .mp4 in the output directory."><Info className="w-4 h-4 opacity-70 cursor-help" /></span>
                 </button>
               </>
             )}

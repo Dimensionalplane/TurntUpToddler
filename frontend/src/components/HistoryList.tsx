@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Clock, Play, Download, Video } from 'lucide-react';
+import { Clock, Play, Download, Video, Info } from 'lucide-react';
 import axios from 'axios';
 
 interface HistoryItem {
@@ -80,6 +80,7 @@ export default function HistoryList() {
             )}
             <button className="text-xs flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200">
               <Download className="w-3 h-3" /> Files
+              <span title="Download the raw .wav audio, stems, and un-watermarked .mp4 directly from the server."><Info className="w-3 h-3 opacity-50 cursor-help" /></span>
             </button>
           </div>
         </div>
