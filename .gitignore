@@ -50,3 +50,7 @@ suno_fail.png
 suno_stealth_*.png
 suno_payload_capture.json
 hymn_remaker/.cache/
+
+# Rendered WAVs (too large for git - regenerate with render_midi_to_wav.py)
+rendered_wav/
+song_library.db
