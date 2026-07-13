@@ -1,4 +1,5 @@
 """tut_utils/suno_feed.py — poll Suno API, find clips, download MP3s."""
+
 import time
 import re
 import os
@@ -19,7 +20,9 @@ def get_session_token(browser_context):
 def find_latest_clip_id(page):
     """Scrape the most recent clip ID from the Suno create page."""
     try:
-        page.goto("https://suno.com/create", wait_until="domcontentloaded", timeout=30000)
+        page.goto(
+            "https://suno.com/create", wait_until="domcontentloaded", timeout=30000
+        )
         time.sleep(5)
         clips = re.findall(r"/song/([0-9a-f-]+)", page.content())
         return clips[-1] if clips else None

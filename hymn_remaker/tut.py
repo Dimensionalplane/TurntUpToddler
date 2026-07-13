@@ -9,6 +9,7 @@ Usage:
     python tut.py cover --all --genre goa              # all songs, one genre
     python tut.py full twinkle_twinkle                 # Steps 2+4: render + cover
 """
+
 import os
 import sys
 import logging
@@ -22,6 +23,7 @@ logger = logging.getLogger("tut")
 def cmd_render(args):
     from tut_pipeline.tut_render import main as render_main
     import sys as _sys
+
     _sys.argv = ["tut_render.py"] + args.split() if args else ["tut_render.py", "--all"]
     render_main()
 
@@ -29,6 +31,7 @@ def cmd_render(args):
 def cmd_generate(args):
     from tut_pipeline.tut_generate import main as gen_main
     import sys as _sys
+
     _sys.argv = ["tut_generate.py"] + args.split() if args else []
     gen_main()
 
@@ -36,12 +39,14 @@ def cmd_generate(args):
 def cmd_cover(args):
     from tut_pipeline.tut_cover import main as cover_main
     import sys as _sys
+
     _sys.argv = ["tut_cover.py"] + args.split() if args else []
     cover_main()
 
 
 def main():
     import sys as _sys
+
     if len(_sys.argv) < 2:
         print(__doc__)
         return

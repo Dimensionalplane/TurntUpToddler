@@ -5,6 +5,7 @@ Usage:
     python tut_render.py twinkle_twinkle --speed 1.0  # render at one speed
     python tut_render.py --all                         # render all songs
 """
+
 import os
 import sys
 import struct
@@ -24,12 +25,48 @@ SAMPLE_RATE = 44100
 # pitch: (midi_note, duration_ticks)
 SONG_DATA = {
     "twinkle_twinkle": [
-        (60, 1), (60, 1), (67, 1), (67, 1), (69, 1), (69, 1), (67, 2),
-        (65, 1), (65, 1), (64, 1), (64, 1), (62, 1), (62, 1), (60, 2),
-        (67, 1), (67, 1), (65, 1), (65, 1), (64, 1), (64, 1), (62, 2),
-        (67, 1), (67, 1), (65, 1), (65, 1), (64, 1), (64, 1), (62, 2),
-        (60, 1), (60, 1), (67, 1), (67, 1), (69, 1), (69, 1), (67, 2),
-        (65, 1), (65, 1), (64, 1), (64, 1), (62, 1), (62, 1), (60, 2),
+        (60, 1),
+        (60, 1),
+        (67, 1),
+        (67, 1),
+        (69, 1),
+        (69, 1),
+        (67, 2),
+        (65, 1),
+        (65, 1),
+        (64, 1),
+        (64, 1),
+        (62, 1),
+        (62, 1),
+        (60, 2),
+        (67, 1),
+        (67, 1),
+        (65, 1),
+        (65, 1),
+        (64, 1),
+        (64, 1),
+        (62, 2),
+        (67, 1),
+        (67, 1),
+        (65, 1),
+        (65, 1),
+        (64, 1),
+        (64, 1),
+        (62, 2),
+        (60, 1),
+        (60, 1),
+        (67, 1),
+        (67, 1),
+        (69, 1),
+        (69, 1),
+        (67, 2),
+        (65, 1),
+        (65, 1),
+        (64, 1),
+        (64, 1),
+        (62, 1),
+        (62, 1),
+        (60, 2),
     ],
 }
 
@@ -75,12 +112,16 @@ def render_song(song, speed=1.0):
         f.write(data)
 
     size_kb = os.path.getsize(out) // 1024
-    logger.info(f"  {song} @ {speed}x → {os.path.basename(out)} ({size_kb}KB, {total_sec:.1f}s)")
+    logger.info(
+        f"  {song} @ {speed}x → {os.path.basename(out)} ({size_kb}KB, {total_sec:.1f}s)"
+    )
     return out
 
 
 def main():
-    parser = argparse.ArgumentParser(description="TUT Render: MIDI → WAV at multiple speeds")
+    parser = argparse.ArgumentParser(
+        description="TUT Render: MIDI → WAV at multiple speeds"
+    )
     parser.add_argument("song", nargs="?", help="Song name (e.g. twinkle_twinkle)")
     parser.add_argument("--speed", type=float, help="Single speed to render")
     parser.add_argument("--all", action="store_true", help="Render all songs")

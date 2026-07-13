@@ -2,6 +2,7 @@
 
 Every step imports from here. Change genres/speeds/paths in one place.
 """
+
 import os
 
 # ── Paths ──
@@ -16,14 +17,23 @@ for d in [GENERATED_DIR, VIDEO_DIR, PACKAGE_DIR]:
 
 # ── Genres (prompt, slug) ──
 GENRES = [
-    ("full-on psytrance, 145bpm, rolling bassline, euphoric melodic, festival energy", "psytrance"),
+    (
+        "full-on psytrance, 145bpm, rolling bassline, euphoric melodic, festival energy",
+        "psytrance",
+    ),
     ("forest goa trance, 138bpm, dark atmospheric, nature sounds", "goa"),
     ("hardstyle, 150bpm, hard kick, orchestral sweeps, euphoric climax", "hardstyle"),
-    ("happy hardcore, 170bpm, uplifting piano, pitched vocals, energetic", "happy_hardcore"),
+    (
+        "happy hardcore, 170bpm, uplifting piano, pitched vocals, energetic",
+        "happy_hardcore",
+    ),
     ("brostep dubstep, 140bpm, massive drops, growling wobbles, aggressive", "brostep"),
     ("drum and bass, 174bpm, amen breaks, liquid atmospheres, deep sub-bass", "dnb"),
     ("japanese hardcore techno, 185bpm, anime melodies, fast kicks", "jcore"),
-    ("berlin techno, 135bpm, minimal driving, hypnotic repetition, warehouse", "berlin"),
+    (
+        "berlin techno, 135bpm, minimal driving, hypnotic repetition, warehouse",
+        "berlin",
+    ),
     ("detroit techno, 128bpm, deep analog synths, soulful chord stabs", "detroit"),
     ("detroit house, 125bpm, soulful grooves, deep basslines, jazzy", "house"),
 ]
@@ -45,19 +55,48 @@ SONGS = [
     "amazing_grace",
 ]
 
+# ── Lyrics (for vocal versions) ──
+LYRICS = {
+    "twinkle_twinkle": "Twinkle twinkle little star, how I wonder what you are. Up above the world so high, like a diamond in the sky. Twinkle twinkle little star, how I wonder what you are.",
+    "mary_had_lamb": "Mary had a little lamb, little lamb, little lamb. Mary had a little lamb, its fleece was white as snow.",
+    "row_row_boat": "Row row row your boat gently down the stream, merrily merrily merrily merrily life is but a dream.",
+    "itsy_bitsy_spider": "The itsy bitsy spider climbed up the water spout. Down came the rain and washed the spider out.",
+    "old_macdonald": "Old MacDonald had a farm, E-I-E-I-O. And on his farm he had a cow, E-I-E-I-O.",
+    "amazing_grace": "Amazing grace how sweet the sound, that saved a wretch like me. I once was lost but now am found, was blind but now I see.",
+}
+
+
+def has_lyrics(song):
+    return song in LYRICS
+
+
+def lyrics_for(song):
+    return LYRICS.get(song, None)
+
+
 # ── CDP Browser ──
 CDP_URL = "http://127.0.0.1:9222"
 SUNO_CREATE_URL = "https://suno.com/create"
 
+
 # ── File helpers ──
 def wav_path(song, speed):
     """rendered_wav/{song}_speed_{speed}.wav"""
-    return os.path.join(RENDERED_DIR, f"{song}_speed_{str(speed).replace('.', '_')}.wav")
+    return os.path.join(
+        RENDERED_DIR, f"{song}_speed_{str(speed).replace('.', '_')}.wav"
+    )
 
-def mp3_path(song, genre_slug, speed):
-    """suno_generated/{song}_{genre}_speed_{speed}.mp3"""
-    return os.path.join(GENERATED_DIR, f"{song}_{genre_slug}_speed_{str(speed).replace('.', '_')}.mp3")
+
+def mp3_path(song, genre_slug, speed, vocal_mode="instrumental"):
+    """suno_generated/{song}_{genre}_{speed}_{vocal_mode}.mp3"""
+    return os.path.join(
+        GENERATED_DIR,
+        f"{song}_{genre_slug}_speed_{str(speed).replace('.', '_')}_{vocal_mode}.mp3",
+    )
+
 
 def video_path(song, genre_slug, speed):
     """videos/{song}_{genre}_speed_{speed}.mp4"""
-    return os.path.join(VIDEO_DIR, f"{song}_{genre_slug}_speed_{str(speed).replace('.', '_')}.mp4")
+    return os.path.join(
+        VIDEO_DIR, f"{song}_{genre_slug}_speed_{str(speed).replace('.', '_')}.mp4"
+    )

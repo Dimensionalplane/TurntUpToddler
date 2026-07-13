@@ -9,6 +9,7 @@ Usage:
     python tut_cover.py twinkle_twinkle --genre goa      # one genre
     python tut_cover.py twinkle_twinkle --speed 1.0      # one speed
 """
+
 import os
 import sys
 import re
@@ -21,7 +22,12 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from tut_pipeline.tut_config import GENRES, SPEEDS, SONGS, wav_path, mp3_path
 from tut_pipeline.tut_utils.browser import connect_playwright, create_fresh_page
 from tut_pipeline.tut_utils.suno_upload import upload_wav_to_suno
-from tut_pipeline.tut_utils.suno_feed import get_session_token, poll_until_complete, download_mp3, find_latest_clip_id
+from tut_pipeline.tut_utils.suno_feed import (
+    get_session_token,
+    poll_until_complete,
+    download_mp3,
+    find_latest_clip_id,
+)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 logger = logging.getLogger("tut_cover")
@@ -56,9 +62,15 @@ def step2_create_cover(browser, upload_clip_id, genre_prompt, out_mp3):
     for attempt in range(1, MAX_RETRIES + 1):
         page = create_fresh_page(browser)
         try:
-            page.goto(f"https://suno.com/song/{upload_clip_id}", wait_until="domcontentloaded", timeout=30000)
+            page.goto(
+                f"https://suno.com/song/{upload_clip_id}",
+                wait_until="domcontentloaded",
+                timeout=30000,
+            )
             time.sleep(6)
-            page.evaluate("document.querySelectorAll('[role=dialog]').forEach(d => d.remove())")
+            page.evaluate(
+                "document.querySelectorAll('[role=dialog]').forEach(d => d.remove())"
+            )
             time.sleep(2)
         except Exception:
             continue
@@ -126,7 +138,9 @@ def step2_create_cover(browser, upload_clip_id, genre_prompt, out_mp3):
                     )
                     if feed.status_code == 200 and feed.json():
                         for item in feed.json():
-                            if item.get("status") == "complete" and item.get("audio_url"):
+                            if item.get("status") == "complete" and item.get(
+                                "audio_url"
+                            ):
                                 if download_mp3(item["audio_url"], out_mp3):
                                     return True
                 except Exception:
@@ -134,7 +148,11 @@ def step2_create_cover(browser, upload_clip_id, genre_prompt, out_mp3):
 
         # Fallback: scrape cover clips from song page
         try:
-            page.goto(f"https://suno.com/song/{upload_clip_id}", wait_until="domcontentloaded", timeout=30000)
+            page.goto(
+                f"https://suno.com/song/{upload_clip_id}",
+                wait_until="domcontentloaded",
+                timeout=30000,
+            )
             time.sleep(5)
             all_clips = re.findall(r"/song/([0-9a-f-]+)", page.content())
             remix_clips = [c for c in all_clips if c != upload_clip_id]
@@ -172,7 +190,9 @@ def cover_one(song, genre_prompt, genre_slug, speed, browser):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="TUT Cover: melody-faithful Suno covers")
+    parser = argparse.ArgumentParser(
+        description="TUT Cover: melody-faithful Suno covers"
+    )
     parser.add_argument("song", nargs="?", help="Song name (e.g. twinkle_twinkle)")
     parser.add_argument("--genre", help="Genre slug (e.g. goa)")
     parser.add_argument("--speed", type=float, help="Single speed (e.g. 1.0)")

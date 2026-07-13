@@ -1,4 +1,5 @@
 """tut_utils/suno_upload.py — upload WAV to Suno via file input + handle Identify/Describe."""
+
 import time
 import logging
 
@@ -12,13 +13,17 @@ def upload_wav_to_suno(page, wav_path, genre_prompt):
     page.goto("https://suno.com/create", wait_until="domcontentloaded", timeout=30000)
     time.sleep(6)
     try:
-        page.evaluate("document.querySelectorAll('[role=dialog]').forEach(d => d.remove())")
+        page.evaluate(
+            "document.querySelectorAll('[role=dialog]').forEach(d => d.remove())"
+        )
     except Exception:
         pass
 
     # Click Add Audio
     try:
-        page.evaluate("document.querySelector('button[aria-label*=\"Add audio\"]')?.click()")
+        page.evaluate(
+            "document.querySelector('button[aria-label*=\"Add audio\"]')?.click()"
+        )
     except Exception:
         return False
     time.sleep(3)

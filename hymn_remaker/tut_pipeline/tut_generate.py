@@ -5,6 +5,7 @@ Usage:
     python tut_generate.py twinkle_twinkle --genre goa      # one genre
     python tut_generate.py twinkle_twinkle --speed 1.0      # one speed
 """
+
 import os
 import sys
 import time
@@ -58,7 +59,9 @@ def generate_one(song, genre_prompt, genre_slug, speed, pw, browser):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="TUT Generate: Suno EDM track creation")
+    parser = argparse.ArgumentParser(
+        description="TUT Generate: Suno EDM track creation"
+    )
     parser.add_argument("song", nargs="?", help="Song name (e.g. twinkle_twinkle)")
     parser.add_argument("--genre", help="Genre slug (e.g. goa, psytrance)")
     parser.add_argument("--speed", type=float, help="Single speed (e.g. 1.0)")
@@ -79,7 +82,9 @@ def main():
         for song in songs:
             for genre_prompt, genre_slug in genres:
                 for speed in speeds:
-                    result = generate_one(song, genre_prompt, genre_slug, speed, pw, browser)
+                    result = generate_one(
+                        song, genre_prompt, genre_slug, speed, pw, browser
+                    )
                     if result:
                         generated += 1
         logger.info(f"Done: {generated} tracks generated")
