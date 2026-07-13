@@ -16,7 +16,7 @@ from hymn_remaker import settings
 logger = logging.getLogger(__name__)
 
 # Scopes required for YouTube Data API
-SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
+SCOPES = ["https://www.googleapis.com/auth/youtube"]
 
 class VideoProducer:
     def __init__(self, client_secrets_file=None):
@@ -67,9 +67,113 @@ class VideoProducer:
             logger.error(f"Failed to create SRT: {e}")
             return False
 
-    def create_video(self, audio_path, image_url, output_path, lyrics=None, video_format="Standard 16:9", sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True, enable_visualizer=False, visualizer_mode="cline", background_video_path=None):
+    def _create_ass_file(self, lyrics, ass_path, sub_font_name="Georgia", sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_alignment=5, tempo_bpm=None):
+        """Convert list of lyric dicts into a stylized Advanced Substation Alpha (ASS) file."""
+        if not lyrics:
+            return False
+
+        try:
+            # Helper to convert hex colors (#RRGGBB) to ASS color format (&HBBGGRR&)
+            # ASS alpha channel is inverted: 00 is opaque, FF is transparent. We default to 00 (opaque)
+            def to_ass_color(hex_str, opacity_hex="00"):
+                h = hex_str.lstrip('#')
+                if len(h) == 6:
+                    return f"&H{opacity_hex}{h[4:6]}{h[2:4]}{h[0:2]}"
+                return f"&H{opacity_hex}FFFFFF"
+
+            p_color = to_ass_color(sub_primary_color)      # Opaque primary
+            # For karaoke: secondary color is the "unhighlighted" color.
+            # We set secondary color to a translucent gray (&H80808080) so it highlights nicely.
+            s_color = "&H80808080"
+            o_color = to_ass_color(sub_outline_color)      # Outline
+            b_color = to_ass_color(sub_back_color, "40")   # Translucent background shadow (~25% transparency)
+
+            with open(ass_path, 'w', encoding='utf-8') as f:
+                # 1. Script Info Section
+                f.write("[Script Info]\n")
+                f.write("Title: Hymnmania Soulful Lyrics\n")
+                f.write("ScriptType: v4.00+\n")
+                f.write("WrapStyle: 0\n")
+                f.write("PlayResX: 1920\n")
+                f.write("PlayResY: 1080\n")
+                f.write("ScaledBorderAndShadow: yes\n\n")
+
+                # 2. Styles Section
+                f.write("[V4+ Styles]\n")
+                f.write("Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n")
+                # Style name: LyricStyle
+                # BorderStyle: 1 (Outline + Shadow)
+                f.write(f"Style: LyricStyle,{sub_font_name},{sub_font_size},{p_color},{s_color},{o_color},{b_color},-1,0,0,0,100,100,0,0,1,2,1,{sub_alignment},10,10,20,1\n\n")
+
+                # 3. Events Section
+                f.write("[Events]\n")
+                f.write("Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n")
+
+                # Format time as H:MM:SS.cs (hours:minutes:seconds.centiseconds)
+                def format_ass_time(seconds):
+                    hours = int(seconds // 3600)
+                    minutes = int((seconds % 3600) // 60)
+                    secs = int(seconds % 60)
+                    centiseconds = int(round((seconds - int(seconds)) * 100))
+                    if centiseconds == 100:
+                        secs += 1
+                        centiseconds = 0
+                    return f"{hours}:{minutes:02d}:{secs:02d}.{centiseconds:02d}"
+
+                for line in lyrics:
+                    start = float(line.get('start', 0))
+                    end = float(line.get('end', start + 4))
+                    text = line.get('text', '')
+
+                    start_str = format_ass_time(start)
+                    end_str = format_ass_time(end)
+
+                    # Dynamic Effects:
+                    # - Add a subtle fade-in and fade-out transition: {\fad(300,300)}
+                    # - If tempo is provided, we can add karaoke-style highlighting to the text!
+                    # For karaoke, we can split text into words and highlight them matching the beats.
+                    effect_prefix = "{\\fad(300,300)}"
+
+                    if tempo_bpm and " " in text:
+                        words = text.split()
+                        num_words = len(words)
+                        duration_cs = int((end - start) * 100)
+                        word_duration_cs = max(1, duration_cs // num_words)
+
+                        # Form karaoke string: {\kf25}Word1 {\kf30}Word2 ...
+                        # AND add a pulsing pulse effect to the whole line!
+                        # We add multiple \t tags to scale up and down on every beat.
+                        beat_len_sec = 60.0 / tempo_bpm
+                        beat_len_cs = int(beat_len_sec * 100)
+
+                        pulse_tags = ""
+                        curr_cs = 0
+                        while curr_cs < duration_cs:
+                            # Scale UP at start of beat (105%)
+                            pulse_tags += f"{{\\t({curr_cs},{curr_cs+50},\\fscx105\\fscy105)}}"
+                            # Scale DOWN shortly after (100%)
+                            pulse_tags += f"{{\\t({curr_cs+50},{curr_cs+150},\\fscx100\\fscy100)}}"
+                            curr_cs += beat_len_cs
+
+                        karaoke_parts = []
+                        for word in words:
+                            karaoke_parts.append(f"{{\\kf{word_duration_cs}}}{word}")
+
+                        formatted_text = f"{effect_prefix}{pulse_tags}" + " ".join(karaoke_parts)
+                    else:
+                        formatted_text = f"{effect_prefix}{text}"
+
+                    f.write(f"Dialogue: 0,{start_str},{end_str},LyricStyle,,0,0,0,,{formatted_text}\n")
+
+            logger.info(f"ASS subtitle file created at {ass_path}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to create ASS subtitle file: {e}")
+            return False
+
+    def create_video(self, audio_path, image_url, output_path, lyrics=None, video_format="Standard 16:9", sub_font_size=24, sub_primary_color="#FFFFFF", sub_outline_color="#000000", sub_back_color="#000000", sub_box=True, enable_visualizer=False, visualizer_mode="cline", sub_alignment=2, sub_font_name="Arial", tempo_bpm=None):
         """
-        Create an MP4 video from an audio file, an image URL (or a background video), and optional lyrics using ffmpeg.
+        Create an MP4 video from an audio file, image URL, and optional lyrics using ffmpeg.
 
         Args:
             audio_path (str): Path to the input audio file.
@@ -77,54 +181,73 @@ class VideoProducer:
             output_path (str): Path to the output video file.
             lyrics (list): Optional list of synced lyrics dicts.
             video_format (str): The aspect ratio of the output video.
+            sub_alignment (int): ASS subtitle alignment (e.g. 2 for bottom-center, 5 for middle-center).
+            sub_font_name (str): Font name to use for subtitles.
+            tempo_bpm (float): Tempo of the track in BPM for beat-synchronized visual pulsing.
         """
         logger.info(f"Creating video from {audio_path}...")
 
         import uuid
         unique_id = uuid.uuid4().hex
         temp_image_path = f"temp_art_{unique_id}.png"
-        temp_srt_path = f"{output_path}.srt"
-        # 1. Download the image to a temporary file, or use background video
+        temp_subtitle_path = f"{output_path}.ass"
+        # 1. Prepare Background (Image, URL, or Color)
+        is_temp_image = False
         try:
-            is_video_bg = bool(background_video_path and os.path.exists(background_video_path))
-            if not is_video_bg:
-                if image_url.startswith('http://') or image_url.startswith('https://'):
-                    response = requests.get(image_url)
-                    response.raise_for_status()
-                    with open(temp_image_path, 'wb') as f:
-                        f.write(response.content)
-                else:
-                    # Assume it's a local file path
-                    if not os.path.exists(image_url):
-                        raise FileNotFoundError(f"Local image file not found: {image_url}")
-                    shutil.copy2(image_url, temp_image_path)
+            if isinstance(image_url, str) and image_url.lower() in ["black", "white", "blue", "red", "green"]:
+                # Use solid color fallback via lavfi - we'll handle this in the ffmpeg command below
+                temp_image_path = None
+                logger.info(f"Using solid color background: {image_url}")
+            elif image_url.startswith('http://') or image_url.startswith('https://'):
+                response = requests.get(image_url)
+                response.raise_for_status()
+                with open(temp_image_path, 'wb') as f:
+                    f.write(response.content)
+                is_temp_image = True
+            elif image_url.endswith(".mp4"):
+                # Background is already a video
+                temp_image_path = image_url
+            else:
+                # Assume it's a local file path
+                if not os.path.exists(image_url):
+                    raise FileNotFoundError(f"Local image file not found: {image_url}")
+                shutil.copy2(image_url, temp_image_path)
+                is_temp_image = True
 
-            # 2. Prepare SRT if lyrics are provided
+            # 2. Prepare ASS Subtitles if lyrics are provided
             has_subtitles = False
             if lyrics:
-                has_subtitles = self._create_srt_file(lyrics, temp_srt_path)
+                has_subtitles = self._create_ass_file(
+                    lyrics, temp_subtitle_path,
+                    sub_font_name=sub_font_name, sub_font_size=sub_font_size,
+                    sub_primary_color=sub_primary_color, sub_outline_color=sub_outline_color,
+                    sub_back_color=sub_back_color, sub_alignment=sub_alignment,
+                    tempo_bpm=tempo_bpm
+                )
 
-            # 3. Use ffmpeg to combine image/video and audio (and burn subtitles if available)
-            cmd = [
-                settings.FFMPEG_BIN,
-                "-y", # Overwrite output
-            ]
+            # 3. Use ffmpeg to combine background and audio
+            base_cmd = [settings.FFMPEG_BIN, "-y"]
 
-            if is_video_bg:
-                cmd.extend(["-stream_loop", "-1", "-i", background_video_path])
+            if temp_image_path is None:
+                # Solid color mode (lavfi color source doesn't use -loop)
+                color_name = image_url.lower()
+                base_cmd.extend(["-f", "lavfi", "-i", f"color=c={color_name}:s=1920x1080"])
+            elif temp_image_path.lower().endswith(('.mp4', '.avi', '.mov', '.mkv')):
+                # Loop video input infinitely using -stream_loop
+                base_cmd.extend(["-stream_loop", "-1", "-i", temp_image_path])
             else:
-                cmd.extend(["-loop", "1", "-i", temp_image_path])
+                base_cmd.extend(["-loop", "1", "-i", temp_image_path])
 
-            cmd.extend(["-i", audio_path])
+            base_cmd.extend(["-i", audio_path])
 
             # Helper to execute ffmpeg
             def run_ffmpeg(subtitles_enabled):
-                ffmpeg_cmd = cmd.copy()
+                ffmpeg_cmd = base_cmd.copy()
 
                 # Determine base filters depending on format
                 base_vf = ""
                 target_w, target_h = (1080, 1920) if video_format == "Vertical 9:16 (TikTok/Reels)" else (1920, 1080)
-                
+
                 if video_format == "Vertical 9:16 (TikTok/Reels)":
                     # Scale to 1080 width, then pad to 1080x1920, ensuring even dimensions
                     base_vf = f"[0:v]scale=1080:trunc(1080/a/2)*2,pad={target_w}:{target_h}:(ow-iw)/2:(oh-ih)/2:black[v_base]"
@@ -136,45 +259,64 @@ class VideoProducer:
                 filters = [base_vf]
 
                 # Add Audio-Reactive Visualizer
-                if enable_visualizer:
+                if enable_visualizer and visualizer_mode != "milkdrop":
                     w_viz, h_viz = (1080, 150) if video_format == "Vertical 9:16 (TikTok/Reels)" else (1920, 200)
                     y_pos = "(H-h)/2" # Center vertically
 
-                    if visualizer_mode == "avectorscope":
+                    if visualizer_mode == "kaleidoscope":
+                        # Kaleidoscope: Split video into quadrants, flip and tile
+                        # 1. Take top-left corner (960x540)
+                        # 2. Duplicate and flip for symmetry
+                        kaleido = (
+                            f"[v_base]crop=iw/2:ih/2:0:0,split=4[q1][q2][q3][q4];"
+                            f"[q2]hflip[q2h];[q3]vflip[q3v];[q4]hflip,vflip[q4hv];"
+                            f"[q1][q2h]hstack[top];[q3v][q4hv]hstack[bottom];[top][bottom]vstack[v_kaleido];"
+                            f"[1:a]showwaves=s={target_w}x{h_viz}:mode=cline:colors=white@0.4[wave];"
+                            f"[v_kaleido][wave]overlay=x=0:y={y_pos}:format=yuv420[v_pre]"
+                        )
+                        filters.append(kaleido)
+                    elif visualizer_mode == "avectorscope":
                         vis_filter = f"[1:a]avectorscope=s={h_viz}x{h_viz}:draw=line:color=white[wave];[v_base][wave]overlay=x=(W-w)/2:y={y_pos}:format=yuv420[v_pre]"
+                        filters.append(vis_filter)
                     else:
                         vis_filter = f"[1:a]showwaves=s={w_viz}x{h_viz}:mode={visualizer_mode}:colors=white@0.5[wave];[v_base][wave]overlay=x=0:y={y_pos}:format=yuv420[v_pre]"
-                    
+                        filters.append(vis_filter)
+
                     # Ensure the overlay result is exactly the target size
-                    filters.append(vis_filter)
                     filters.append(f"[v_pre]scale={target_w}:{target_h}[v]")
                 else:
                     # Just pass the base video through
                     filters.append("[v_base]null[v]")  # pass through without copy
+
+                # Apply Beat-Synchronized Visual Pulsing (Brightness/Contrast) if tempo is provided
+                if tempo_bpm and float(tempo_bpm) > 0:
+                    bpm = float(tempo_bpm)
+                    beat_len = 60.0 / bpm
+                    bar_len = beat_len * 4.0
+                    # Brightness and contrast formula that spikes at start of beat and decays
+                    # Brightness max +0.05, Contrast max +0.06 (both double on downbeats)
+                    pulse_expr = (
+                        f"[v]eq="
+                        f"brightness='0.05*exp(-15.0*mod(t,{beat_len}))+0.05*exp(-6.0*mod(t,{bar_len}))':"
+                        f"contrast='1.0+0.06*exp(-15.0*mod(t,{beat_len}))+0.06*exp(-6.0*mod(t,{bar_len}))':"
+                        f"eval=frame[v_pulsed]"
+                    )
+
+                    filters.append(pulse_expr)
+                    video_stream_name = "[v_pulsed]"
+                else:
+                    video_stream_name = "[v]"
+
                 if subtitles_enabled:
-                    safe_srt_path = temp_srt_path.replace('\\', '/').replace(':', '\\:')
-                    # Add subtitle filter on top of the mapped [v] stream
-# Convert hex colors (#RRGGBB) to ASS format (&HBBGGRR&)
-                    def to_ass_color(hex_str):
-                        h = hex_str.lstrip('#')
-                        if len(h) == 6:
-                            return f"&H00{h[4:6]}{h[2:4]}{h[0:2]}&"
-                        return "&H00FFFFFF&"
-
-                    p_color = to_ass_color(sub_primary_color)
-                    o_color = to_ass_color(sub_outline_color)
-                    b_color = to_ass_color(sub_back_color)
-                    border_style = "3" if sub_box else "1" # 3 = Opaque box, 1 = Outline
-
-                    force_style = f"FontSize={sub_font_size},PrimaryColour={p_color},OutlineColour={o_color},BackColour={b_color},BorderStyle={border_style}"
-                    filters.append(f"[v]subtitles={safe_srt_path}:force_style='{force_style}'[v_sub]")
+                    safe_subtitle_path = temp_subtitle_path.replace('\\', '/').replace(':', '\\:')
+                    filters.append(f"{video_stream_name}subtitles={safe_subtitle_path}[v_sub]")
                     ffmpeg_cmd.extend(["-filter_complex", ";".join(filters), "-map", "[v_sub]", "-map", "1:a"])
                 else:
-                    ffmpeg_cmd.extend(["-filter_complex", ";".join(filters), "-map", "[v]", "-map", "1:a"])
+                    ffmpeg_cmd.extend(["-filter_complex", ";".join(filters), "-map", video_stream_name, "-map", "1:a"])
 
                 ffmpeg_cmd.extend([
                     "-c:v", "libx264",
-                                        "-c:a", "aac",
+                    "-c:a", "aac",
                     "-b:a", "192k",
                     "-pix_fmt", "yuv420p",
                     "-shortest",
@@ -203,7 +345,13 @@ class VideoProducer:
                             new_line = line.copy()
                             new_line['text'] = "".join([c for c in line.get('text', '') if ord(c) < 128])
                             sanitized_lyrics.append(new_line)
-                        self._create_srt_file(sanitized_lyrics, temp_srt_path)
+                        self._create_ass_file(
+                            sanitized_lyrics, temp_subtitle_path,
+                            sub_font_name=sub_font_name, sub_font_size=sub_font_size,
+                            sub_primary_color=sub_primary_color, sub_outline_color=sub_outline_color,
+                            sub_back_color=sub_back_color, sub_alignment=sub_alignment,
+                            tempo_bpm=tempo_bpm
+                        )
                     else:
                         break
 
@@ -219,10 +367,10 @@ class VideoProducer:
             logger.error(f"Failed to create video: {e}")
             raise
         finally:
-            if os.path.exists(temp_image_path):
+            if is_temp_image and temp_image_path and os.path.exists(temp_image_path):
                 os.remove(temp_image_path)
-            if os.path.exists(temp_srt_path):
-                os.remove(temp_srt_path)
+            if os.path.exists(temp_subtitle_path):
+                os.remove(temp_subtitle_path)
 
     def _get_authenticated_service(self):
         """Authenticate and return the YouTube API service."""
@@ -290,7 +438,7 @@ class VideoProducer:
             logger.error(f"FFmpeg shorts extraction failed: {error_msg}")
             raise e
 
-    def upload_to_youtube(self, video_path, metadata, progress_callback=None, kids_mode=False):
+    def upload_to_youtube(self, video_path, metadata, progress_callback=None):
         """
         Upload the video to YouTube.
 
@@ -298,12 +446,11 @@ class VideoProducer:
             video_path (str): Path to the video file.
             metadata (dict): Metadata dictionary (title, description, tags).
             progress_callback (callable): Optional callback function for upload progress (takes integer 0-100).
-            kids_mode (bool): If True, declare the video is Made for Kids (COPPA).
 
         Returns:
             str: ID of the uploaded video.
         """
-        logger.info(f"Uploading {video_path} to YouTube (kids_mode={kids_mode})...")
+        logger.info(f"Uploading {video_path} to YouTube...")
 
         if not self.youtube:
             self.youtube = self._get_authenticated_service()
@@ -316,8 +463,7 @@ class VideoProducer:
                 "categoryId": "10" # Music
             },
             "status": {
-                "privacyStatus": "private", # Default to private for safety
-                "selfDeclaredMadeForKids": kids_mode
+                "privacyStatus": "private" # Default to private for safety
             }
         }
 
