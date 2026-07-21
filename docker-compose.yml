@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   backend:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: hymn_remaker_backend
     ports:
       - "8000:8000"
@@ -10,11 +12,16 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - REPLICATE_API_TOKEN=${REPLICATE_API_TOKEN}
       - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+      - RABBITMQ_HOST=rabbitmq
+      - REDIS_HOST=redis
     volumes:
       - ./hymn_remaker/input:/app/hymn_remaker/input
       - ./hymn_remaker/output:/app/hymn_remaker/output
       - ./.cache:/app/.cache
       - ./client_secrets.json:/app/client_secrets.json
+    depends_on:
+      - rabbitmq
+      - redis
     restart: unless-stopped
 
   frontend:
@@ -26,17 +33,42 @@ services:
       - backend
     restart: unless-stopped
 
-  daemon:
-    build: .
-    container_name: hymn_remaker_daemon
-    command: ["python", "-m", "hymn_remaker.main", "--daemon"]
+  ml_worker:
+    build:
+      context: ./services/renderer
+      dockerfile: worker.Dockerfile
+    container_name: hymn_remaker_ml_worker
     environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - REPLICATE_API_TOKEN=${REPLICATE_API_TOKEN}
-      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+      - RABBITMQ_HOST=rabbitmq
+      - REDIS_HOST=redis
     volumes:
       - ./hymn_remaker/input:/app/hymn_remaker/input
       - ./hymn_remaker/output:/app/hymn_remaker/output
       - ./.cache:/app/.cache
-      - ./client_secrets.json:/app/client_secrets.json
+    depends_on:
+      - rabbitmq
+      - redis
     restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: hymn_remaker_rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: hymn_remaker_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  rabbitmq_data:
+  redis_data:
