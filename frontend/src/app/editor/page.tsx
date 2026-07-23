@@ -34,9 +34,7 @@ export default function EditorPage() {
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-      const res = await axios.post(`${apiUrl}/api/v1/editor/preview`, formData, {
-        headers: { "Content-Type": "multipart/form-data" }
-      });
+      const res = await axios.post(`${apiUrl}/api/v1/editor/preview`, formData, {});
       setPreviewUrl(`${apiUrl}${res.data.preview_url}`);
     } catch (err) {
       console.error(err);
@@ -56,9 +54,7 @@ export default function EditorPage() {
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-      const res = await axios.post(`${apiUrl}/api/v1/editor/metadata`, formData, {
-        headers: { "Content-Type": "multipart/form-data" }
-      });
+      const res = await axios.post(`${apiUrl}/api/v1/editor/metadata`, formData, {});
       setMetadataResult(res.data.metadata);
     } catch (err: any) {
       console.error(err);
@@ -77,9 +73,7 @@ export default function EditorPage() {
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-      const res = await axios.post(`${apiUrl}/api/v1/editor/cluster`, formData, {
-        headers: { "Content-Type": "multipart/form-data" }
-      });
+      const res = await axios.post(`${apiUrl}/api/v1/editor/cluster`, formData, {});
       setClusterResult(res.data);
     } catch (err: any) {
       console.error(err);

@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.40.0] - 2026-07-03
+### Added
+- **ML Microservice Isolation**: Optimized the main `backend` Docker container by entirely removing heavy ML dependencies (`PyTorch`, `OpenCV`, `demucs`, `oemer`).
+- **RabbitMQ Worker**: Extracted the stem separation and optical music recognition (OMR) processing pipelines into a dedicated lightweight `ml_worker` container built via `services/renderer/worker.Dockerfile`. The backend now asynchronously dispatches these tasks to RabbitMQ and polls `Redis` for status completions.
+
 ## [5.39.0] - 2026-07-02
 ### Added
 - **Kids Mode Integration Tests**: Added comprehensive backend `pytest` coverage to validate Kids Mode web-socket pausing and BitMidi scraper execution.

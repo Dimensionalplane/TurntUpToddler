@@ -15,3 +15,4 @@
 - [x] Frontend Refactoring (Next.js / React UI with FastAPI backend).
 - [x] Verified Post-Merge Stability (Kids Mode Dynamic Scraping and Interactive Modal UX workflows).
 - [x] Comprehensive Playwright Testing (Ensuring UI Tooltip integrations and visual elements render flawlessly across the refactored frontend).
+- [x] Docker Optimization & ML Service Isolation (abstracted PyTorch, OpenCV, oemer, and demucs into a dedicated RabbitMQ worker container).

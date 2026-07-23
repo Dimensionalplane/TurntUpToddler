@@ -31,3 +31,15 @@ The next recommended frontier is:
 
 ### Next Steps / Tips for Successors
 - **Docker Optimization & ML Service Isolation** is the most pressing architectural need based on the `ROADMAP.md` instructions. With the RabbitMQ cluster rendering endpoints already merged into the FastAPI backend (`/api/v1/editor/cluster`), the groundwork for asynchronous, distributed ML workers is laid. Begin isolating heavy ML dependencies into a separate `worker.Dockerfile` and update `docker-compose.yml`.
+
+## Handoff 5.40.0
+
+### Accomplishments
+- Successfully implemented **Docker Optimization & ML Service Isolation**.
+- Separated the heavy ML dependencies (`oemer`, `demucs`, `torch`, `opencv-python-headless`, `onnxruntime`) entirely out of the core `hymn_remaker/requirements.txt` and the main `Dockerfile`.
+- Configured a new `services/renderer/worker.Dockerfile` that exclusively houses the PyTorch and OpenCV packages to prevent backend bloat.
+- Rewrote `stem_separator.py` and `omr_processor.py` to act as RabbitMQ dispatchers. Instead of making synchronous CLI calls, they now push JSON task parameters into the `render_jobs` queue and blockingly poll the central `Redis` container for completion status or errors.
+- Extensively modified `worker.py` to route and execute the Demucs/Oemer ML jobs safely via the message queue.
+
+### Next Steps / Tips for Successors
+- The next logical step outlined in the `ROADMAP.md` / `IDEAS.md` is to evaluate and pivot from `ElevenLabs` to true AI "singing" synthesis using Suno.ai or Udio APIs (`suno_api.py`). The ML isolation architecture makes it possible to even consider hosting local inference servers for open-source AI vocal synthesizers (like Bark or RVC) down the road.

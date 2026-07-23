@@ -84,11 +84,7 @@ export default function FileUploader() {
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-      await axios.post(`${apiUrl}/api/v1/kids/scrape`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data"
-        }
-      });
+      await axios.post(`${apiUrl}/api/v1/kids/scrape`, formData, {});
       setStatusMsg("Scraping requested successfully. Pipeline will start automatically.");
     } catch (err) {
       console.error(err);
@@ -116,11 +112,7 @@ export default function FileUploader() {
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-      await axios.post(`${apiUrl}/api/v1/generate`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data"
-        }
-      });
+      await axios.post(`${apiUrl}/api/v1/generate`, formData, {});
       setStatusMsg("Pipeline started. Waiting for backend generation...");
     } catch (err) {
       console.error(err);

@@ -1,67 +1,81 @@
 import logging
 import os
-import subprocess
+import pika
+import json
+import uuid
+import time
+import redis
 
 logger = logging.getLogger(__name__)
 
 class OMRProcessor:
     def __init__(self):
-        pass
+        self.rabbitmq_host = os.environ.get('RABBITMQ_HOST', 'localhost')
+        self.redis_host = os.environ.get('REDIS_HOST', 'localhost')
+        try:
+            self.r = redis.Redis(host=self.redis_host, port=6379, db=0)
+        except Exception as e:
+            logger.warning(f"Could not connect to Redis: {e}")
+            self.r = None
 
     def is_available(self):
-        """Check if the oemer CLI tool is installed and available."""
-        try:
-            subprocess.run(["oemer", "--help"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-            return True
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            return False
+        return True # Handled by cluster now
 
     def process(self, image_path, output_dir):
-        """
-        Run Optical Music Recognition on a given image/PDF file and output a MusicXML file.
-
-        Args:
-            image_path (str): Path to the input sheet music image (png, jpg, pdf).
-            output_dir (str): Directory to place the generated MusicXML file.
-
-        Returns:
-            str: The path to the generated .mxl file.
-        """
         if not os.path.exists(image_path):
             raise FileNotFoundError(f"OMR input file not found: {image_path}")
 
-        filename = os.path.basename(image_path)
-        name_no_ext = os.path.splitext(filename)[0]
-        output_mxl_path = os.path.join(output_dir, f"{name_no_ext}.mxl")
+        logger.info(f"Dispatching OMR job to ML worker cluster...")
+        job_id = str(uuid.uuid4())
 
-        logger.info(f"Running OMR (oemer) on {image_path}...")
-
-        # oemer usually outputs the file in the same directory as the input,
-        # or takes an output path depending on its CLI options.
-        # Its default behavior is `oemer <image_path>`, which produces `<image_path_no_ext>.musicxml`
         try:
-            # We run oemer
-            cmd = ["oemer", image_path]
-            result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.rabbitmq_host))
+            channel = connection.channel()
+            channel.queue_declare(queue='render_jobs', durable=True)
 
-            if result.returncode != 0:
-                logger.error(f"oemer failed: {result.stderr}")
-                raise RuntimeError(f"OMR processing failed: {result.stderr}")
+            message = {
+                "job_id": job_id,
+                "type": "omr",
+                "file_path": os.path.abspath(image_path),
+                "output_dir": os.path.abspath(output_dir)
+            }
 
-            # Locate the output file. oemer typically generates a .musicxml file in the same directory as the input.
-            input_dir = os.path.dirname(image_path)
-            expected_output = os.path.join(input_dir, f"{name_no_ext}.musicxml")
+            channel.basic_publish(
+                exchange='',
+                routing_key='render_jobs',
+                body=json.dumps(message),
+                properties=pika.BasicProperties(delivery_mode=2)
+            )
+            connection.close()
 
-            if os.path.exists(expected_output):
-                # Move/Rename it to our output directory as .mxl so the rest of the pipeline picks it up
-                import shutil
-                shutil.move(expected_output, output_mxl_path)
-                logger.info(f"OMR successful. Generated: {output_mxl_path}")
-                return output_mxl_path
-            else:
-                logger.error(f"oemer succeeded but output file {expected_output} was not found.")
-                raise FileNotFoundError(f"Expected OMR output not found: {expected_output}")
+            # Poll Redis for completion
+            if self.r:
+                self.r.set(f"job:{job_id}:status", "queued")
+                logger.info(f"Waiting for ML worker to complete OMR job {job_id}...")
 
+            start_time = time.time()
+            timeout_seconds = 1800  # 30 minutes
+            while True:
+                if time.time() - start_time > timeout_seconds:
+                    raise TimeoutError("ML worker job timed out")
+                    status = self.r.get(f"job:{job_id}:status")
+                    if status:
+                        status = status.decode('utf-8')
+                        if status == "completed":
+                            result = self.r.get(f"job:{job_id}:result")
+                            if result:
+                                return result.decode('utf-8')
+                            break
+                        elif status == "failed":
+                            err = self.r.get(f"job:{job_id}:error")
+                            raise RuntimeError(f"ML Worker failed: {err.decode('utf-8') if err else 'Unknown'}")
+                    time.sleep(2)
+
+            # Fallback path if redis doesn't return result
+            filename = os.path.basename(image_path)
+            name_no_ext = os.path.splitext(filename)[0]
+            output_mxl_path = os.path.join(output_dir, f"{name_no_ext}.mxl")
+            return output_mxl_path
         except Exception as e:
-            logger.error(f"OMR Processor encountered an error: {e}")
-            raise e
+            logger.error(f"Failed to dispatch OMR to ML cluster: {e}")
+            raise RuntimeError(f"OMR failed: {e}")
