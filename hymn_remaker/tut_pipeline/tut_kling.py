@@ -5,6 +5,7 @@ API base: https://api.klingai.com (v1)
 
 Set KLING_API_KEY in .env. Sign up at https://klingai.com
 """
+
 import os
 import sys
 import time
@@ -69,9 +70,11 @@ def poll_task(task_id, timeout_minutes=15):
                 if videos:
                     return videos[0].get("url")
             elif status == "failed":
-                logger.warning(f"Kling task failed: {data.get('data',{}).get('task_status_msg','')}")
+                logger.warning(
+                    f"Kling task failed: {data.get('data', {}).get('task_status_msg', '')}"
+                )
                 return None
-            logger.info(f"  Kling status: {status} ({(i+1)*10}s)")
+            logger.info(f"  Kling status: {status} ({(i + 1) * 10}s)")
     return None
 
 
@@ -119,7 +122,7 @@ def generate_video_for_song(mp3_path, song, genre_slug, speed, vocal_mode):
     logger.info(f"  Task: {task_id}")
     video_url = poll_task(task_id)
     if video_url and download_video(video_url, video_path):
-        logger.info(f"  Video: {video_name} ({os.path.getsize(video_path)//1024}KB)")
+        logger.info(f"  Video: {video_name} ({os.path.getsize(video_path) // 1024}KB)")
         return video_path
     return None
 
@@ -127,7 +130,9 @@ def generate_video_for_song(mp3_path, song, genre_slug, speed, vocal_mode):
 def main():
     parser = argparse.ArgumentParser(description="TUT Kling Video Generator")
     parser.add_argument("--song", help="Song name (e.g. twinkle_twinkle)")
-    parser.add_argument("--all", action="store_true", help="Generate videos for all MP3s")
+    parser.add_argument(
+        "--all", action="store_true", help="Generate videos for all MP3s"
+    )
     args = parser.parse_args()
 
     if not KLING_KEY:
@@ -165,7 +170,9 @@ def main():
                         song = "_".join(parts[: sp_idx[0] - 1])
                         genre = parts[sp_idx[0] - 1]
                         speed = float(parts[sp_idx[0] + 1])
-                        vocal = parts[-1] if len(parts) > sp_idx[0] + 1 else "instrumental"
+                        vocal = (
+                            parts[-1] if len(parts) > sp_idx[0] + 1 else "instrumental"
+                        )
                         generate_video_for_song(mp3_path, song, genre, speed, vocal)
     else:
         print("Usage: python tut_kling.py --song twinkle_twinkle  OR  --all")
