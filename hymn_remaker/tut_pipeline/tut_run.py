@@ -9,10 +9,12 @@ Flow per track:
   3. Poll feed for new clips (diff against snapshot)
   4. Download completed MP3
 """
+
 import os
 import sys
 import time
 import requests
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # ── Config ──
@@ -79,17 +81,24 @@ VOCAL_MODES = ["instrumental", "lyrics"]
 
 
 def get_clerk_token(page):
-    """Extract Clerk session token from logged-in page."""
-    for attempt in range(30):
+    """Extract Clerk session token from logged-in page. Waits up to 10 min."""
+    print("  Waiting for login... (check the Edge browser window!)")
+    for attempt in range(300):
         try:
             token = page.evaluate(
-                '(async ()=>{try{return await Clerk.session.getToken()}catch(e){return null}})()'
+                "(async ()=>{try{return await Clerk.session.getToken()}catch(e){return null}})()"
             )
             if token and len(str(token)) > 100:
                 return token
-        except:
+        except Exception:
             pass
         time.sleep(2)
+        if attempt == 15:
+            print("  Still waiting... (are you logged in on suno.com/create?)")
+        elif attempt == 50:
+            print("  Still waiting...")
+        elif attempt == 150:
+            return None
     return None
 
 
@@ -97,7 +106,7 @@ def get_suno_cookie(page):
     """Extract Suno session cookie from CDP page."""
     try:
         token = page.evaluate(
-            '(async ()=>{try{return await Clerk.session.getToken()}catch(e){return null}})()'
+            "(async ()=>{try{return await Clerk.session.getToken()}catch(e){return null}})()"
         )
         return token
     except:
@@ -131,35 +140,54 @@ def handle_describe_modal(page, song_name):
     }})()""")
 
 
-def wait_for_upload_done(page, timeout=90):
-    """Wait for post-upload modals to clear. Returns True if upload complete."""
+def wait_for_upload_done(page, timeout=180, song_name="childrens song"):
+    """Wait for Suno upload modal, handle it, return True when done.
+    THE MODAL IS IN A REACT PORTAL. Use querySelectorAll, NOT innerText."""
     for i in range(timeout // 2):
         time.sleep(2)
         try:
-            body = page.evaluate("document.body.innerText.toLowerCase().substring(0,1000)")
-        except:
-            return False
-
-        if "identify" in body:
-            handle_identify_modal(page)
-            print("  [Identify]")
-        elif "describe" in body and "identify" not in body:
-            # Use a generic label since we don't know the song yet
-            handle_describe_modal(page, "childrens song")
-            print("  [Describe]")
-        elif "matches an existing recording" in body or "copyright" in body:
-            print("  REJECTED: copyright match")
-            return False
-        else:
-            # Check if any modal is still visible
-            is_modal = page.evaluate(
-                "!!Array.from(document.querySelectorAll('span,p,div,label,button,h2')).find(x => /identify|describe/i.test(x.textContent || ''))"
+            # Check modal via element queries (React portal — invisible to innerText)
+            uploading = page.evaluate(
+                "!!Array.from(document.querySelectorAll('*')).find(e => e.offsetParent !== null && /Uploading Clip/i.test(e.textContent || ''))"
             )
-            if not is_modal:
-                return True
+            has_opts = page.evaluate(
+                "!!Array.from(document.querySelectorAll('*')).find(e => e.offsetParent !== null && /Describes the contents|Full Song.*Song Demo|Song Demo.*Voice/i.test(e.textContent || ''))"
+            )
+        except Exception:
+            continue
 
-        if i == 20:
-            print("  (still waiting...)")
+        if i == 0:
+            print(f"  Modal: uploading={uploading} options={has_opts}")
+
+        # Handle type options modal AS SOON as it appears (before timeout)
+        if has_opts:
+            print("  Handling upload modal...")
+            # Click Full Song
+            page.evaluate("""Array.from(document.querySelectorAll('span,p,div,label,button,[role=radio]')).filter(e=>e.offsetParent!==null&&/full song/i.test(e.textContent||"")).forEach(e=>e.click())""")
+            time.sleep(1)
+            # Fill description
+            page.evaluate(f"""(()=>{{var tas=Array.from(document.querySelectorAll('textarea'));var ns=Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype,'value').set;var ta=tas.find(t=>t.offsetParent!==null);if(ta){{ns.call(ta,'{song_name}');ta.dispatchEvent(new Event('input',{{bubbles:true}}));}}}})()""")
+            time.sleep(1)
+            # Click Continue
+            page.evaluate("""Array.from(document.querySelectorAll('button')).find(b=>b.offsetParent!==null&&/continue/i.test(b.textContent.trim()))?.click()""")
+            print("  Modal handled")
+            time.sleep(5)
+            return True
+
+        if not uploading and not has_opts:
+            # No upload in progress, no modal — probably back on create page
+            try:
+                body = page.evaluate("document.body.innerText.substring(0,1000).toLowerCase()")
+            except Exception:
+                body = ""
+            if "song description" in body or "add audio" in body:
+                return True
+            if "matches an existing recording" in body or "copyright" in body:
+                print("  REJECTED")
+                return False
+
+        if i == 30 and uploading:
+            print(f"  Upload taking a while... ({i*2}s)")
 
     return False
 
@@ -169,9 +197,15 @@ def find_upload_clip(headers, song_name):
     for _ in range(15):
         time.sleep(3)
         try:
-            r = requests.get(f"{SUNO_API}/api/feed/?limit=20", headers=headers, timeout=15)
+            r = requests.get(
+                f"{SUNO_API}/api/feed/?limit=20", headers=headers, timeout=15
+            )
             if r.status_code == 200:
-                data = r.json() if isinstance(r.json(), list) else r.json().get("clips", [])
+                data = (
+                    r.json()
+                    if isinstance(r.json(), list)
+                    else r.json().get("clips", [])
+                )
                 for c in data:
                     title = (c.get("title") or "").lower()
                     if song_name.lower() in title or "childrens song" in title:
@@ -233,12 +267,22 @@ def poll_new_clips(headers, existing_ids, max_wait=180):
     for _ in range(max_wait // 3):
         time.sleep(3)
         try:
-            r = requests.get(f"{SUNO_API}/api/feed/?limit=20", headers=headers, timeout=15)
+            r = requests.get(
+                f"{SUNO_API}/api/feed/?limit=20", headers=headers, timeout=15
+            )
             if r.status_code == 200:
-                data = r.json() if isinstance(r.json(), list) else r.json().get("clips", [])
+                data = (
+                    r.json()
+                    if isinstance(r.json(), list)
+                    else r.json().get("clips", [])
+                )
                 for c in data:
                     cid = c.get("id")
-                    if cid and cid not in existing_ids and cid not in [fc["id"] for fc in found]:
+                    if (
+                        cid
+                        and cid not in existing_ids
+                        and cid not in [fc["id"] for fc in found]
+                    ):
                         found.append(c)
                 if len(found) >= 2:
                     return found
@@ -276,6 +320,7 @@ def download_clip(headers, vid, out_mp3):
 def main():
     from playwright.sync_api import sync_playwright
     import logging
+
     logging.basicConfig(level=logging.WARNING)
 
     print("Connecting to Edge CDP at", CDP_URL)
@@ -307,45 +352,83 @@ def main():
                     for vocal in VOCAL_MODES:
                         speed_str = str(speed).replace(".", "_")
                         out_mp3 = os.path.join(
-                            OUTPUT_DIR, f"{song_name}_{genre_slug}_speed_{speed_str}_{vocal}.mp3"
+                            OUTPUT_DIR,
+                            f"{song_name}_{genre_slug}_speed_{speed_str}_{vocal}.mp3",
                         )
                         if os.path.exists(out_mp3):
                             continue
-                        wav_path = os.path.join(RENDERED_DIR, f"{song_name}_speed_{speed_str}.wav")
+                        wav_path = os.path.join(
+                            RENDERED_DIR, f"{song_name}_speed_{speed_str}.wav"
+                        )
                         if not os.path.exists(wav_path):
                             # Fallback: use 1.0x speed WAV for 5.0x renders
                             if speed == 5.0:
-                                wav_path = os.path.join(RENDERED_DIR, f"{song_name}_speed_1_0.wav")
+                                wav_path = os.path.join(
+                                    RENDERED_DIR, f"{song_name}_speed_1_0.wav"
+                                )
                             if not os.path.exists(wav_path):
                                 continue
-                        jobs.append((song_name, lyrics, genre_slug, genre_desc, speed,
-                                     vocal, out_mp3, wav_path))
+                        jobs.append(
+                            (
+                                song_name,
+                                lyrics,
+                                genre_slug,
+                                genre_desc,
+                                speed,
+                                vocal,
+                                out_mp3,
+                                wav_path,
+                            )
+                        )
 
         total = len(jobs)
         print(f"Jobs: {total}")
-        print(f"  {len(SONGS)} songs × {len(GENRES)} genres × {len(SPEEDS)} speeds × {len(VOCAL_MODES)} modes")
-        print(f"  Already done: {len(SONGS)*len(GENRES)*len(SPEEDS)*len(VOCAL_MODES) - total}\n")
+        print(
+            f"  {len(SONGS)} songs × {len(GENRES)} genres × {len(SPEEDS)} speeds × {len(VOCAL_MODES)} modes"
+        )
+        print(
+            f"  Already done: {len(SONGS) * len(GENRES) * len(SPEEDS) * len(VOCAL_MODES) - total}\n"
+        )
 
         if not jobs:
             print("All tracks already generated!")
             browser.close()
             return
 
-        for idx, (song, lyrics, genre_slug, genre_desc, speed, vocal, out_mp3, wav) in enumerate(jobs):
-            print(f"\n[{idx+1}/{total}] {song} | {genre_slug} | {speed}x | {vocal}")
+        for idx, (
+            song,
+            lyrics,
+            genre_slug,
+            genre_desc,
+            speed,
+            vocal,
+            out_mp3,
+            wav,
+        ) in enumerate(jobs):
+            print(f"\n[{idx + 1}/{total}] {song} | {genre_slug} | {speed}x | {vocal}")
 
             # ── Step 1: Upload WAV ──
-            page.goto("https://suno.com/create")
+            try:
+                page.goto("https://suno.com/create", timeout=30000)
+            except Exception:
+                print("  Navigation timeout, retrying...")
+                time.sleep(5)
+                try:
+                    page.goto("https://suno.com/create", timeout=30000)
+                except Exception:
+                    print("  Navigation failed twice, skipping...")
+                    continue
             time.sleep(6)
 
-            # Click "Add Audio"
+            # Click "Add Audio" button
             page.evaluate("""Array.from(document.querySelectorAll('button')).find(x =>
                 (x.getAttribute('aria-label') || '').includes('Add audio'))?.click()""")
             time.sleep(3)
 
-            # Click "Browse, upload, or record audio"
+            # Click "Browse" option in the upload dropdown (new Suno UI)
             page.evaluate("""Array.from(document.querySelectorAll('*')).find(e =>
-                e.offsetParent !== null && e.textContent.trim() === 'Browse, upload, or record audio')?.click()""")
+                e.offsetParent !== null && e.textContent.trim() === 'Browse'
+                && !e.querySelector('*'))?.click()""")
             time.sleep(2)
 
             # File chooser
@@ -370,11 +453,21 @@ def main():
             if not upload_clip_id:
                 # Fallback: get most recent clip
                 try:
-                    r = requests.get(f"{SUNO_API}/api/feed/?limit=5", headers=headers, timeout=15)
+                    r = requests.get(
+                        f"{SUNO_API}/api/feed/?limit=5", headers=headers, timeout=15
+                    )
                     if r.status_code == 200:
-                        data = r.json() if isinstance(r.json(), list) else r.json().get("clips", [])
+                        data = (
+                            r.json()
+                            if isinstance(r.json(), list)
+                            else r.json().get("clips", [])
+                        )
                         for c in data:
-                            if c.get("model_name") in (None, "chirp-upload", "chirp-chirp"):
+                            if c.get("model_name") in (
+                                None,
+                                "chirp-upload",
+                                "chirp-chirp",
+                            ):
                                 upload_clip_id = c.get("id")
                                 break
                 except:
@@ -387,7 +480,16 @@ def main():
             print(f"  Upload clip: {upload_clip_id[:12]}...")
 
             # ── Step 2: Create Cover ──
-            page.goto(f"https://suno.com/song/{upload_clip_id}")
+            try:
+                page.goto(f"https://suno.com/song/{upload_clip_id}", timeout=30000)
+            except Exception:
+                print("  Cover nav timeout, retrying...")
+                time.sleep(5)
+                try:
+                    page.goto(f"https://suno.com/song/{upload_clip_id}", timeout=30000)
+                except Exception:
+                    print("  Cover nav failed, skipping...")
+                    continue
             time.sleep(6)
 
             if not find_cover_button(page):
@@ -396,9 +498,13 @@ def main():
 
             # Build style prompt
             song_title = song.replace("_", " ").title()
-            style_text = f"{genre_desc} cover of {song_title} childrens nursery rhyme v5.5 cover"
+            style_text = (
+                f"{genre_desc} cover of {song_title} childrens nursery rhyme v5.5 cover"
+            )
             if vocal == "lyrics":
-                style_text = f"{genre_desc} cover of {song_title} — sing: {lyrics} v5.5 cover"
+                style_text = (
+                    f"{genre_desc} cover of {song_title} — sing: {lyrics} v5.5 cover"
+                )
 
             fill_cover_style(page, genre_desc, style_text)
             time.sleep(2)
@@ -407,9 +513,15 @@ def main():
             # Snapshot existing feed IDs before creating
             existing_ids = set()
             try:
-                r = requests.get(f"{SUNO_API}/api/feed/?limit=20", headers=headers, timeout=15)
+                r = requests.get(
+                    f"{SUNO_API}/api/feed/?limit=20", headers=headers, timeout=15
+                )
                 if r.status_code == 200:
-                    data = r.json() if isinstance(r.json(), list) else r.json().get("clips", [])
+                    data = (
+                        r.json()
+                        if isinstance(r.json(), list)
+                        else r.json().get("clips", [])
+                    )
                     existing_ids = {c["id"] for c in data}
             except:
                 pass
