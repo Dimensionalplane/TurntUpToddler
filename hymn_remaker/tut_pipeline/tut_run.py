@@ -163,13 +163,19 @@ def wait_for_upload_done(page, timeout=180, song_name="childrens song"):
         if has_opts:
             print("  Handling upload modal...")
             # Click Full Song
-            page.evaluate("""Array.from(document.querySelectorAll('span,p,div,label,button,[role=radio]')).filter(e=>e.offsetParent!==null&&/full song/i.test(e.textContent||"")).forEach(e=>e.click())""")
+            page.evaluate(
+                """Array.from(document.querySelectorAll('span,p,div,label,button,[role=radio]')).filter(e=>e.offsetParent!==null&&/full song/i.test(e.textContent||"")).forEach(e=>e.click())"""
+            )
             time.sleep(1)
             # Fill description
-            page.evaluate(f"""(()=>{{var tas=Array.from(document.querySelectorAll('textarea'));var ns=Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype,'value').set;var ta=tas.find(t=>t.offsetParent!==null);if(ta){{ns.call(ta,'{song_name}');ta.dispatchEvent(new Event('input',{{bubbles:true}}));}}}})()""")
+            page.evaluate(
+                f"""(()=>{{var tas=Array.from(document.querySelectorAll('textarea'));var ns=Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype,'value').set;var ta=tas.find(t=>t.offsetParent!==null);if(ta){{ns.call(ta,'{song_name}');ta.dispatchEvent(new Event('input',{{bubbles:true}}));}}}})()"""
+            )
             time.sleep(1)
             # Click Continue
-            page.evaluate("""Array.from(document.querySelectorAll('button')).find(b=>b.offsetParent!==null&&/continue/i.test(b.textContent.trim()))?.click()""")
+            page.evaluate(
+                """Array.from(document.querySelectorAll('button')).find(b=>b.offsetParent!==null&&/continue/i.test(b.textContent.trim()))?.click()"""
+            )
             print("  Modal handled")
             time.sleep(5)
             return True
@@ -177,7 +183,9 @@ def wait_for_upload_done(page, timeout=180, song_name="childrens song"):
         if not uploading and not has_opts:
             # No upload in progress, no modal — probably back on create page
             try:
-                body = page.evaluate("document.body.innerText.substring(0,1000).toLowerCase()")
+                body = page.evaluate(
+                    "document.body.innerText.substring(0,1000).toLowerCase()"
+                )
             except Exception:
                 body = ""
             if "song description" in body or "add audio" in body:
@@ -187,7 +195,7 @@ def wait_for_upload_done(page, timeout=180, song_name="childrens song"):
                 return False
 
         if i == 30 and uploading:
-            print(f"  Upload taking a while... ({i*2}s)")
+            print(f"  Upload taking a while... ({i * 2}s)")
 
     return False
 
